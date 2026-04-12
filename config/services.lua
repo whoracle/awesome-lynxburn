@@ -2,6 +2,7 @@ local M = {}
 
 local lxaudio_instance
 local lxnotify_instance
+local lxrunner_instance
 
 function M.audio()
     if not lxaudio_instance then
@@ -28,6 +29,14 @@ function M.notify()
     end
 
     return lxnotify_instance
+end
+
+function M.runner()
+    if not lxrunner_instance then
+        lxrunner_instance = require("lxrunner").new()
+    end
+
+    return lxrunner_instance
 end
 
 return M

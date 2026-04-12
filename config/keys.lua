@@ -30,6 +30,7 @@ function M.build(context)
     local programs = context.programs
     local lxnotify = context.lxnotify
     local lxaudio = context.lxaudio
+    local lxrunner = context.lxrunner
     local osd = context.osd
     local lain = context.lain
 
@@ -113,6 +114,10 @@ function M.build(context)
 
     local function open_launcher()
         awful.spawn(programs.launcher)
+    end
+
+    local function toggle_lxrunner()
+        lxrunner:toggle()
     end
 
     local function open_terminal()
@@ -285,6 +290,7 @@ function M.build(context)
         -- programs
         awful.key({ settings.altkey },                                      "c",                    show_calendar,                     { description = "show calendar",             group = grp_names[4] }),
         awful.key({ settings.altkey },                                      "F2",                   open_launcher,                     { description = "launcher",                  group = grp_names[4] }),
+        awful.key({ settings.altkey },                                      "F3",                   toggle_lxrunner,                   { description = "lxrunner",                  group = grp_names[4] }),
         awful.key({ settings.modkey },                                      "q",                    open_terminal,                     { description = "terminal",                  group = grp_names[4] }),
         awful.key({ settings.modkey },                                      "e",                    open_file_browser,                 { description = "file browser",              group = grp_names[4] }),
         awful.key({ settings.modkey },                                      "p",                    screenshot_region,                 { description = "screenshot of region",      group = grp_names[4] }),

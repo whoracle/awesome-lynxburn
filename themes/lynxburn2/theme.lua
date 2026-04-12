@@ -183,6 +183,24 @@ theme.lxnotify_urgency_low_fg = "#7aa2c9"
 theme.lxnotify_urgency_normal_fg = "#c0b18b"
 theme.lxnotify_urgency_critical_fg = "#d97777"
 
+theme.lxrunner_width = 520
+theme.lxrunner_row_count = 5
+theme.lxrunner_bg = gray1
+theme.lxrunner_border_color = gray
+theme.lxrunner_border_width = 1
+theme.lxrunner_radius = 6
+theme.lxrunner_outer_margin = 10
+theme.lxrunner_padding = 12
+theme.lxrunner_input_bg = gray0
+theme.lxrunner_input_fg = white
+theme.lxrunner_prompt_fg = orange
+theme.lxrunner_row_bg = gray2
+theme.lxrunner_row_fg = "#b9aea3"
+theme.lxrunner_row_selected_bg = "#444444"
+theme.lxrunner_row_selected_fg = white
+theme.lxrunner_row_padding = 10
+theme.lxrunner_cursor = "_"
+
 theme.at_screen_connect = require("themes.lynxburn2.widgets").build(theme)
 
 return theme

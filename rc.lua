@@ -18,6 +18,7 @@ local config = require("config")
 
 local lxaudio = config.services.audio()
 local lxnotify = config.services.notify()
+local lxrunner = nil
 
 config.helpers.setup_error_handling(awesome, naughty)
 
@@ -27,6 +28,8 @@ local theme_path = string.format(
     config.settings.theme_name
 )
 beautiful.init(theme_path)
+
+lxrunner = config.services.runner()
 
 local osd_handlers = config.osd.new(beautiful, {
     volume_step = config.settings.volume_step,
@@ -46,6 +49,7 @@ local keymaps = config.keys.build({
     lain = lain,
     lxaudio = lxaudio,
     lxnotify = lxnotify,
+    lxrunner = lxrunner,
     osd = osd_handlers,
     quake = quake,
 })
