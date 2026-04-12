@@ -300,8 +300,8 @@ function M.build(context)
 
         -- programs
         awful.key({ settings.altkey },                                      "c",                    show_calendar,                     { description = "show calendar",             group = grp_names[4] }),
-        awful.key({ settings.altkey },                                      "F2",                   open_launcher,                     { description = "launcher",                  group = grp_names[4] }),
-        awful.key({ settings.altkey },                                      "F3",                   toggle_lxrunner,                   { description = "lxrunner",                  group = grp_names[4] }),
+        awful.key({ settings.altkey },                                      "F2",                   toggle_lxrunner,                   { description = "lxrunner",                  group = grp_names[4] }),
+        awful.key({ settings.altkey },                                      "F3",                   open_launcher,                     { description = "launcher",                  group = grp_names[4] }),
         awful.key({ settings.modkey },                                      "q",                    open_terminal,                     { description = "terminal",                  group = grp_names[4] }),
         awful.key({ settings.modkey },                                      "e",                    open_file_browser,                 { description = "file browser",              group = grp_names[4] }),
         awful.key({ settings.modkey },                                      "p",                    screenshot_region,                 { description = "screenshot of region",      group = grp_names[4] }),
