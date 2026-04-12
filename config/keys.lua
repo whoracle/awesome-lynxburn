@@ -1,6 +1,7 @@
 local awful = require("awful")
 local gears = require("gears")
 local hotkeys_popup = require("awful.hotkeys_popup").widget
+local helpers = require("config.helpers")
 
 local M = {}
 
@@ -42,6 +43,7 @@ function M.build(context)
     local lxrunner = context.lxrunner
     local osd = context.osd
     local lain = context.lain
+    local key_overrides = helpers.load_optional_module("config.override.keys", {})
 
     local grp_names = {
         "01. window",
@@ -363,10 +365,32 @@ function M.build(context)
         )
     end
 
-    return {
+    local keymaps = {
         globalkeys = globalkeys,
         clientkeys = clientkeys,
     }
+
+    if type(key_overrides.global) == "function" then
+        local extra_globalkeys = key_overrides.global(context)
+
+        if extra_globalkeys then
+            keymaps.globalkeys = my_table.join(keymaps.globalkeys, extra_globalkeys)
+        end
+    end
+
+    if type(key_overrides.client) == "function" then
+        local extra_clientkeys = key_overrides.client(context)
+
+        if extra_clientkeys then
+            keymaps.clientkeys = my_table.join(keymaps.clientkeys, extra_clientkeys)
+        end
+    end
+
+    if type(key_overrides.transform) == "function" then
+        keymaps = key_overrides.transform(keymaps, context) or keymaps
+    end
+
+    return keymaps
 end
 
 return M

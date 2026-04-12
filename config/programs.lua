@@ -1,4 +1,5 @@
 local os = os
+local helpers = require("config.helpers")
 
 local home = os.getenv("HOME")
 local imageeditor = "gimp"
@@ -8,7 +9,7 @@ local imageviewer = "sxiv"
 ---
 ---When changing command-line tools, launchers, screenshot tooling, brightness
 ---control, or Redshift parameters, this is usually the first file to edit.
-return {
+local programs = {
     terminal = "urxvt -fg gray -tr -sh 50",
     browser = "vivaldi-stable",
     gui_editor = "subl",
@@ -52,3 +53,8 @@ return {
         --"nm-applet --sm-disable",
     },
 }
+
+return helpers.deep_merge(
+    programs,
+    helpers.load_optional_module("config.override.programs", {})
+)

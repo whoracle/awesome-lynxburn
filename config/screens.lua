@@ -2,8 +2,41 @@ local awful = require("awful")
 local gears = require("gears")
 local beautiful = require("beautiful")
 local lain = require("lain")
+local helpers = require("config.helpers")
 
 local M = {}
+
+local function resolve_layout(layout_name)
+    if layout_name == nil then
+        return nil
+    end
+
+    local layouts = {
+        ["centerwork"] = lain.layout.centerwork,
+        ["centerwork.horizontal"] = lain.layout.centerwork.horizontal,
+        ["fair"] = awful.layout.suit.fair,
+        ["fair.horizontal"] = awful.layout.suit.fair.horizontal,
+        ["floating"] = awful.layout.suit.floating,
+    }
+
+    return layouts[layout_name]
+end
+
+local function default_screen_profiles()
+    return {
+        left = {
+            layout = "centerwork.horizontal",
+            dpi = 96,
+        },
+        center = {
+            layout = "centerwork",
+            dpi = 110,
+        },
+        right = {
+            dpi = 110,
+        },
+    }
+end
 
 ---Configure wallpaper handling and per-screen defaults.
 ---
@@ -11,6 +44,11 @@ local M = {}
 ---defaults and DPI settings.
 ---@param settings table
 function M.setup(settings)
+    local screen_profiles = helpers.deep_merge(
+        default_screen_profiles(),
+        helpers.load_optional_module("config.override.screens", {})
+    )
+
     screen.connect_signal("property::geometry", function(s)
         if beautiful.wallpaper then
             local wallpaper = beautiful.wallpaper
@@ -24,18 +62,20 @@ function M.setup(settings)
     awful.screen.connect_for_each_screen(function(s)
         beautiful.at_screen_connect(s)
 
-        if s.index == settings.monitors.left then
-            s.selected_tag.layout = lain.layout.centerwork.horizontal
-            s.dpi = 96
-        end
+        for screen_name, monitor_index in pairs(settings.monitors) do
+            local profile = screen_profiles[screen_name]
 
-        if s.index == settings.monitors.center then
-            s.selected_tag.layout = lain.layout.centerwork
-            s.dpi = 110
-        end
+            if profile and s.index == monitor_index then
+                local layout = resolve_layout(profile.layout)
 
-        if s.index == settings.monitors.right then
-            s.dpi = 110
+                if layout then
+                    s.selected_tag.layout = layout
+                end
+
+                if profile.dpi then
+                    s.dpi = profile.dpi
+                end
+            end
         end
     end)
 end

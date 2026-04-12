@@ -8,8 +8,8 @@
 local os = os
 
 local awful = require("awful")
-local beautiful = require("beautiful")
 local dpi = require("beautiful.xresources").apply_dpi
+local helpers = require("config.helpers")
 
 local orange = "#d88166"
 local red = "#123456"
@@ -218,9 +218,19 @@ theme.lxrunner_row_selected_fg = white
 theme.lxrunner_row_padding = 10
 theme.lxrunner_cursor = "_"
 
+local theme_overrides = helpers.load_optional_module("config.override.theme", {})
+local custom_at_screen_connect = theme_overrides.at_screen_connect
+
+theme_overrides.at_screen_connect = nil
+helpers.deep_merge(theme, theme_overrides)
+
 -- Wire the per-screen builder from the sibling widgets module. The actual
 -- service/widget lookup happens inside that builder so theme values are already
 -- available on `beautiful`.
 theme.at_screen_connect = require("themes.lynxburn2.widgets").build(theme)
+
+if custom_at_screen_connect then
+    theme.at_screen_connect = custom_at_screen_connect
+end
 
 return theme

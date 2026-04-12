@@ -82,6 +82,9 @@ are intended to become submodules later.
   Shared singleton instances for `lxaudio`, `lxnotify`, `lxrunner`, and
   `lxdisplay`.
 
+- `override/*.example.lua`
+  Templates for local machine-specific overrides that should not be committed.
+
 - `osd.lua`
   Generic text-only OSD helpers that are still owned by the main config. Volume
   and brightness OSD ownership now lives in `lxaudio` and `lxdisplay`
@@ -105,6 +108,35 @@ This split is intentional:
 - wibar structure lives in `widgets.lua`
 - service/module ownership lives in `config/services.lua`
 - user-editable behavior lives in `config/*.lua`
+
+## Local Overrides
+
+Machine-specific changes can live in `config/override/*.lua` instead of
+changing the tracked defaults.
+
+Supported override files:
+
+- `config/override/settings.lua`
+- `config/override/programs.lua`
+- `config/override/theme.lua`
+- `config/override/screens.lua`
+- `config/override/keys.lua`
+
+These files are git-ignored. The tracked `*.example.lua` files in the same
+directory show the expected structure.
+
+Override precedence is always:
+
+1. tracked default
+2. local override
+
+What each override is for:
+
+- `settings.lua`: modifier keys, monitor indices, workspace names, theme name
+- `programs.lua`: terminal/browser/launcher commands, autostart, Redshift
+- `theme.lua`: colors, wallpaper, theme-local module sizing and styling
+- `screens.lua`: per-monitor default layout and DPI
+- `keys.lua`: append new bindings or transform the generated keymaps
 
 ## Theme Split
 
