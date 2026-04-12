@@ -13,6 +13,12 @@ local DEFAULTS = {
     row_count = function()
         return beautiful.lxrunner_row_count or 5
     end,
+    history_limit = function()
+        return beautiful.lxrunner_history_limit or 5
+    end,
+    history_file = function()
+        return (os.getenv("HOME") or "") .. "/.lxrunner_history"
+    end,
     prompt = "Run",
 }
 
@@ -29,6 +35,22 @@ end
 local function shell_escape(s)
     s = tostring(s or "")
     return "'" .. s:gsub("'", [["'"']]) .. "'"
+end
+
+local function escape_field(s)
+    s = tostring(s or "")
+    s = s:gsub("\\", "\\\\")
+    s = s:gsub("\t", "\\t")
+    s = s:gsub("\n", "\\n")
+    return s
+end
+
+local function unescape_field(s)
+    s = tostring(s or "")
+    s = s:gsub("\\n", "\n")
+    s = s:gsub("\\t", "\t")
+    s = s:gsub("\\\\", "\\")
+    return s
 end
 
 local function normalize_toggle_key(toggle_key)
@@ -164,6 +186,76 @@ function M:_set_placeholder_rows()
     end
 end
 
+function M:_load_history()
+    self._history = {}
+
+    local handle = io.open(self.opts.history_file, "r")
+    if not handle then
+        return
+    end
+
+    for line in handle:lines() do
+        local ts, name, command = line:match("^([^\t]*)\t([^\t]*)\t(.*)$")
+        if ts and name and command then
+            table.insert(self._history, {
+                last_used = tonumber(ts) or 0,
+                name = unescape_field(name),
+                command = unescape_field(command),
+                source = "history",
+            })
+        end
+    end
+
+    handle:close()
+end
+
+function M:_save_history()
+    local handle = io.open(self.opts.history_file, "w")
+    if not handle then
+        return
+    end
+
+    for i = 1, math.min(#self._history, self.opts.history_limit) do
+        local entry = self._history[i]
+        handle:write(string.format(
+            "%s\t%s\t%s\n",
+            tostring(entry.last_used or 0),
+            escape_field(entry.name),
+            escape_field(entry.command)
+        ))
+    end
+
+    handle:close()
+end
+
+function M:_record_history(entry)
+    if not entry or not entry.command or entry.command == "" then
+        return
+    end
+
+    local updated = {
+        name = entry.name or entry.command,
+        command = entry.command,
+        source = "history",
+        last_used = os.time(),
+    }
+
+    local new_history = { updated }
+
+    for _, existing in ipairs(self._history) do
+        if existing.command ~= updated.command then
+            table.insert(new_history, existing)
+        end
+    end
+
+    while #new_history > self.opts.history_limit do
+        table.remove(new_history)
+    end
+
+    self._history = new_history
+    self:_save_history()
+end
+
 function M:_load_path_commands()
     local seen = {}
     local commands = {}
@@ -242,11 +334,32 @@ function M:_filter_matches()
     end
 end
 
+function M:_visible_entries()
+    if self._input == "" then
+        return self._history
+    end
+
+    return self._matches
+end
+
 function M:_render_results()
     self._results:reset()
 
     if self._input == "" then
-        self:_set_placeholder_rows()
+        if #self._history == 0 then
+            self:_set_placeholder_rows()
+            return
+        end
+
+        for i = 1, self.opts.row_count do
+            local entry = self._history[i]
+            if entry then
+                self._results:add(build_row(entry.name, i == self._selected_index))
+            else
+                self._results:add(build_row("", false))
+            end
+        end
+
         return
     end
 
@@ -289,15 +402,17 @@ function M:_refresh()
 end
 
 function M:_move_selection(delta)
-    if #self._matches == 0 then
+    local entries = self:_visible_entries()
+
+    if #entries == 0 then
         return
     end
 
     self._selected_index = self._selected_index + delta
 
     if self._selected_index < 1 then
-        self._selected_index = #self._matches
-    elseif self._selected_index > #self._matches then
+        self._selected_index = #entries
+    elseif self._selected_index > #entries then
         self._selected_index = 1
     end
 
@@ -305,12 +420,13 @@ function M:_move_selection(delta)
 end
 
 function M:_launch_selected()
-    local selected = self._matches[self._selected_index]
+    local selected = self:_visible_entries()[self._selected_index]
     if not selected then
         return
     end
 
     awful.spawn.with_shell(selected.command)
+    self:_record_history(selected)
     self:hide()
 end
 
@@ -383,6 +499,7 @@ function M:show(opts)
     self._matches = {}
     self._selected_index = 1
     self:_ensure_path_commands()
+    self:_load_history()
     self.popup.screen = awful.screen.focused()
     self.popup.visible = true
     awful.placement.centered(self.popup, { honor_workarea = true, parent = awful.screen.focused() })
@@ -414,6 +531,7 @@ function M.new(opts)
     self._input = ""
     self._toggle_key = nil
     self._path_commands = nil
+    self._history = {}
     self._matches = {}
     self._selected_index = 1
 
