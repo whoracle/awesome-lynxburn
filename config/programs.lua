@@ -37,8 +37,8 @@ return {
         "unclutter -root",
     },
     autostart = {
-        "nextcloud",
-        "nm-applet --sm-disable",
-        "redshift-gtk",
+        --"nextcloud",
+        --"nm-applet --sm-disable",
+        --"redshift-gtk",
     },
 }

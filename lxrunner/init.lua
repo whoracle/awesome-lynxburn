@@ -270,6 +270,18 @@ function M:_render_results()
     end
 end
 
+function M:_render_prompt()
+    local cursor = self.visible and (beautiful.lxrunner_cursor or "_") or ""
+    self._prompt:set_markup(string.format(
+        '<span foreground="%s">%s</span><span foreground="%s"> %s%s</span>',
+        beautiful.lxrunner_prompt_fg or beautiful.fg_focus or "#ffffff",
+        gears.string.xml_escape(self.opts.prompt .. ":"),
+        beautiful.lxrunner_input_fg or beautiful.fg_normal or "#ffffff",
+        gears.string.xml_escape(self._input),
+        gears.string.xml_escape(cursor)
+    ))
+end
+
 function M:_refresh()
     self:_render_prompt()
     self:_filter_matches()

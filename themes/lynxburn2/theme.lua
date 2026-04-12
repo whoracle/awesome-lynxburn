@@ -185,10 +185,10 @@ theme.lxnotify_urgency_critical_fg = "#d97777"
 
 theme.lxrunner_width = 520
 theme.lxrunner_row_count = 5
-theme.lxrunner_bg = gray1
+theme.lxrunner_bg = gray2
 theme.lxrunner_border_color = gray
 theme.lxrunner_border_width = 1
-theme.lxrunner_radius = 6
+theme.lxrunner_radius = 0
 theme.lxrunner_outer_margin = 10
 theme.lxrunner_padding = 12
 theme.lxrunner_input_bg = gray0
