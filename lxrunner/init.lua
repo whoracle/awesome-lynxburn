@@ -16,6 +16,21 @@ local DEFAULTS = {
     prompt = "Run",
 }
 
+local function split_path(path_value)
+    local parts = {}
+
+    for part in tostring(path_value or ""):gmatch("[^:]+") do
+        table.insert(parts, part)
+    end
+
+    return parts
+end
+
+local function shell_escape(s)
+    s = tostring(s or "")
+    return "'" .. s:gsub("'", [["'"']]) .. "'"
+end
+
 local function normalize_toggle_key(toggle_key)
     if type(toggle_key) ~= "table" or type(toggle_key.key) ~= "string" then
         return nil
@@ -110,6 +125,29 @@ local function build_row(text, selected)
     })
 end
 
+local function normalize_query(query)
+    return tostring(query or ""):lower()
+end
+
+local function command_matches(name, query)
+    if query == "" then
+        return false
+    end
+
+    local lower_name = name:lower()
+
+    if lower_name:sub(1, #query) == query then
+        return 0
+    end
+
+    local start_at = lower_name:find(query, 1, true)
+    if start_at then
+        return start_at
+    end
+
+    return nil
+end
+
 function M:_set_placeholder_rows()
     local rows = {
         "Type to search PATH commands",
@@ -126,16 +164,142 @@ function M:_set_placeholder_rows()
     end
 end
 
-function M:_render_prompt()
-    local cursor = self.visible and (beautiful.lxrunner_cursor or "_") or ""
-    self._prompt:set_markup(string.format(
-        '<span foreground="%s">%s</span><span foreground="%s"> %s%s</span>',
-        beautiful.lxrunner_prompt_fg or beautiful.fg_focus or "#ffffff",
-        gears.string.xml_escape(self.opts.prompt .. ":"),
-        beautiful.lxrunner_input_fg or beautiful.fg_normal or "#ffffff",
-        gears.string.xml_escape(self._input),
-        gears.string.xml_escape(cursor)
-    ))
+function M:_load_path_commands()
+    local seen = {}
+    local commands = {}
+
+    for _, dir in ipairs(split_path(os.getenv("PATH"))) do
+        local cmd = string.format(
+            "find %s -maxdepth 1 -type f -executable -printf '%%f\\n' 2>/dev/null",
+            shell_escape(dir)
+        )
+        local handle = io.popen(cmd)
+
+        if handle then
+            for line in handle:lines() do
+                if line ~= "" and not seen[line] then
+                    seen[line] = true
+                    table.insert(commands, {
+                        name = line,
+                        command = line,
+                        source = "path",
+                    })
+                end
+            end
+
+            handle:close()
+        end
+    end
+
+    table.sort(commands, function(a, b)
+        return a.name < b.name
+    end)
+
+    self._path_commands = commands
+end
+
+function M:_ensure_path_commands()
+    if not self._path_commands then
+        self:_load_path_commands()
+    end
+end
+
+function M:_filter_matches()
+    local query = normalize_query(self._input)
+    self._matches = {}
+    self._selected_index = 1
+
+    if query == "" then
+        return
+    end
+
+    self:_ensure_path_commands()
+
+    local ranked = {}
+
+    for _, entry in ipairs(self._path_commands) do
+        local rank = command_matches(entry.name, query)
+        if rank ~= nil then
+            table.insert(ranked, {
+                rank = rank,
+                name = entry.name,
+                command = entry.command,
+                source = entry.source,
+            })
+        end
+    end
+
+    table.sort(ranked, function(a, b)
+        if a.rank ~= b.rank then
+            return a.rank < b.rank
+        end
+
+        return a.name < b.name
+    end)
+
+    for i = 1, math.min(#ranked, self.opts.row_count) do
+        self._matches[i] = ranked[i]
+    end
+end
+
+function M:_render_results()
+    self._results:reset()
+
+    if self._input == "" then
+        self:_set_placeholder_rows()
+        return
+    end
+
+    if #self._matches == 0 then
+        self._results:add(build_row("No matches", true))
+
+        for _ = 2, self.opts.row_count do
+            self._results:add(build_row("", false))
+        end
+
+        return
+    end
+
+    for i = 1, self.opts.row_count do
+        local match = self._matches[i]
+        if match then
+            self._results:add(build_row(match.name, i == self._selected_index))
+        else
+            self._results:add(build_row("", false))
+        end
+    end
+end
+
+function M:_refresh()
+    self:_render_prompt()
+    self:_filter_matches()
+    self:_render_results()
+end
+
+function M:_move_selection(delta)
+    if #self._matches == 0 then
+        return
+    end
+
+    self._selected_index = self._selected_index + delta
+
+    if self._selected_index < 1 then
+        self._selected_index = #self._matches
+    elseif self._selected_index > #self._matches then
+        self._selected_index = 1
+    end
+
+    self:_render_results()
+end
+
+function M:_launch_selected()
+    local selected = self._matches[self._selected_index]
+    if not selected then
+        return
+    end
+
+    awful.spawn.with_shell(selected.command)
+    self:hide()
 end
 
 function M:_start_keygrabber()
@@ -157,20 +321,30 @@ function M:_start_keygrabber()
                 return
             end
 
+            if key == "Up" then
+                self:_move_selection(-1)
+                return
+            end
+
+            if key == "Down" then
+                self:_move_selection(1)
+                return
+            end
+
             if key == "BackSpace" then
                 self._input = self._input:sub(1, -2)
-                self:_render_prompt()
+                self:_refresh()
                 return
             end
 
             if key == "Return" or key == "KP_Enter" then
-                self:hide()
+                self:_launch_selected()
                 return
             end
 
             if #key == 1 then
                 self._input = self._input .. key
-                self:_render_prompt()
+                self:_refresh()
             end
         end,
     })
@@ -194,11 +368,13 @@ function M:show(opts)
     self:set_toggle_key(opts.toggle_key)
     self.visible = true
     self._input = ""
+    self._matches = {}
+    self._selected_index = 1
+    self:_ensure_path_commands()
     self.popup.screen = awful.screen.focused()
     self.popup.visible = true
     awful.placement.centered(self.popup, { honor_workarea = true, parent = awful.screen.focused() })
-    self:_render_prompt()
-    self:_set_placeholder_rows()
+    self:_refresh()
     self:_start_keygrabber()
 end
 
@@ -225,6 +401,9 @@ function M.new(opts)
     self.visible = false
     self._input = ""
     self._toggle_key = nil
+    self._path_commands = nil
+    self._matches = {}
+    self._selected_index = 1
 
     self._prompt = wibox.widget({
         markup = "",
