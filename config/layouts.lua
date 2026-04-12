@@ -3,6 +3,8 @@ local lain = require("lain")
 
 local M = {}
 
+---Configure the available Awesome/lain layouts and global terminal/tag names.
+---@param settings {terminal:string,workspaces:string[]}
 function M.setup(settings)
     lain.layout.termfair.nmaster = 3
     lain.layout.termfair.ncol = 1
@@ -25,6 +27,9 @@ function M.setup(settings)
     }
 end
 
+---Create the drop-down Quake terminal wrapper.
+---@param terminal string
+---@return table
 function M.create_quake(terminal)
     return lain.util.quake({
         app = terminal,

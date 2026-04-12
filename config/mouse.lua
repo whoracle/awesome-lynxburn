@@ -3,6 +3,9 @@ local gears = require("gears")
 
 local M = {}
 
+---Build root, client, taglist, and tasklist mouse bindings.
+---@param context {my_table:any,terminal:string,modkey:string}
+---@return {mousebuttons:any, clientbuttons:any}
 function M.build(context)
     local my_table = context.my_table or gears.table
     local terminal = context.terminal

@@ -1,5 +1,8 @@
 -- LynxBurn Theme
 -- rc.lua
+--
+-- Main Awesome entrypoint. This file is intentionally kept thin and mostly
+-- wires together the smaller config modules plus the selected theme.
 
 local awesome, client, mouse, screen, tag = awesome, client, mouse, screen, tag
 local ipairs, string, os, table, tostring, tonumber, type =
@@ -16,6 +19,8 @@ local my_table = awful.util.table or gears.table
 
 local config = require("config")
 
+-- Long-lived shared services are created after the theme is loaded so their
+-- widgets read final `beautiful` values rather than partially initialized ones.
 local lxaudio = config.services.audio()
 local lxdisplay = nil
 local lxnotify = config.services.notify()

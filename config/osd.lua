@@ -3,6 +3,13 @@ local wibox = require("wibox")
 
 local M = {}
 
+---Create the remaining generic text OSD helpers owned by the main config.
+---
+---Volume and brightness OSD ownership has moved into `lxaudio` and
+---`lxdisplay`. This module intentionally remains narrow.
+---@param beautiful table
+---@param _options table
+---@return table
 function M.new(beautiful, _options)
     local osd_timeout = 1
 

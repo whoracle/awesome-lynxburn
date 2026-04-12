@@ -4,6 +4,7 @@ local hotkeys_popup = require("awful.hotkeys_popup").widget
 
 local M = {}
 
+---Register a small set of non-Awesome default hotkey hints for the popup.
 local function register_extra_hotkeys()
     local extra_rule = { class = { "sublime_text", "Sublime_text" } }
 
@@ -24,6 +25,13 @@ local function register_extra_hotkeys()
     })
 end
 
+---Build root and client keymaps from the shared config context.
+---
+---This module intentionally owns only keybinding definitions and their local
+---helper functions. Application commands live in `programs.lua`, and long-lived
+---widget/module state is passed in through `context`.
+---@param context table
+---@return {globalkeys:any, clientkeys:any}
 function M.build(context)
     local my_table = context.my_table or gears.table
     local settings = context.settings

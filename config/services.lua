@@ -5,6 +5,10 @@ local lxdisplay_instance
 local lxnotify_instance
 local lxrunner_instance
 
+---Shared singleton accessors for the long-lived helper modules.
+---
+---Services are created lazily so theme initialization can complete before
+---theme-driven widget options are read.
 function M.audio()
     if not lxaudio_instance then
         lxaudio_instance = require("lxaudio").new({
@@ -17,6 +21,8 @@ function M.audio()
     return lxaudio_instance
 end
 
+---Return the shared lxnotify instance.
+---@return table
 function M.notify()
     if not lxnotify_instance then
         lxnotify_instance = require("lxnotify").new({
@@ -33,6 +39,8 @@ function M.notify()
     return lxnotify_instance
 end
 
+---Return the shared lxdisplay instance.
+---@return table
 function M.display()
     if not lxdisplay_instance then
         local programs = require("config.programs")
@@ -45,6 +53,8 @@ function M.display()
     return lxdisplay_instance
 end
 
+---Return the shared lxrunner instance.
+---@return table
 function M.runner()
     if not lxrunner_instance then
         lxrunner_instance = require("lxrunner").new()

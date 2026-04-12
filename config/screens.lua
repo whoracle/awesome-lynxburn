@@ -5,6 +5,11 @@ local lain = require("lain")
 
 local M = {}
 
+---Configure wallpaper handling and per-screen defaults.
+---
+---This is where monitor indices from `settings.lua` are translated into layout
+---defaults and DPI settings.
+---@param settings table
 function M.setup(settings)
     screen.connect_signal("property::geometry", function(s)
         if beautiful.wallpaper then

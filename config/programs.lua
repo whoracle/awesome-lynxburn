@@ -4,6 +4,10 @@ local home = os.getenv("HOME")
 local imageeditor = "gimp"
 local imageviewer = "sxiv"
 
+---External program definitions and command templates used by the main config.
+---
+---When changing command-line tools, launchers, screenshot tooling, brightness
+---control, or Redshift parameters, this is usually the first file to edit.
 return {
     terminal = "urxvt -fg gray -tr -sh 50",
     browser = "vivaldi-stable",

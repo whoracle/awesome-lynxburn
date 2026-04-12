@@ -1,6 +1,9 @@
 -- LynxBurn AwesomeWM theme
 -- Based on Steamburn by Awesome-Copycats
 -- v1.0
+--
+-- This file is theme data only: colors, fonts, icons, spacing, and per-module
+-- theme knobs. Wibar composition lives in `themes/lynxburn2/widgets.lua`.
 
 local os = os
 
@@ -215,6 +218,9 @@ theme.lxrunner_row_selected_fg = white
 theme.lxrunner_row_padding = 10
 theme.lxrunner_cursor = "_"
 
+-- Wire the per-screen builder from the sibling widgets module. The actual
+-- service/widget lookup happens inside that builder so theme values are already
+-- available on `beautiful`.
 theme.at_screen_connect = require("themes.lynxburn2.widgets").build(theme)
 
 return theme

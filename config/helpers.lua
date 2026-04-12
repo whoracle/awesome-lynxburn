@@ -1,5 +1,8 @@
 local M = {}
 
+---Install startup-time and runtime error notifications.
+---@param awesome table
+---@param naughty table
 function M.setup_error_handling(awesome, naughty)
     if awesome.startup_errors then
         naughty.notify({
@@ -26,6 +29,12 @@ function M.setup_error_handling(awesome, naughty)
     end)
 end
 
+---Spawn each command only when a matching process is not already running.
+---
+---This is used for "run once" startup applications and intentionally checks the
+---first token of the configured command for process matching.
+---@param awful table
+---@param commands string[]
 function M.run_once(awful, commands)
     for _, cmd in ipairs(commands) do
         local findme = cmd

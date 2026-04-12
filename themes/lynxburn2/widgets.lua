@@ -14,6 +14,7 @@ local markup = lain.util.markup
 
 local M = {}
 
+---Wrap a widget in the standard LynxBurn wibar background and padding shell.
 local mail_account = "anthrax@lynxcore.org"
 local mail_password_lookup =
     "secret-tool lookup service awesomewm-imap account " .. mail_account
@@ -191,6 +192,13 @@ local function build_layout_switcher(theme, s)
     return wrap_widget(theme, layoutbox)
 end
 
+---Build the full per-screen widget and wibar setup for the LynxBurn theme.
+---
+---Theme values come from `theme.lua`, while shared module instances are fetched
+---from `config.services` inside the returned screen callback so they are
+---initialized after `beautiful.init(...)`.
+---@param theme table
+---@return fun(s: table)
 function M.build(theme)
     local mytextclock = wibox.widget.textclock(markup(theme.tasklist_fg_normal, " %H:%M "))
     local myclock = build_text_widget(theme, mytextclock)

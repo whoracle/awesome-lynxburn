@@ -2,6 +2,12 @@ local awful = require("awful")
 
 local M = {}
 
+---Build the Awesome client rule list.
+---
+---Per-application placement, floating/maximized defaults, and monitor/tag
+---assignments belong here.
+---@param context {beautiful:table,clientkeys:any,clientbuttons:any,monitors:table}
+---@return table[]
 function M.build(context)
     local beautiful = context.beautiful
     local clientkeys = context.clientkeys

@@ -3,6 +3,8 @@ local wibox = require("wibox")
 
 local M = {}
 
+---Install client signal handlers such as titlebars and border behavior.
+---@param context {beautiful:table,my_table:any}
 function M.setup(context)
     local beautiful = context.beautiful
     local my_table = context.my_table
