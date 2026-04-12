@@ -97,9 +97,20 @@ local function current_time_seconds()
 end
 
 local function timezone_offset_hours(reference_time)
-    local now = reference_time or os.time()
-    local utc = os.time(os.date("!*t", now))
-    return os.difftime(now, utc) / 3600
+    local timestamp = reference_time or os.time()
+    local offset = os.date("%z", timestamp)
+    local sign, hours, minutes = offset:match("^([%+%-])(%d%d)(%d%d)$")
+
+    if not sign then
+        return 0
+    end
+
+    local value = tonumber(hours) + (tonumber(minutes) / 60)
+    if sign == "-" then
+        return -value
+    end
+
+    return value
 end
 
 local function calculate_solar_event_hours(is_sunrise, latitude, longitude)
@@ -266,25 +277,47 @@ function M:_build_xrandr_gamma_argv(gamma, outputs)
 end
 
 function M:_apply_redshift_temperature(temperature, callback)
+    self._redshift_pending_apply = {
+        temperature = temperature,
+        callback = callback,
+    }
+
+    self:_flush_redshift_apply_queue()
+end
+
+function M:_flush_redshift_apply_queue()
+    if self._redshift_apply_inflight or not self._redshift_pending_apply then
+        return
+    end
+
+    local apply_request = self._redshift_pending_apply
+    self._redshift_pending_apply = nil
+    self._redshift_apply_inflight = true
+
     self:_query_connected_outputs(function(outputs)
         self._redshift_outputs = outputs
 
-        if #outputs == 0 then
-            self._redshift_temperature = temperature
-            if callback then
-                callback()
+        local function finish()
+            self._redshift_apply_inflight = false
+            self._redshift_temperature = apply_request.temperature
+
+            if apply_request.callback then
+                apply_request.callback()
             end
+
+            if self._redshift_pending_apply then
+                self:_flush_redshift_apply_queue()
+            end
+        end
+
+        if #outputs == 0 then
+            finish()
             return
         end
 
         awful.spawn.easy_async(
-            self:_build_xrandr_gamma_argv(temperature_to_gamma(temperature), outputs),
-            function()
-                self._redshift_temperature = temperature
-                if callback then
-                    callback()
-                end
-            end
+            self:_build_xrandr_gamma_argv(temperature_to_gamma(apply_request.temperature), outputs),
+            finish
         )
     end)
 end
@@ -370,44 +403,51 @@ function M:_stop_redshift_transition()
         self._redshift_transition_timer = nil
     end
 
+    self._redshift_transition_id = (self._redshift_transition_id or 0) + 1
     self._redshift_transition_active = false
 end
 
 function M:_run_redshift_transition(from_temp, to_temp, on_done)
     self:_stop_redshift_transition()
     self._redshift_transition_active = true
+    local transition_id = self._redshift_transition_id
 
     local steps = math.max(1, tonumber(self._redshift.transition_steps) or 8)
     local interval = tonumber(self._redshift.transition_interval) or 0.05
     local step_index = 0
 
     local function apply_step()
+        if transition_id ~= self._redshift_transition_id then
+            return
+        end
+
         step_index = step_index + 1
 
         local progress = step_index / steps
         local temperature = round(lerp(from_temp, to_temp, progress))
 
         self:_apply_redshift_temperature(temperature, function()
+            if transition_id ~= self._redshift_transition_id then
+                return
+            end
+
             if step_index >= steps then
                 self:_stop_redshift_transition()
                 if on_done then
                     on_done()
                 end
+                return
             end
+
+            self._redshift_transition_timer = gears.timer.start_new(interval, function()
+                self._redshift_transition_timer = nil
+                apply_step()
+                return false
+            end)
         end)
     end
 
     apply_step()
-
-    if steps == 1 then
-        return
-    end
-
-    self._redshift_transition_timer = gears.timer({
-        timeout = interval,
-        autostart = true,
-        callback = apply_step,
-    })
 end
 
 function M:redshift_resume()
