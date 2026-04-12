@@ -192,6 +192,32 @@ local function build_env_prefix(env)
     return table.concat(parts, " ") .. " "
 end
 
+local function longest_common_prefix(values)
+    if #values == 0 then
+        return ""
+    end
+
+    local prefix = values[1]
+
+    for i = 2, #values do
+        local value = values[i]
+        local max_len = math.min(#prefix, #value)
+        local j = 1
+
+        while j <= max_len and prefix:sub(j, j) == value:sub(j, j) do
+            j = j + 1
+        end
+
+        prefix = prefix:sub(1, j - 1)
+
+        if prefix == "" then
+            break
+        end
+    end
+
+    return prefix
+end
+
 function M:_set_placeholder_rows()
     local rows = {
         "Type to search PATH commands",
@@ -541,6 +567,57 @@ function M:_move_selection(delta)
     self:_render_results()
 end
 
+function M:_complete_input()
+    local entries = self:_visible_entries()
+    local input = self._input
+
+    if input == "" then
+        local selected = entries[self._selected_index]
+        if selected then
+            self._input = selected.name
+            self:_refresh()
+        end
+        return
+    end
+
+    local query_head, arg_tail = split_alias_query(input)
+    local base_query = input
+    local suffix = ""
+
+    if input:find("%s") then
+        base_query = query_head
+        if arg_tail ~= "" then
+            suffix = " " .. arg_tail
+        end
+    end
+
+    local normalized_base_query = normalize_query(base_query)
+    local candidates = {}
+
+    for _, entry in ipairs(entries) do
+        local candidate = entry.alias_name or entry.name
+        if normalize_query(candidate):sub(1, #normalized_base_query) == normalized_base_query then
+            table.insert(candidates, candidate)
+        end
+    end
+
+    if #candidates == 0 then
+        return
+    end
+
+    local prefix = longest_common_prefix(candidates)
+    if prefix == "" or prefix == base_query then
+        if #candidates == 1 and suffix == "" then
+            self._input = candidates[1] .. " "
+            self:_refresh()
+        end
+        return
+    end
+
+    self._input = prefix .. suffix
+    self:_refresh()
+end
+
 function M:_launch_selected()
     local selected = self:_visible_entries()[self._selected_index]
     if not selected then
@@ -579,6 +656,11 @@ function M:_start_keygrabber()
             if key == "BackSpace" then
                 self._input = self._input:sub(1, -2)
                 self:_refresh()
+                return
+            end
+
+            if key == "Tab" or key == "ISO_Left_Tab" then
+                self:_complete_input()
                 return
             end
 
