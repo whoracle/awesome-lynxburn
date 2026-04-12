@@ -6,6 +6,7 @@ Supported local override files:
 - `programs.lua`
 - `theme.lua`
 - `screens.lua`
+- `rules.lua`
 - `keys.lua`
 - `lxrunner_aliases.lua`
 

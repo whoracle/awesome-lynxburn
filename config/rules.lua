@@ -1,4 +1,5 @@
 local awful = require("awful")
+local helpers = require("config.helpers")
 
 local M = {}
 
@@ -13,8 +14,7 @@ function M.build(context)
     local clientkeys = context.clientkeys
     local clientbuttons = context.clientbuttons
     local monitors = context.monitors
-
-    return {
+    local rules = {
         {
             rule = {},
             properties = {
@@ -41,10 +41,6 @@ function M.build(context)
         {
             rule = { class = "Sublime_text" },
             properties = { screen = monitors.center, tag = awful.util.tagnames[1] },
-        },
-        {
-            rule = { class = "Google-chrome" },
-            properties = { screen = monitors.right, tag = awful.util.tagnames[1], maximized = false },
         },
         {
             rule_any = { class = { "vlc" } },
@@ -86,6 +82,20 @@ function M.build(context)
             properties = { focus = false },
         },
     }
+
+    local override_rules = helpers.load_optional_module("config.override.rules", {})
+
+    if type(override_rules) == "function" then
+        override_rules = override_rules(context)
+    end
+
+    if type(override_rules) == "table" then
+        for _, rule in ipairs(override_rules) do
+            rules[#rules + 1] = rule
+        end
+    end
+
+    return rules
 end
 
 return M
