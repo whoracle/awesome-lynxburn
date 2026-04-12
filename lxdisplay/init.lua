@@ -50,6 +50,10 @@ local function lerp(a, b, t)
     return a + ((b - a) * t)
 end
 
+local function parse_redshift_temperature(output)
+    return tonumber(tostring(output or ""):match("Color temperature:%s*(%d+)K"))
+end
+
 local function theme_flag(value, default)
     if value == nil then
         return default
@@ -121,6 +125,13 @@ function M:_redshift_base_command()
     return shell_join(args)
 end
 
+function M:_redshift_print_command()
+    return shell_join({
+        self:_redshift_base_command(),
+        "-p",
+    })
+end
+
 function M:_redshift_kill_command()
     local name = self._redshift.command_name or self._redshift.command or "redshift"
     return string.format("pkill -x %s 2>/dev/null || true", name)
@@ -143,11 +154,11 @@ function M:_redshift_override_command(temperature)
 end
 
 function M:_redshift_start_command()
-    return shell_chain({
-        self:_redshift_kill_command(),
-        self:_redshift_reset_command(),
-        self:_redshift_base_command(),
-    })
+    return self:_redshift_base_command()
+end
+
+function M:_spawn_redshift_process()
+    awful.spawn.with_shell(self:_redshift_start_command())
 end
 
 function M:_set_redshift_suspended(suspended)
@@ -155,16 +166,15 @@ function M:_set_redshift_suspended(suspended)
     self:_update_widget(self._brightness_value or 0)
 end
 
-function M:_current_redshift_target_temperature()
-    local hour = os.date("*t").hour
-    local day_start = self._redshift.day_start_hour or 7
-    local night_start = self._redshift.night_start_hour or 19
+function M:_default_redshift_temperature()
+    return self._redshift.temperature_day or 6500
+end
 
-    if hour >= day_start and hour < night_start then
-        return self._redshift.temperature_day
-    end
-
-    return self._redshift.temperature_night
+function M:_query_redshift_target_temperature(callback)
+    awful.spawn.easy_async_with_shell(self:_redshift_print_command(), function(stdout)
+        local temperature = parse_redshift_temperature(stdout) or self._redshift_temperature or self:_default_redshift_temperature()
+        callback(temperature)
+    end)
 end
 
 function M:_stop_redshift_transition()
@@ -216,16 +226,16 @@ function M:redshift_resume()
         return
     end
 
-    local target = self:_current_redshift_target_temperature()
-    local start = self._redshift.temperature_day or 6500
-
     self:_stop_redshift_transition()
-    awful.spawn.easy_async_with_shell(shell_chain({
-        self:_redshift_kill_command(),
-        self:_redshift_reset_command(),
-    }), function()
-        self:_run_redshift_transition(start, target, function()
-            awful.spawn.easy_async_with_shell(self:_redshift_start_command(), function()
+    self:_query_redshift_target_temperature(function(target)
+        local start = self:_default_redshift_temperature()
+
+        awful.spawn.easy_async_with_shell(shell_chain({
+            self:_redshift_kill_command(),
+            self:_redshift_reset_command(),
+        }), function()
+            self:_run_redshift_transition(start, target, function()
+                self:_spawn_redshift_process()
                 self._redshift_temperature = target
                 self:_set_redshift_suspended(false)
             end)
@@ -234,8 +244,8 @@ function M:redshift_resume()
 end
 
 function M:redshift_suspend()
-    local start = self._redshift_temperature or self:_current_redshift_target_temperature()
-    local target = self._redshift.temperature_day or 6500
+    local start = self._redshift_temperature or self:_default_redshift_temperature()
+    local target = self:_default_redshift_temperature()
 
     self:_stop_redshift_transition()
     awful.spawn.easy_async_with_shell(self:_redshift_kill_command(), function()
@@ -257,16 +267,18 @@ function M:redshift_toggle()
 end
 
 function M:_initialize_redshift()
-    self._redshift_temperature = self._redshift.temperature_day or 6500
+    self._redshift_temperature = self:_default_redshift_temperature()
 
     if self._redshift.autostart and self._redshift.enabled then
-        awful.spawn.easy_async_with_shell(shell_chain({
-            self:_redshift_kill_command(),
-            self:_redshift_reset_command(),
-            self:_redshift_start_command(),
-        }), function()
-            self._redshift_temperature = self:_current_redshift_target_temperature()
-            self:_set_redshift_suspended(false)
+        self:_query_redshift_target_temperature(function(target)
+            awful.spawn.easy_async_with_shell(shell_chain({
+                self:_redshift_kill_command(),
+                self:_redshift_reset_command(),
+            }), function()
+                self:_spawn_redshift_process()
+                self._redshift_temperature = target
+                self:_set_redshift_suspended(false)
+            end)
         end)
     else
         awful.spawn.easy_async_with_shell(shell_chain({
@@ -284,7 +296,7 @@ function M:redshift_suspend_immediate()
         self:_redshift_kill_command(),
         self:_redshift_reset_command(),
     }), function()
-        self._redshift_temperature = self._redshift.temperature_day or 6500
+        self._redshift_temperature = self:_default_redshift_temperature()
         self:_set_redshift_suspended(true)
     end)
 end
@@ -503,8 +515,6 @@ function M.new(commands)
         temperature_night = commands.redshift.temperature_night,
         transition_steps = commands.redshift.transition_steps or 8,
         transition_interval = commands.redshift.transition_interval or 0.05,
-        day_start_hour = commands.redshift.day_start_hour,
-        night_start_hour = commands.redshift.night_start_hour,
     }
     self._redshift_suspended = not self._redshift.autostart
 

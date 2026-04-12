@@ -45,7 +45,7 @@ The following are explicitly out of scope for the first implementation:
 - display hotplug automation
 - keyboard bindings for redshift control
 - a rich redshift status UI
-- fully replacing every behavior of `redshift-gtk`
+- fully replacing every display/color-temperature tool beyond plain `redshift`
 
 ## Core Behavior
 
@@ -159,17 +159,15 @@ redshift = {
 
 Preferred model for V1:
 
-- `lxdisplay` controls an external `redshift` process or `redshift-gtk` compatible behavior
+- `lxdisplay` controls a plain external `redshift` process directly
 - it does not need to reimplement scheduling logic internally
 
 That means `lxdisplay` should, if practical:
 
-- start redshift/redshift-gtk with configured values
+- start redshift with configured values
 - stop it when suspended
 - restart it when resumed
-- use an explicit backend method such as `randr` instead of relying on whatever backend redshift auto-picks
-
-If direct control of `redshift-gtk` is awkward, it is acceptable for V1 to instead control plain `redshift` itself and leave tray behavior out of scope.
+- allow an explicit backend method when needed, but do not require forcing one
 
 ### Suspend / Resume
 
@@ -186,7 +184,7 @@ Open implementation question:
 
 Recommended behavior:
 
-- yes; for now suspend should behave like `redshift -x`, meaning the current adjustment is removed from the screen immediately
+- yes; suspend should converge back to neutral temperature and then behave like `redshift -x`
 
 Refinement:
 
@@ -282,7 +280,7 @@ These do not block the spec, but they should be resolved during implementation:
    Recommended: restore neutral immediately if feasible.
 
 2. Should `lxdisplay` manage plain `redshift` directly instead of `redshift-gtk`?
-   Recommended: yes, if that yields simpler deterministic control.
+   Answer: yes.
 
 3. Should the widget expose any visible redshift state in V1?
    Recommended: no strong requirement; minimal behavior is fine.
