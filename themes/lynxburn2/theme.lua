@@ -187,8 +187,11 @@ theme.lxnotify_urgency_normal_fg = "#c0b18b"
 theme.lxnotify_urgency_critical_fg = "#d97777"
 
 theme.lxdisplay_icon = "󰃟 "
+theme.lxdisplay_icon_night = "󰖔 "
 theme.lxdisplay_show_bar = false
 theme.lxdisplay_icon_font = font
+theme.lxdisplay_widget_fg = white
+theme.lxdisplay_widget_suspended_fg = "#8b8177"
 theme.lxdisplay_bar_width = 36
 theme.lxdisplay_bar_height = 8
 theme.lxdisplay_bar_spacing = 8

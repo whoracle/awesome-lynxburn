@@ -438,12 +438,9 @@ function M.build(theme)
             s.mytasklist,
             {
                 layout = wibox.layout.fixed.horizontal,
-                spacer,
-                lxnotify.widget,
-                spacer,
                 lxaudio.widget,
-                spacer,
                 lxdisplay.widget,
+                lxnotify.widget,
                 spacer,
                 mailwidget,
                 sysloadwidget,
