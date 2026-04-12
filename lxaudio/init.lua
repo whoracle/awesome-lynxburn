@@ -13,6 +13,11 @@ local DEFAULTS = {
     icon_unmuted = beautiful.lxaudio_icon_volume or " ",
     icon_mic_active = beautiful.lxaudio_icon_mic_active or "🎙",
     icon_mic_muted = beautiful.lxaudio_icon_mic_muted or "×",
+    enable_osd = true,
+    osd_width = 260,
+    osd_height = 18,
+    osd_margin = 16,
+    osd_timeout = 1,
 }
 
 local function merge_defaults(opts)
@@ -44,9 +49,20 @@ end
 function M:_clear_modules()
     package.loaded["lxaudio.widget"] = nil
     package.loaded["lxaudio.audio"] = nil
+    package.loaded["lxaudio.osd"] = nil
     package.loaded["lxaudio.media"] = nil
     package.loaded["lxaudio.popup_media"] = nil
     package.loaded["lxaudio.popup_devices"] = nil
+end
+
+function M:_load_osd()
+    if not self.opts.enable_osd then
+        self._osd = nil
+        return
+    end
+
+    local osd_mod = require("lxaudio.osd")
+    self._osd = osd_mod.new(self.opts)
 end
 
 -- Rebuild the compact widget while preserving the public `instance.widget`.
@@ -148,35 +164,75 @@ function M:refresh()
     end
 end
 
+function M:_show_output_osd()
+    if not self._osd then
+        return
+    end
+
+    local percent = math.floor((math.max(0, math.min(1, self.state.volume or 0)) * 100) + 0.5)
+    self._osd.show_volume(percent, self.state.muted and self.opts.icon_muted or self.opts.icon_unmuted, "Volume OSD")
+end
+
+function M:_show_mute_osd()
+    if not self._osd then
+        return
+    end
+
+    if self.state.muted then
+        self._osd.show_text("Muted", self.opts.icon_muted, "Mute Indicator")
+    else
+        self._osd.show_text("Unmuted", self.opts.icon_unmuted, "Mute Indicator")
+    end
+end
+
+function M:_defer_refresh_and_osd(show_osd, renderer)
+    gears.timer.start_new(0.1, function()
+        self:refresh()
+
+        if show_osd and renderer then
+            renderer(self)
+        end
+
+        return false
+    end)
+end
+
 -- Rebuild all internal modules and refresh the widget in place.
 function M:reload()
     self:_clear_modules()
+    self:_load_osd()
     self:_build_widget()
     self:_start_timer()
     self:refresh()
 end
 
 -- Toggle mute on the current default output device.
-function M:toggle_mute()
+function M:toggle_mute(opts)
+    opts = opts or {}
     self:_with_audio(function(audio)
         if not audio.toggle_mute then
             return
         end
 
         audio.toggle_mute()
-        self:refresh()
+        self:_defer_refresh_and_osd(opts.show_osd, function(instance)
+            instance:_show_mute_osd()
+        end)
     end)
 end
 
 -- Apply a signed volume delta, where `0.05` means 5 percent.
-function M:change_volume(delta)
+function M:change_volume(delta, opts)
+    opts = opts or {}
     self:_with_audio(function(audio)
         if not audio.change_volume then
             return
         end
 
         audio.change_volume(delta)
-        self:refresh()
+        self:_defer_refresh_and_osd(opts.show_osd, function(instance)
+            instance:_show_output_osd()
+        end)
     end)
 end
 
@@ -205,13 +261,13 @@ function M:change_input_volume(delta)
 end
 
 -- Increase the default output volume by the configured step.
-function M:volume_up(step)
-    self:change_volume(step or self.opts.step)
+function M:volume_up(step, opts)
+    self:change_volume(step or self.opts.step, opts)
 end
 
 -- Decrease the default output volume by the configured step.
-function M:volume_down(step)
-    self:change_volume(-(step or self.opts.step))
+function M:volume_down(step, opts)
+    self:change_volume(-(step or self.opts.step), opts)
 end
 
 -- Increase the default input volume by the configured step.
@@ -254,6 +310,7 @@ function M.new(opts)
     self.widget = require("wibox").container.place()
     self._refs = {}
 
+    self:_load_osd()
     self:_build_widget()
     self:_start_timer()
     self:refresh()
