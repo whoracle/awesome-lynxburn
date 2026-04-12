@@ -40,11 +40,15 @@ local function build_text_widget(theme, text_widget)
     return wrap_widget(theme, text_widget)
 end
 
-local function build_metric_widget(theme, icon_path, widget)
+local function make_metric_icon(icon_path)
     local icon = wibox.widget.imagebox(icon_path)
     icon.forced_width = 0
     icon.forced_height = 0
 
+    return icon
+end
+
+local function build_metric_widget(theme, icon, widget)
     local container = wibox.widget({
         {
             icon,
@@ -55,7 +59,7 @@ local function build_metric_widget(theme, icon_path, widget)
         widget = wibox.container.margin,
     })
 
-    return icon, wrap_widget(theme, container)
+    return wrap_widget(theme, container)
 end
 
 local function build_power_menu(theme)
@@ -241,8 +245,7 @@ function M.build(theme)
         widget = wibox.container.margin,
     }))
 
-    local cpu_icon
-    local cpuwidget
+    local cpu_icon = make_metric_icon(theme.icon_cpu)
     local cpu = lain.widget.cpu({
         settings = function()
             local cpu_p = ""
@@ -259,10 +262,9 @@ function M.build(theme)
             widget:set_markup(cpu_p)
         end,
     })
-    cpu_icon, cpuwidget = build_metric_widget(theme, theme.icon_cpu, cpu.widget)
+    local cpuwidget = build_metric_widget(theme, cpu_icon, cpu.widget)
 
-    local sysload_icon
-    local sysloadwidget
+    local sysload_icon = make_metric_icon(theme.icon_sysload)
     local sysload = lain.widget.sysload({
         settings = function()
             local load_p = ""
@@ -279,10 +281,9 @@ function M.build(theme)
             widget:set_markup(load_p)
         end,
     })
-    sysload_icon, sysloadwidget = build_metric_widget(theme, theme.icon_sysload, sysload.widget)
+    local sysloadwidget = build_metric_widget(theme, sysload_icon, sysload.widget)
 
-    local mem_icon
-    local memwidget
+    local mem_icon = make_metric_icon(theme.icon_mem)
     local mem = lain.widget.mem({
         settings = function()
             local mem_p = ""
@@ -299,10 +300,9 @@ function M.build(theme)
             widget:set_markup(mem_p)
         end,
     })
-    mem_icon, memwidget = build_metric_widget(theme, theme.icon_mem, mem.widget)
+    local memwidget = build_metric_widget(theme, mem_icon, mem.widget)
 
-    local fs_root_icon
-    local fs_rootwidget
+    local fs_root_icon = make_metric_icon(theme.icon_fs)
     local fs_root = lain.widget.fs({
         partition = "/",
         threshold = 95,
@@ -326,7 +326,7 @@ function M.build(theme)
             widget:set_markup(fs_p)
         end,
     })
-    fs_root_icon, fs_rootwidget = build_metric_widget(theme, theme.icon_fs, fs_root.widget)
+    local fs_rootwidget = build_metric_widget(theme, fs_root_icon, fs_root.widget)
 
     local powermenu_widget = build_power_menu(theme)
 
