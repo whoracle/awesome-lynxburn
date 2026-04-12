@@ -96,6 +96,24 @@ local function shell_escape(s)
     return "'" .. s:gsub("'", [["'"']]) .. "'"
 end
 
+local function command_exists(binary)
+    if not binary or binary == "" then
+        return false
+    end
+
+    local ok = os.execute("command -v " .. shell_escape(binary) .. " >/dev/null 2>&1")
+
+    if type(ok) == "number" then
+        return ok == 0
+    end
+
+    return ok == true
+end
+
+local function strip_trailing_newlines(s)
+    return tostring(s or ""):gsub("[\r\n]+$", "")
+end
+
 local function escape_field(s)
     s = tostring(s or "")
     s = s:gsub("\\", "\\\\")
@@ -784,6 +802,45 @@ function M:_refresh()
     self:_render_results()
 end
 
+function M:_append_input(text)
+    local appended = tostring(text or "")
+
+    if appended == "" then
+        return
+    end
+
+    self._input = self._input .. appended
+    self:_refresh()
+end
+
+function M:_primary_selection_command()
+    if command_exists("xclip") then
+        return "xclip -o -selection primary 2>/dev/null"
+    end
+
+    if command_exists("xsel") then
+        return "xsel -o -p 2>/dev/null"
+    end
+
+    return nil
+end
+
+function M:_paste_primary_selection()
+    local command = self:_primary_selection_command()
+
+    if not command then
+        return
+    end
+
+    awful.spawn.easy_async_with_shell(command, function(stdout)
+        local pasted = strip_trailing_newlines(stdout)
+
+        if pasted ~= "" then
+            self:_append_input(pasted)
+        end
+    end)
+end
+
 function M:_move_selection(delta)
     local entries = self:_visible_entries()
 
@@ -905,8 +962,7 @@ function M:_start_keygrabber()
             end
 
             if #key == 1 then
-                self._input = self._input .. key
-                self:_refresh()
+                self:_append_input(key)
             end
         end,
     })
@@ -1031,6 +1087,11 @@ function M.new(opts)
         fg = beautiful.lxrunner_input_fg or beautiful.fg_normal or "#ffffff",
         widget = wibox.container.background,
     })
+    input_box:buttons(gears.table.join(
+        awful.button({}, 2, function()
+            self:_paste_primary_selection()
+        end)
+    ))
 
     self.popup = awful.popup({
         ontop = true,
