@@ -121,6 +121,7 @@ Supported override files:
 - `config/override/theme.lua`
 - `config/override/screens.lua`
 - `config/override/keys.lua`
+- `config/override/lxrunner_aliases.lua`
 
 These files are git-ignored. The tracked `*.example.lua` files in the same
 directory show the expected structure.
@@ -137,6 +138,7 @@ What each override is for:
 - `theme.lua`: colors, wallpaper, theme-local module sizing and styling
 - `screens.lua`: per-monitor default layout and DPI
 - `keys.lua`: append new bindings or transform the generated keymaps
+- `lxrunner_aliases.lua`: override or add lxrunner aliases by alias name
 
 ## Theme Split
 

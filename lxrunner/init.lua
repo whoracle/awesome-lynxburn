@@ -22,6 +22,21 @@ local DEFAULTS = {
     prompt = "Run",
 }
 
+local ALIAS_FILES = {
+    {
+        path = function()
+            return gears.filesystem.get_configuration_dir() .. "lxrunner/aliases.lua"
+        end,
+        optional = false,
+    },
+    {
+        path = function()
+            return gears.filesystem.get_configuration_dir() .. "config/override/lxrunner_aliases.lua"
+        end,
+        optional = true,
+    },
+}
+
 local function trim(s)
     s = tostring(s or "")
     return (s:gsub("^%s+", ""):gsub("%s+$", ""))
@@ -79,6 +94,37 @@ local function merge_defaults(opts)
     end
 
     return merged
+end
+
+local function load_alias_file(path, optional)
+    local ok, aliases = pcall(dofile, path)
+
+    if ok then
+        if type(aliases) == "table" then
+            return aliases
+        end
+
+        error(string.format("lxrunner alias file %s must return a table", path))
+    end
+
+    local err = tostring(aliases or "")
+
+    if optional and err:match("No such file or directory") then
+        return {}
+    end
+
+    error(string.format("failed to load lxrunner alias file %s: %s", path, err))
+end
+
+local function upsert_alias(target, alias)
+    for index, existing in ipairs(target) do
+        if existing.name == alias.name then
+            target[index] = alias
+            return
+        end
+    end
+
+    table.insert(target, alias)
 end
 
 local function build_row(text, selected, icon)
@@ -220,10 +266,10 @@ end
 
 function M:_set_placeholder_rows()
     local rows = {
-        "Type to search PATH commands",
-        "Recent commands will appear here",
-        "Alias support comes next",
-        "Desktop entries are a later stage",
+        "Type to search PATH commands and aliases",
+        "Recent launches will appear here",
+        "Tab completes the highlighted match",
+        "Desktop entries are not supported yet",
         "Escape closes the runner",
     }
 
@@ -293,30 +339,51 @@ end
 function M:_load_aliases()
     self._aliases = {}
 
-    local path = gears.filesystem.get_configuration_dir() .. "lxrunner/aliases.lua"
-    local ok, aliases = pcall(dofile, path)
+    for _, alias_file in ipairs(ALIAS_FILES) do
+        local aliases = load_alias_file(alias_file.path(), alias_file.optional)
 
-    if not ok or type(aliases) ~= "table" then
-        return
-    end
-
-    for _, alias in ipairs(aliases) do
-        if type(alias) == "table"
-            and type(alias.name) == "string"
-            and alias.name ~= ""
-            and type(alias.command) == "string"
-            and alias.command ~= ""
-        then
-            table.insert(self._aliases, {
-                name = alias.name,
-                type = alias.type or "shell",
-                command = alias.command,
-                env = alias.env,
-                description = alias.description,
-                source = "alias",
-            })
+        for _, alias in ipairs(aliases) do
+            if type(alias) == "table"
+                and type(alias.name) == "string"
+                and alias.name ~= ""
+                and type(alias.command) == "string"
+                and alias.command ~= ""
+            then
+                upsert_alias(self._aliases, {
+                    name = alias.name,
+                    type = alias.type or "shell",
+                    command = alias.command,
+                    env = alias.env,
+                    description = alias.description,
+                    source = "alias",
+                })
+            end
         end
     end
+end
+
+function M:_history_rank_bonus(entry)
+    local best_bonus = 0
+
+    for index, history_entry in ipairs(self._history) do
+        local same_command = history_entry.command ~= ""
+            and entry.command ~= nil
+            and history_entry.command == entry.command
+        local same_name = history_entry.name ~= ""
+            and entry.name ~= nil
+            and history_entry.name == entry.name
+        local same_alias = entry.alias_name ~= nil and history_entry.name == entry.alias_name
+
+        if same_command or same_name or same_alias then
+            local bonus = math.max(0, (self.opts.history_limit - index + 1) * 10)
+
+            if bonus > best_bonus then
+                best_bonus = bonus
+            end
+        end
+    end
+
+    return best_bonus
 end
 
 function M:_save_history()
@@ -428,7 +495,7 @@ function M:_filter_matches()
         local rank = command_matches(entry.name, query)
         if rank ~= nil then
             table.insert(ranked, {
-                rank = rank,
+                rank = rank - self:_history_rank_bonus(entry),
                 name = entry.name,
                 display = entry.display or entry.name,
                 command = entry.command,
@@ -466,6 +533,7 @@ function M:_filter_matches()
                 source = "alias",
                 alias_name = alias.name,
             })
+            ranked[#ranked].rank = ranked[#ranked].rank - self:_history_rank_bonus(ranked[#ranked])
         end
     end
 
