@@ -147,8 +147,6 @@ Used directly by the current maintainable config:
 - `i3lock`
 - `scrot`
 - `secret-tool`
-- `picom`
-- `unclutter`
 - `numlockx`
 
 Also referenced in program definitions or optional autostart commands:
