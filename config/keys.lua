@@ -117,9 +117,7 @@ function M.build(context)
     end
 
     local function toggle_lxrunner()
-        lxrunner:toggle({
-            toggle_key = { modifiers = { settings.altkey }, key = "F3" },
-        })
+        lxrunner:toggle()
     end
 
     local function open_terminal()
