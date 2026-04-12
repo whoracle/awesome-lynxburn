@@ -439,9 +439,12 @@ function M.build(theme)
             {
                 layout = wibox.layout.fixed.horizontal,
                 spacer,
-                lxaudio.widget,
                 lxnotify.widget,
+                spacer,
+                lxaudio.widget,
+                spacer,
                 lxdisplay.widget,
+                spacer,
                 mailwidget,
                 sysloadwidget,
                 cpuwidget,
