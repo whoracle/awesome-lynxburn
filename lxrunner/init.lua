@@ -22,6 +22,11 @@ local DEFAULTS = {
     prompt = "Run",
 }
 
+local function trim(s)
+    s = tostring(s or "")
+    return (s:gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
 local function split_path(path_value)
     local parts = {}
 
@@ -76,28 +81,53 @@ local function merge_defaults(opts)
     return merged
 end
 
-local function build_row(text, selected)
+local function build_row(text, selected, icon)
+    local fg = selected
+        and (beautiful.lxrunner_row_selected_fg or beautiful.fg_focus or "#ffffff")
+        or (beautiful.lxrunner_row_fg or beautiful.fg_normal or "#bbbbbb")
+
+    local icon_widget
+    if icon then
+        icon_widget = wibox.widget({
+            image = gears.color.recolor_image(icon, fg),
+            resize = true,
+            forced_width = beautiful.lxrunner_icon_size or 14,
+            forced_height = beautiful.lxrunner_icon_size or 14,
+            widget = wibox.widget.imagebox,
+        })
+    else
+        icon_widget = wibox.widget({
+            text = "",
+            forced_width = beautiful.lxrunner_icon_size or 14,
+            forced_height = beautiful.lxrunner_icon_size or 14,
+            widget = wibox.widget.textbox,
+        })
+    end
+
     return wibox.widget({
         {
+            icon_widget,
             {
-                text = text,
-                align = "left",
-                valign = "center",
-                font = beautiful.lxrunner_row_font or beautiful.font,
-                widget = wibox.widget.textbox,
+                {
+                    text = text,
+                    align = "left",
+                    valign = "center",
+                    font = beautiful.lxrunner_row_font or beautiful.font,
+                    widget = wibox.widget.textbox,
+                },
+                left = beautiful.lxrunner_icon_text_spacing or 8,
+                widget = wibox.container.margin,
             },
             left = beautiful.lxrunner_row_padding or 10,
             right = beautiful.lxrunner_row_padding or 10,
             top = 4,
             bottom = 4,
-            widget = wibox.container.margin,
+            layout = wibox.layout.fixed.horizontal,
         },
         bg = selected
             and (beautiful.lxrunner_row_selected_bg or beautiful.bg_focus or "#444444")
             or (beautiful.lxrunner_row_bg or beautiful.bg_normal or "#222222"),
-        fg = selected
-            and (beautiful.lxrunner_row_selected_fg or beautiful.fg_focus or "#ffffff")
-            or (beautiful.lxrunner_row_fg or beautiful.fg_normal or "#bbbbbb"),
+        fg = fg,
         widget = wibox.container.background,
     })
 end
@@ -125,6 +155,43 @@ local function command_matches(name, query)
     return nil
 end
 
+local function split_alias_query(input)
+    local trimmed = trim(input)
+    local alias_name, arg_tail = trimmed:match("^(%S+)%s*(.*)$")
+
+    return alias_name or "", trim(arg_tail or "")
+end
+
+local function expand_template(command, arg_tail)
+    if command:find("%%s") then
+        return command:gsub("%%s", arg_tail)
+    end
+
+    return command
+end
+
+local function build_env_prefix(env)
+    if type(env) ~= "table" then
+        return ""
+    end
+
+    local parts = {}
+
+    for key, value in pairs(env) do
+        if type(key) == "string" and key:match("^[%a_][%w_]*$") then
+            table.insert(parts, string.format("%s=%s", key, shell_escape(value)))
+        end
+    end
+
+    table.sort(parts)
+
+    if #parts == 0 then
+        return ""
+    end
+
+    return table.concat(parts, " ") .. " "
+end
+
 function M:_set_placeholder_rows()
     local rows = {
         "Type to search PATH commands",
@@ -141,6 +208,28 @@ function M:_set_placeholder_rows()
     end
 end
 
+function M:_icon_for_entry(entry)
+    if not entry then
+        return nil
+    end
+
+    local source = entry.source == "history" and entry.launch_source or entry.source
+
+    if source == "path" then
+        return self._icons.path
+    end
+
+    if source == "alias" then
+        return self._icons.alias
+    end
+
+    if source == "desktop" then
+        return self._icons.desktop
+    end
+
+    return nil
+end
+
 function M:_load_history()
     self._history = {}
 
@@ -150,18 +239,58 @@ function M:_load_history()
     end
 
     for line in handle:lines() do
-        local ts, name, command = line:match("^([^\t]*)\t([^\t]*)\t(.*)$")
-        if ts and name and command then
+        local ts, launch_source, name, command = line:match("^([^\t]*)\t([^\t]*)\t([^\t]*)\t(.*)$")
+        if ts and launch_source and name and command then
             table.insert(self._history, {
                 last_used = tonumber(ts) or 0,
+                launch_source = launch_source,
                 name = unescape_field(name),
                 command = unescape_field(command),
                 source = "history",
             })
+        else
+            ts, name, command = line:match("^([^\t]*)\t([^\t]*)\t(.*)$")
+            if ts and name and command then
+                table.insert(self._history, {
+                    last_used = tonumber(ts) or 0,
+                    name = unescape_field(name),
+                    command = unescape_field(command),
+                    source = "history",
+                })
+            end
         end
     end
 
     handle:close()
+end
+
+function M:_load_aliases()
+    self._aliases = {}
+
+    local path = gears.filesystem.get_configuration_dir() .. "lxrunner/aliases.lua"
+    local ok, aliases = pcall(dofile, path)
+
+    if not ok or type(aliases) ~= "table" then
+        return
+    end
+
+    for _, alias in ipairs(aliases) do
+        if type(alias) == "table"
+            and type(alias.name) == "string"
+            and alias.name ~= ""
+            and type(alias.command) == "string"
+            and alias.command ~= ""
+        then
+            table.insert(self._aliases, {
+                name = alias.name,
+                type = alias.type or "shell",
+                command = alias.command,
+                env = alias.env,
+                description = alias.description,
+                source = "alias",
+            })
+        end
+    end
 end
 
 function M:_save_history()
@@ -173,8 +302,9 @@ function M:_save_history()
     for i = 1, math.min(#self._history, self.opts.history_limit) do
         local entry = self._history[i]
         handle:write(string.format(
-            "%s\t%s\t%s\n",
+            "%s\t%s\t%s\t%s\n",
             tostring(entry.last_used or 0),
+            tostring(entry.launch_source or entry.source or ""),
             escape_field(entry.name),
             escape_field(entry.command)
         ))
@@ -192,6 +322,7 @@ function M:_record_history(entry)
         name = entry.name or entry.command,
         command = entry.command,
         source = "history",
+        launch_source = entry.source,
         last_used = os.time(),
     }
 
@@ -228,6 +359,7 @@ function M:_load_path_commands()
                     seen[line] = true
                     table.insert(commands, {
                         name = line,
+                        display = line,
                         command = line,
                         source = "path",
                     })
@@ -253,6 +385,8 @@ end
 
 function M:_filter_matches()
     local query = normalize_query(self._input)
+    local alias_query, arg_tail = split_alias_query(self._input)
+    local normalized_alias_query = normalize_query(alias_query)
     self._matches = {}
     self._selected_index = 1
 
@@ -270,8 +404,41 @@ function M:_filter_matches()
             table.insert(ranked, {
                 rank = rank,
                 name = entry.name,
+                display = entry.display or entry.name,
                 command = entry.command,
                 source = entry.source,
+            })
+        end
+    end
+
+    for _, alias in ipairs(self._aliases) do
+        local rank = command_matches(alias.name, normalized_alias_query)
+        if rank ~= nil then
+            local resolved_command = alias.command
+            local env_prefix = build_env_prefix(alias.env)
+            local display_name = alias.name
+            local display_text = alias.name
+
+            if alias.type == "template" then
+                resolved_command = expand_template(alias.command, arg_tail)
+                if trim(self._input) ~= "" then
+                    display_name = trim(self._input)
+                end
+
+                if arg_tail ~= "" then
+                    display_text = string.format("%s -> %s", display_name, env_prefix .. resolved_command)
+                end
+            end
+
+            resolved_command = env_prefix .. resolved_command
+
+            table.insert(ranked, {
+                rank = rank - 1000,
+                name = display_name,
+                display = display_text,
+                command = resolved_command,
+                source = "alias",
+                alias_name = alias.name,
             })
         end
     end
@@ -309,7 +476,7 @@ function M:_render_results()
         for i = 1, self.opts.row_count do
             local entry = self._history[i]
             if entry then
-                self._results:add(build_row(entry.name, i == self._selected_index))
+                self._results:add(build_row(entry.name, i == self._selected_index, self:_icon_for_entry(entry)))
             else
                 self._results:add(build_row("", false))
             end
@@ -331,7 +498,7 @@ function M:_render_results()
     for i = 1, self.opts.row_count do
         local match = self._matches[i]
         if match then
-            self._results:add(build_row(match.name, i == self._selected_index))
+            self._results:add(build_row(match.display or match.name, i == self._selected_index, self:_icon_for_entry(match)))
         else
             self._results:add(build_row("", false))
         end
@@ -437,24 +604,62 @@ function M:_stop_keygrabber()
     end
 end
 
+function M:_start_mousegrabber()
+    if self._mousegrabber_running then
+        return
+    end
+
+    self._mousegrabber_running = true
+    mousegrabber.run(function(mouse_state)
+        if not self.visible or not self.popup.visible then
+            self._mousegrabber_running = false
+            return false
+        end
+
+        local geometry = self.popup:geometry()
+        local inside = mouse_state.x >= geometry.x
+            and mouse_state.x < geometry.x + geometry.width
+            and mouse_state.y >= geometry.y
+            and mouse_state.y < geometry.y + geometry.height
+
+        if not inside and (mouse_state.buttons[1] or mouse_state.buttons[2] or mouse_state.buttons[3]) then
+            self._mousegrabber_running = false
+            self:hide()
+            return false
+        end
+
+        return true
+    end, "left_ptr")
+end
+
+function M:_stop_mousegrabber()
+    if self._mousegrabber_running then
+        mousegrabber.stop()
+        self._mousegrabber_running = false
+    end
+end
+
 function M:show()
     self.visible = true
     self._input = ""
     self._matches = {}
     self._selected_index = 1
     self:_ensure_path_commands()
+    self:_load_aliases()
     self:_load_history()
     self.popup.screen = awful.screen.focused()
     self.popup.visible = true
     awful.placement.centered(self.popup, { honor_workarea = true, parent = awful.screen.focused() })
     self:_refresh()
     self:_start_keygrabber()
+    self:_start_mousegrabber()
 end
 
 function M:hide()
     self.visible = false
     self.popup.visible = false
     self:_stop_keygrabber()
+    self:_stop_mousegrabber()
     self:_render_prompt()
 end
 
@@ -474,9 +679,16 @@ function M.new(opts)
     self.visible = false
     self._input = ""
     self._path_commands = nil
+    self._aliases = {}
     self._history = {}
     self._matches = {}
     self._selected_index = 1
+    self._mousegrabber_running = false
+    self._icons = {
+        alias = gears.filesystem.get_configuration_dir() .. "lxrunner/icons/alias.svg",
+        path = gears.filesystem.get_configuration_dir() .. "lxrunner/icons/path.svg",
+        desktop = gears.filesystem.get_configuration_dir() .. "lxrunner/icons/desktop.svg",
+    }
 
     self._prompt = wibox.widget({
         markup = "",

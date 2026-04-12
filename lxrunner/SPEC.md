@@ -147,17 +147,20 @@ Recommended initial data shape:
 - alias name
 - alias type
 - command string or template
+- optional environment variable table
 - optional description for later display
 
 Suggested examples:
 
 - `{ name = "vpntoggle", type = "shell", command = "..." }`
 - `{ name = "vivaldi", type = "template", command = "/usr/bin/vivaldi %s" }`
+- `{ name = "vault", type = "template", command = "vault kv list %s", env = { VAULT_URL = "https://some.vault.com" } }`
 
 Execution rules:
 
 - shell aliases should run through the shell
 - template aliases should substitute the argument tail into the configured template and then execute the resulting command
+- aliases may define an `env` table; those variables should be exported only for that spawned command by prefixing the shell command with `KEY=value`
 - if a template alias is invoked with no placeholder in the template, it should just execute the configured command directly
 - alias failures should not crash Awesome
 
