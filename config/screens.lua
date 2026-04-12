@@ -15,7 +15,11 @@ local function resolve_layout(layout_name)
         ["centerwork"] = lain.layout.centerwork,
         ["centerwork.horizontal"] = lain.layout.centerwork.horizontal,
         ["fair"] = awful.layout.suit.fair,
+        ["fairv"] = awful.layout.suit.fair,
         ["fair.horizontal"] = awful.layout.suit.fair.horizontal,
+        ["fairh"] = awful.layout.suit.fair.horizontal,
+        ["vertical"] = awful.layout.suit.fair,
+        ["horizontal"] = awful.layout.suit.fair.horizontal,
         ["floating"] = awful.layout.suit.floating,
     }
 
@@ -29,7 +33,7 @@ local function default_screen_profiles()
             dpi = 96,
         },
         center = {
-            layout = "centerwork",
+            layout = "fair",
             dpi = 110,
         },
         right = {
