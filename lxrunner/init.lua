@@ -16,6 +16,51 @@ local DEFAULTS = {
     prompt = "Run",
 }
 
+local function normalize_toggle_key(toggle_key)
+    if type(toggle_key) ~= "table" or type(toggle_key.key) ~= "string" then
+        return nil
+    end
+
+    local normalized = {
+        key = toggle_key.key,
+        modifiers = {},
+        modifier_set = {},
+    }
+
+    if type(toggle_key.modifiers) == "table" then
+        for _, modifier in ipairs(toggle_key.modifiers) do
+            if type(modifier) == "string" and modifier ~= "" and not normalized.modifier_set[modifier] then
+                normalized.modifier_set[modifier] = true
+                table.insert(normalized.modifiers, modifier)
+            end
+        end
+    end
+
+    return normalized
+end
+
+local function toggle_key_matches(toggle_key, modifiers, key)
+    if not toggle_key or key ~= toggle_key.key then
+        return false
+    end
+
+    local active_modifiers = {}
+    for _, modifier in ipairs(modifiers or {}) do
+        active_modifiers[modifier] = true
+        if not toggle_key.modifier_set[modifier] then
+            return false
+        end
+    end
+
+    for modifier in pairs(toggle_key.modifier_set) do
+        if not active_modifiers[modifier] then
+            return false
+        end
+    end
+
+    return true
+end
+
 local function resolve_default(value)
     if type(value) == "function" then
         return value()
@@ -101,7 +146,12 @@ function M:_start_keygrabber()
     self._keygrabber = awful.keygrabber({
         auto_start = false,
         stop_event = "release",
-        keypressed_callback = function(_, _, key)
+        keypressed_callback = function(_, modifiers, key)
+            if toggle_key_matches(self._toggle_key, modifiers, key) then
+                self:hide()
+                return
+            end
+
             if key == "Escape" then
                 self:hide()
                 return
@@ -135,7 +185,13 @@ function M:_stop_keygrabber()
     end
 end
 
-function M:show()
+function M:set_toggle_key(toggle_key)
+    self._toggle_key = normalize_toggle_key(toggle_key)
+end
+
+function M:show(opts)
+    opts = opts or {}
+    self:set_toggle_key(opts.toggle_key)
     self.visible = true
     self._input = ""
     self.popup.screen = awful.screen.focused()
@@ -153,11 +209,11 @@ function M:hide()
     self:_render_prompt()
 end
 
-function M:toggle()
+function M:toggle(opts)
     if self.popup.visible then
         self:hide()
     else
-        self:show()
+        self:show(opts)
     end
 end
 
@@ -168,6 +224,7 @@ function M.new(opts)
     self.opts = opts
     self.visible = false
     self._input = ""
+    self._toggle_key = nil
 
     self._prompt = wibox.widget({
         markup = "",
