@@ -50,6 +50,18 @@ local function lerp(a, b, t)
     return a + ((b - a) * t)
 end
 
+local function theme_flag(value, default)
+    if value == nil then
+        return default
+    end
+
+    if value == false or value == 0 or value == "0" or value == "false" then
+        return false
+    end
+
+    return true
+end
+
 function M:_show_brightness_osd(percent)
     if self._osd.hide_timer then
         self._osd.hide_timer:stop()
@@ -362,7 +374,7 @@ function M:_build_widget()
         layout = wibox.layout.fixed.horizontal,
     }
 
-    if beautiful.lxdisplay_show_bar ~= false then
+    if theme_flag(beautiful.lxdisplay_show_bar, true) then
         self._bar = wibox.widget({
             max_value = 100,
             value = 0,

@@ -192,10 +192,6 @@ local function build_layout_switcher(theme, s)
 end
 
 function M.build(theme)
-    local lxaudio = services.audio()
-    local lxdisplay = services.display()
-    local lxnotify = services.notify()
-
     local mytextclock = wibox.widget.textclock(markup(theme.tasklist_fg_normal, " %H:%M "))
     local myclock = build_text_widget(theme, mytextclock)
 
@@ -347,6 +343,10 @@ function M.build(theme)
     })
 
     return function(s)
+        local lxaudio = services.audio()
+        local lxdisplay = services.display()
+        local lxnotify = services.notify()
+
         local wallpaper = theme.wallpaper
         if type(wallpaper) == "function" then
             wallpaper = wallpaper(s)
@@ -430,8 +430,8 @@ function M.build(theme)
                 layout = wibox.layout.fixed.horizontal,
                 spacer,
                 lxaudio.widget,
-                lxdisplay.widget,
                 lxnotify.widget,
+                lxdisplay.widget,
                 mailwidget,
                 sysloadwidget,
                 cpuwidget,

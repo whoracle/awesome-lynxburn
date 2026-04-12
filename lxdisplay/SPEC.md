@@ -192,6 +192,7 @@ Refinement:
 
 - the user wants suspend/resume to feel less abrupt than a single hard reset
 - for the current implementation, a short stepped temperature ramp is acceptable before the final `redshift -x` reset / daemon handoff
+- current implementation note: the stepped ramp appears unreliable in practice and needs follow-up debugging before it can be considered complete
 
 ### Status Indication
 
