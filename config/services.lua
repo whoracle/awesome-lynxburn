@@ -1,6 +1,7 @@
 local M = {}
 
 local lxaudio_instance
+local lxdisplay_instance
 local lxnotify_instance
 local lxrunner_instance
 
@@ -22,6 +23,7 @@ function M.notify()
             notification_denylist = {
                 { app_name = "Volume OSD" },
                 { app_name = "Mute Indicator" },
+                { app_name = "Brightness OSD" },
                 { app_name = "Notification Indicator" },
                 { app_name = "Calendar" },
             },
@@ -29,6 +31,14 @@ function M.notify()
     end
 
     return lxnotify_instance
+end
+
+function M.display()
+    if not lxdisplay_instance then
+        lxdisplay_instance = require("lxdisplay").new(require("config.programs").brightness)
+    end
+
+    return lxdisplay_instance
 end
 
 function M.runner()

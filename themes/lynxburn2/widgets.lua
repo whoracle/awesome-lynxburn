@@ -193,6 +193,7 @@ end
 
 function M.build(theme)
     local lxaudio = services.audio()
+    local lxdisplay = services.display()
     local lxnotify = services.notify()
 
     local mytextclock = wibox.widget.textclock(markup(theme.tasklist_fg_normal, " %H:%M "))
@@ -429,6 +430,7 @@ function M.build(theme)
                 layout = wibox.layout.fixed.horizontal,
                 spacer,
                 lxaudio.widget,
+                lxdisplay.widget,
                 lxnotify.widget,
                 mailwidget,
                 sysloadwidget,

@@ -29,8 +29,9 @@ return {
     redshift = "redshift-gtk",
     brightness = {
         get = "xbacklight -get",
-        up = "xbacklight -inc 5",
-        down = "xbacklight -dec 5",
+        set = "xbacklight -set %d",
+        step = 5,
+        min = 10,
         off = "xset dpms force off",
     },
     autostart_once = {

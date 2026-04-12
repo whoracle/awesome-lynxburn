@@ -183,12 +183,26 @@ theme.lxnotify_urgency_low_fg = "#7aa2c9"
 theme.lxnotify_urgency_normal_fg = "#c0b18b"
 theme.lxnotify_urgency_critical_fg = "#d97777"
 
+theme.lxdisplay_icon = "󰃟"
+theme.lxdisplay_show_bar = true
+theme.lxdisplay_icon_font = font
+theme.lxdisplay_bar_width = 36
+theme.lxdisplay_bar_height = 8
+theme.lxdisplay_bar_spacing = 8
+theme.lxdisplay_bar_bg = gray0
+theme.lxdisplay_bar_fg = orange
+theme.lxdisplay_osd_width = 260
+theme.lxdisplay_osd_height = 18
+theme.lxdisplay_osd_margin = 16
+theme.lxdisplay_osd_timeout = 1
+theme.lxdisplay_osd_screen_margin = 60
+
 theme.lxrunner_width = 520
 theme.lxrunner_row_count = 5
 theme.lxrunner_bg = gray2
 theme.lxrunner_border_color = gray
 theme.lxrunner_border_width = 1
-theme.lxrunner_radius = 0
+theme.lxrunner_radius = 6
 theme.lxrunner_outer_margin = 10
 theme.lxrunner_padding = 12
 theme.lxrunner_input_bg = gray0

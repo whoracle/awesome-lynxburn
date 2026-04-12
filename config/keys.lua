@@ -30,6 +30,7 @@ function M.build(context)
     local programs = context.programs
     local lxnotify = context.lxnotify
     local lxaudio = context.lxaudio
+    local lxdisplay = context.lxdisplay
     local lxrunner = context.lxrunner
     local osd = context.osd
     local lain = context.lain
@@ -173,15 +174,15 @@ function M.build(context)
     end
 
     local function brightness_up()
-        osd.brightness_up(programs.brightness)
+        lxdisplay:brightness_up(nil, { show_osd = true })
     end
 
     local function brightness_down()
-        osd.brightness_down(programs.brightness)
+        lxdisplay:brightness_down(nil, { show_osd = true })
     end
 
     local function brightness_off()
-        osd.brightness_off(programs.brightness)
+        lxdisplay:brightness_off()
     end
 
     local function kill_client(c)

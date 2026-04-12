@@ -17,6 +17,7 @@ local my_table = awful.util.table or gears.table
 local config = require("config")
 
 local lxaudio = config.services.audio()
+local lxdisplay = nil
 local lxnotify = config.services.notify()
 local lxrunner = nil
 
@@ -30,6 +31,7 @@ local theme_path = string.format(
 beautiful.init(theme_path)
 
 lxrunner = config.services.runner()
+lxdisplay = config.services.display()
 
 local osd_handlers = config.osd.new(beautiful, {
     volume_step = config.settings.volume_step,
@@ -48,6 +50,7 @@ local keymaps = config.keys.build({
     programs = config.programs,
     lain = lain,
     lxaudio = lxaudio,
+    lxdisplay = lxdisplay,
     lxnotify = lxnotify,
     lxrunner = lxrunner,
     osd = osd_handlers,
