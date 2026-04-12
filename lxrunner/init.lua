@@ -22,6 +22,18 @@ local DEFAULTS = {
     prompt = "Run",
 }
 
+local DESKTOP_ENTRY_DIRS = {
+    function()
+        return (os.getenv("XDG_DATA_HOME") or ((os.getenv("HOME") or "") .. "/.local/share")) .. "/applications"
+    end,
+    function()
+        return (os.getenv("HOME") or "") .. "/.local/share/flatpak/exports/share/applications"
+    end,
+    function()
+        return "/var/lib/flatpak/exports/share/applications"
+    end,
+}
+
 local ALIAS_FILES = {
     {
         path = function()
@@ -50,6 +62,33 @@ local function split_path(path_value)
     end
 
     return parts
+end
+
+local function desktop_entry_dirs()
+    local dirs = {}
+    local seen = {}
+
+    for _, dir_fn in ipairs(DESKTOP_ENTRY_DIRS) do
+        local dir = dir_fn()
+
+        if dir ~= "" and not seen[dir] then
+            seen[dir] = true
+            table.insert(dirs, dir)
+        end
+    end
+
+    local data_dirs = os.getenv("XDG_DATA_DIRS") or "/usr/local/share:/usr/share"
+
+    for _, base_dir in ipairs(split_path(data_dirs)) do
+        local dir = base_dir .. "/applications"
+
+        if not seen[dir] then
+            seen[dir] = true
+            table.insert(dirs, dir)
+        end
+    end
+
+    return dirs
 end
 
 local function shell_escape(s)
@@ -238,6 +277,77 @@ local function build_env_prefix(env)
     return table.concat(parts, " ") .. " "
 end
 
+local function desktop_id_from_path(path)
+    local name = tostring(path or ""):match("([^/]+)%.desktop$")
+    return name or ""
+end
+
+local function sanitize_desktop_exec(command)
+    local exec = trim(command)
+
+    if exec == "" then
+        return ""
+    end
+
+    exec = exec:gsub("%%%%", "\0")
+    exec = exec:gsub("%%%b{}", "")
+    exec = exec:gsub("%%[fFuUdDnNickvm]", "")
+    exec = exec:gsub("\0", "%%")
+    exec = trim(exec)
+
+    return exec
+end
+
+local function parse_desktop_entry(path)
+    local handle = io.open(path, "r")
+    if not handle then
+        return nil
+    end
+
+    local in_desktop_entry = false
+    local fields = {}
+
+    for line in handle:lines() do
+        local section = line:match("^%[([^%]]+)%]$")
+        if section then
+            in_desktop_entry = section == "Desktop Entry"
+        elseif in_desktop_entry then
+            local key, value = line:match("^([%w%-]+)%s*=%s*(.-)%s*$")
+            if key and value then
+                fields[key] = value
+            end
+        end
+    end
+
+    handle:close()
+
+    if fields.Type ~= "Application" then
+        return nil
+    end
+
+    if fields.Hidden == "true" or fields.NoDisplay == "true" then
+        return nil
+    end
+
+    local name = trim(fields.Name)
+    local exec = sanitize_desktop_exec(fields.Exec)
+    if name == "" or exec == "" then
+        return nil
+    end
+
+    if fields.Terminal == "true" then
+        exec = string.format("%s -e %s", awful.util.terminal or "xterm", shell_escape(exec))
+    end
+
+    return {
+        name = name,
+        display = name,
+        command = exec,
+        desktop_id = desktop_id_from_path(path),
+        source = "desktop",
+    }
+end
+
 local function longest_common_prefix(values)
     if #values == 0 then
         return ""
@@ -266,10 +376,10 @@ end
 
 function M:_set_placeholder_rows()
     local rows = {
-        "Type to search PATH commands and aliases",
+        "Type to search PATH commands, aliases, and apps",
         "Recent launches will appear here",
         "Tab completes the highlighted match",
-        "Desktop entries are not supported yet",
+        "Desktop entries are searched by name",
         "Escape closes the runner",
     }
 
@@ -476,6 +586,48 @@ function M:_ensure_path_commands()
     end
 end
 
+function M:_load_desktop_entries()
+    local seen = {}
+    local entries = {}
+
+    for _, dir in ipairs(desktop_entry_dirs()) do
+        local cmd = string.format(
+            "find %s -type f -name '*.desktop' 2>/dev/null",
+            shell_escape(dir)
+        )
+        local handle = io.popen(cmd)
+
+        if handle then
+            for path in handle:lines() do
+                local entry = parse_desktop_entry(path)
+
+                if entry then
+                    local key = entry.desktop_id ~= "" and entry.desktop_id or path
+
+                    if not seen[key] then
+                        seen[key] = true
+                        table.insert(entries, entry)
+                    end
+                end
+            end
+
+            handle:close()
+        end
+    end
+
+    table.sort(entries, function(a, b)
+        return a.name < b.name
+    end)
+
+    self._desktop_entries = entries
+end
+
+function M:_ensure_desktop_entries()
+    if not self._desktop_entries then
+        self:_load_desktop_entries()
+    end
+end
+
 function M:_filter_matches()
     local query = normalize_query(self._input)
     local alias_query, arg_tail = split_alias_query(self._input)
@@ -488,6 +640,7 @@ function M:_filter_matches()
     end
 
     self:_ensure_path_commands()
+    self:_ensure_desktop_entries()
 
     local ranked = {}
 
@@ -500,6 +653,20 @@ function M:_filter_matches()
                 display = entry.display or entry.name,
                 command = entry.command,
                 source = entry.source,
+            })
+        end
+    end
+
+    for _, entry in ipairs(self._desktop_entries) do
+        local rank = command_matches(entry.name, query)
+        if rank ~= nil then
+            table.insert(ranked, {
+                rank = rank - self:_history_rank_bonus(entry),
+                name = entry.name,
+                display = entry.display or entry.name,
+                command = entry.command,
+                source = entry.source,
+                desktop_id = entry.desktop_id,
             })
         end
     end
@@ -829,6 +996,7 @@ function M.new(opts)
     self.visible = false
     self._input = ""
     self._path_commands = nil
+    self._desktop_entries = nil
     self._aliases = {}
     self._history = {}
     self._matches = {}

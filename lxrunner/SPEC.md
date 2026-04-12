@@ -12,19 +12,20 @@ The first implementation should focus on:
 
 - launching commands found in `$PATH`
 - supporting lxrunner-specific aliases
+- searching `.desktop` entries by display name
 - showing a compact launcher UI with:
   - an input field
   - a short history list under the input
   - a filtered result list while typing
 - pulling colors, spacing, and general look from the Awesome theme
 
-The first version should **not** implement `.desktop` entry search yet.
+The first version should keep `.desktop` handling narrow: name search only, no
+metadata/category search, and no alternate search mode.
 
 ## Non-Goals For V1
 
 The following are explicitly out of scope for the first version:
 
-- `.desktop` entry discovery and launching
 - alternate search mode triggered by `Alt`
 - fuzzy scoring sophistication beyond what is needed for a good basic match
 - plugin architecture
@@ -46,8 +47,9 @@ Matching should search:
 
 - executable names available in `$PATH`
 - lxrunner alias names
+- `.desktop` entry names
 
-For V1, plain command search is the default and only search mode.
+For V1, all sources are searched in the same default mode.
 
 ### Search Semantics
 
@@ -67,6 +69,7 @@ When the user confirms a result:
 
 - if it is a PATH command, execute it
 - if it is an lxrunner alias, execute the alias target command
+- if it is a desktop entry, execute its `Exec` command
 
 The launcher should then close.
 
@@ -246,17 +249,19 @@ Recommended behavior:
 
 ### Desktop Entries
 
-This is the only planned alternate source, but not part of V1.
+Desktop entries are part of the default search set.
 
-Future intended behavior:
+Requirements:
 
-- normal mode searches PATH commands
-- holding or using `Alt` while typing switches to `.desktop` search
+- collect `.desktop` launchers from common XDG application directories
+- search by launcher `Name` only
+- ignore hidden and `NoDisplay=true` entries
+- execute the resolved `Exec` command when launched
 
-For now:
+Still out of scope:
 
-- ignore `.desktop` entries completely
-- do not implement Alt-driven mode switching yet
+- metadata/category/comment search
+- alternate Alt-driven source switching
 
 ## Theme Integration
 
@@ -350,7 +355,6 @@ Requirements:
 
 Likely later additions:
 
-- `.desktop` search mode
 - Alt-triggered alternate source mode
 - descriptions and icons
 - smarter matching
@@ -392,8 +396,8 @@ The first version of `lxrunner` should be:
 
 - a themed Awesome popup launcher
 - keyboard-driven
-- focused on PATH command search
-- intentionally limited to PATH now and `.desktop` later
+- focused on command and application launch
+- intentionally limited to name-based source search
 - augmented with custom aliases
 - backed by a short persistent history
 - deliberately smaller and simpler than Rofi
