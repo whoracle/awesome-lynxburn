@@ -27,6 +27,8 @@ local function wrap_widget(theme, widget, background)
             top = theme.widget_padding_top,
             bottom = theme.widget_padding_bottom,
             right = theme.widget_padding_right,
+            color = theme.tasklist_bg_normal,
+            draw_empty = false,
             widget = wibox.container.margin,
         },
         bg = background or theme.tasklist_bg_focus,
