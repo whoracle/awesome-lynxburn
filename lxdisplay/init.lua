@@ -22,6 +22,34 @@ local function parse_percent(stdout)
     return tonumber(tostring(stdout or ""):match("(%d+%.?%d*)")) or 0
 end
 
+local function shell_join(parts)
+    local filtered = {}
+
+    for _, part in ipairs(parts) do
+        if part and part ~= "" then
+            filtered[#filtered + 1] = part
+        end
+    end
+
+    return table.concat(filtered, " ")
+end
+
+local function shell_chain(parts)
+    local filtered = {}
+
+    for _, part in ipairs(parts) do
+        if part and part ~= "" then
+            filtered[#filtered + 1] = part
+        end
+    end
+
+    return table.concat(filtered, " ; ")
+end
+
+local function lerp(a, b, t)
+    return a + ((b - a) * t)
+end
+
 function M:_show_brightness_osd(percent)
     if self._osd.hide_timer then
         self._osd.hide_timer:stop()
@@ -52,11 +80,201 @@ function M:_update_widget(percent)
 
     self._brightness_value = value
     self._icon.text = beautiful.lxdisplay_icon or beautiful.lxdisplay_icon_brightness or "󰃟"
+    self._icon.fg = self._redshift_suspended
+        and (beautiful.lxdisplay_widget_suspended_fg or beautiful.fg_minimize or "#888888")
+        or (beautiful.lxdisplay_widget_fg or beautiful.fg_normal or "#ffffff")
 
     if self._bar then
         self._bar.value = value
         self._bar.color = beautiful.lxdisplay_bar_fg or beautiful.fg_normal or "#ffffff"
     end
+end
+
+function M:_redshift_base_command()
+    local cfg = self._redshift
+    local args = { cfg.command or "redshift" }
+
+    if cfg.method and cfg.method ~= "" then
+        args[#args + 1] = string.format("-m %s", tostring(cfg.method))
+    end
+
+    if cfg.latitude and cfg.longitude then
+        args[#args + 1] = string.format("-l %s:%s", tostring(cfg.latitude), tostring(cfg.longitude))
+    end
+
+    if cfg.temperature_day and cfg.temperature_night then
+        args[#args + 1] = string.format("-t %s:%s", tostring(cfg.temperature_day), tostring(cfg.temperature_night))
+    end
+
+    return shell_join(args)
+end
+
+function M:_redshift_kill_command()
+    local name = self._redshift.command_name or self._redshift.command or "redshift"
+    return string.format("pkill -x %s 2>/dev/null || true", name)
+end
+
+function M:_redshift_reset_command()
+    return shell_join({
+        self._redshift.command or "redshift",
+        self._redshift.method and self._redshift.method ~= "" and string.format("-m %s", tostring(self._redshift.method)) or nil,
+        "-x >/dev/null 2>&1 || true",
+    })
+end
+
+function M:_redshift_override_command(temperature)
+    return shell_join({
+        self._redshift.command or "redshift",
+        self._redshift.method and self._redshift.method ~= "" and string.format("-m %s", tostring(self._redshift.method)) or nil,
+        string.format("-O %d >/dev/null 2>&1 || true", temperature),
+    })
+end
+
+function M:_redshift_start_command()
+    return shell_chain({
+        self:_redshift_kill_command(),
+        self:_redshift_reset_command(),
+        self:_redshift_base_command(),
+    })
+end
+
+function M:_set_redshift_suspended(suspended)
+    self._redshift_suspended = suspended and true or false
+    self:_update_widget(self._brightness_value or 0)
+end
+
+function M:_current_redshift_target_temperature()
+    local hour = os.date("*t").hour
+    local day_start = self._redshift.day_start_hour or 7
+    local night_start = self._redshift.night_start_hour or 19
+
+    if hour >= day_start and hour < night_start then
+        return self._redshift.temperature_day
+    end
+
+    return self._redshift.temperature_night
+end
+
+function M:_stop_redshift_transition()
+    if self._redshift_transition_timer then
+        self._redshift_transition_timer:stop()
+        self._redshift_transition_timer = nil
+    end
+end
+
+function M:_run_redshift_transition(from_temp, to_temp, on_done)
+    self:_stop_redshift_transition()
+
+    local steps = math.max(1, tonumber(self._redshift.transition_steps) or 8)
+    local interval = tonumber(self._redshift.transition_interval) or 0.05
+    local step_index = 0
+
+    local function apply_step()
+        step_index = step_index + 1
+
+        local progress = step_index / steps
+        local temperature = math.floor(lerp(from_temp, to_temp, progress) + 0.5)
+
+        awful.spawn.with_shell(self:_redshift_override_command(temperature))
+        self._redshift_temperature = temperature
+
+        if step_index >= steps then
+            self:_stop_redshift_transition()
+            if on_done then
+                on_done()
+            end
+        end
+    end
+
+    apply_step()
+
+    if steps == 1 then
+        return
+    end
+
+    self._redshift_transition_timer = gears.timer({
+        timeout = interval,
+        autostart = true,
+        callback = apply_step,
+    })
+end
+
+function M:redshift_resume()
+    if not self._redshift.enabled then
+        return
+    end
+
+    local target = self:_current_redshift_target_temperature()
+    local start = self._redshift.temperature_day or 6500
+
+    self:_stop_redshift_transition()
+    awful.spawn.easy_async_with_shell(shell_chain({
+        self:_redshift_kill_command(),
+        self:_redshift_reset_command(),
+    }), function()
+        self:_run_redshift_transition(start, target, function()
+            awful.spawn.easy_async_with_shell(self:_redshift_start_command(), function()
+                self._redshift_temperature = target
+                self:_set_redshift_suspended(false)
+            end)
+        end)
+    end)
+end
+
+function M:redshift_suspend()
+    local start = self._redshift_temperature or self:_current_redshift_target_temperature()
+    local target = self._redshift.temperature_day or 6500
+
+    self:_stop_redshift_transition()
+    awful.spawn.easy_async_with_shell(self:_redshift_kill_command(), function()
+        self:_run_redshift_transition(start, target, function()
+            awful.spawn.easy_async_with_shell(self:_redshift_reset_command(), function()
+                self._redshift_temperature = target
+                self:_set_redshift_suspended(true)
+            end)
+        end)
+    end)
+end
+
+function M:redshift_toggle()
+    if self._redshift_suspended then
+        self:redshift_resume()
+    else
+        self:redshift_suspend()
+    end
+end
+
+function M:_initialize_redshift()
+    self._redshift_temperature = self._redshift.temperature_day or 6500
+
+    if self._redshift.autostart and self._redshift.enabled then
+        awful.spawn.easy_async_with_shell(shell_chain({
+            self:_redshift_kill_command(),
+            self:_redshift_reset_command(),
+            self:_redshift_start_command(),
+        }), function()
+            self._redshift_temperature = self:_current_redshift_target_temperature()
+            self:_set_redshift_suspended(false)
+        end)
+    else
+        awful.spawn.easy_async_with_shell(shell_chain({
+            self:_redshift_kill_command(),
+            self:_redshift_reset_command(),
+        }), function()
+            self:_set_redshift_suspended(true)
+        end)
+    end
+end
+
+function M:redshift_suspend_immediate()
+    self:_stop_redshift_transition()
+    awful.spawn.easy_async_with_shell(shell_chain({
+        self:_redshift_kill_command(),
+        self:_redshift_reset_command(),
+    }), function()
+        self._redshift_temperature = self._redshift.temperature_day or 6500
+        self:_set_redshift_suspended(true)
+    end)
 end
 
 function M:_refresh_from_command(callback)
@@ -254,18 +472,35 @@ function M.new(commands)
     local self = setmetatable({}, M)
 
     self._commands = {
-        get = commands.get,
-        set = commands.set,
-        step = commands.step or 5,
-        min = commands.min or 10,
-        max = commands.max or 100,
-        off = commands.off,
+        get = commands.brightness.get,
+        set = commands.brightness.set,
+        step = commands.brightness.step or 5,
+        min = commands.brightness.min or 10,
+        max = commands.brightness.max or 100,
+        off = commands.brightness.off,
     }
+    self._redshift = {
+        command = commands.redshift.command or "redshift",
+        command_name = commands.redshift.command_name,
+        method = commands.redshift.method or "randr",
+        enabled = commands.redshift.enabled ~= false,
+        autostart = commands.redshift.autostart ~= false,
+        latitude = commands.redshift.latitude,
+        longitude = commands.redshift.longitude,
+        temperature_day = commands.redshift.temperature_day,
+        temperature_night = commands.redshift.temperature_night,
+        transition_steps = commands.redshift.transition_steps or 8,
+        transition_interval = commands.redshift.transition_interval or 0.05,
+        day_start_hour = commands.redshift.day_start_hour,
+        night_start_hour = commands.redshift.night_start_hour,
+    }
+    self._redshift_suspended = not self._redshift.autostart
 
     self.widget = wibox.container.place()
     self:_build_widget()
     self:_build_osd()
     self:_start_refresh_timer()
+    self:_initialize_redshift()
 
     return self
 end

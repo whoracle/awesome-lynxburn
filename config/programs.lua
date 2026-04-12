@@ -26,7 +26,17 @@ return {
     screendrawer = "gromit-mpx",
     launcher = home .. "/.config/rofi/launchers/type-1/launcher.sh",
     filebrowser = "thunar",
-    redshift = "redshift-gtk",
+    redshift = {
+        command = "redshift",
+        method = "randr",
+        autostart = true,
+        latitude = nil,
+        longitude = nil,
+        temperature_day = 6500,
+        temperature_night = 4500,
+        transition_steps = 8,
+        transition_interval = 0.05,
+    },
     brightness = {
         get = "xbacklight -get",
         set = "xbacklight -set %d",
@@ -40,6 +50,5 @@ return {
     autostart = {
         --"nextcloud",
         --"nm-applet --sm-disable",
-        --"redshift-gtk",
     },
 }

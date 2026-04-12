@@ -35,7 +35,11 @@ end
 
 function M.display()
     if not lxdisplay_instance then
-        lxdisplay_instance = require("lxdisplay").new(require("config.programs").brightness)
+        local programs = require("config.programs")
+        lxdisplay_instance = require("lxdisplay").new({
+            brightness = programs.brightness,
+            redshift = programs.redshift,
+        })
     end
 
     return lxdisplay_instance

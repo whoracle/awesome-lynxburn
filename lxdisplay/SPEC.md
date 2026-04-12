@@ -147,6 +147,7 @@ Recommended config shape:
 ```lua
 redshift = {
     enabled = true,
+    method = "randr",
     latitude = "...",
     longitude = "...",
     temperature_day = 6500,
@@ -166,6 +167,7 @@ That means `lxdisplay` should, if practical:
 - start redshift/redshift-gtk with configured values
 - stop it when suspended
 - restart it when resumed
+- use an explicit backend method such as `randr` instead of relying on whatever backend redshift auto-picks
 
 If direct control of `redshift-gtk` is awkward, it is acceptable for V1 to instead control plain `redshift` itself and leave tray behavior out of scope.
 
@@ -185,6 +187,11 @@ Open implementation question:
 Recommended behavior:
 
 - yes; for now suspend should behave like `redshift -x`, meaning the current adjustment is removed from the screen immediately
+
+Refinement:
+
+- the user wants suspend/resume to feel less abrupt than a single hard reset
+- for the current implementation, a short stepped temperature ramp is acceptable before the final `redshift -x` reset / daemon handoff
 
 ### Status Indication
 
