@@ -45,6 +45,17 @@ local function first_existing_path(paths)
     return nil
 end
 
+local function first_existing_battery_path()
+    local handle = io.popen("ls -1d /sys/class/power_supply/BAT* 2>/dev/null")
+    if not handle then
+        return nil
+    end
+
+    local path = handle:read("*l")
+    handle:close()
+    return path
+end
+
 local function read_trimmed(path)
     local file = io.open(path, "r")
     if not file then
@@ -64,6 +75,18 @@ local function contains(list, target)
     end
 
     return false
+end
+
+local function format_duration_hours(hours)
+    local numeric = tonumber(hours)
+    if not numeric or numeric <= 0 then
+        return nil
+    end
+
+    local total_minutes = math.floor((numeric * 60) + 0.5)
+    local hh = math.floor(total_minutes / 60)
+    local mm = total_minutes % 60
+    return string.format("%d:%02d", hh, mm)
 end
 
 local function normalize_popup_opts(arg1, arg2)
@@ -178,6 +201,44 @@ function M:_power_source()
     return "battery"
 end
 
+function M:_battery_info()
+    local battery_path = first_existing_battery_path()
+    if not battery_path then
+        return nil
+    end
+
+    local status = read_trimmed(battery_path .. "/status")
+    local power_now = tonumber(read_trimmed(battery_path .. "/power_now") or read_trimmed(battery_path .. "/current_now"))
+    local energy_now = tonumber(read_trimmed(battery_path .. "/energy_now") or read_trimmed(battery_path .. "/charge_now"))
+    local energy_full = tonumber(read_trimmed(battery_path .. "/energy_full") or read_trimmed(battery_path .. "/charge_full"))
+    local percentage = tonumber(read_trimmed(battery_path .. "/capacity"))
+
+    local time_label = nil
+
+    local direct_empty = tonumber(read_trimmed(battery_path .. "/time_to_empty_now"))
+    local direct_full = tonumber(read_trimmed(battery_path .. "/time_to_full_now"))
+
+    if status == "Discharging" then
+        if direct_empty and direct_empty > 0 then
+            time_label = format_duration_hours(direct_empty / 3600)
+        elseif power_now and power_now > 0 and energy_now and energy_now > 0 then
+            time_label = format_duration_hours(energy_now / power_now)
+        end
+    elseif status == "Charging" then
+        if direct_full and direct_full > 0 then
+            time_label = format_duration_hours(direct_full / 3600)
+        elseif power_now and power_now > 0 and energy_now and energy_full and energy_full > energy_now then
+            time_label = format_duration_hours((energy_full - energy_now) / power_now)
+        end
+    end
+
+    return {
+        status = status,
+        percentage = percentage,
+        time_label = time_label,
+    }
+end
+
 function M:_active_pair()
     return self.state.power_source == "ac" and ON_AC_PAIR or ON_BATTERY_PAIR
 end
@@ -225,12 +286,25 @@ function M:_refresh_popup()
         return
     end
 
+    local meta_fg = gears.string.xml_escape(self:_theme_value("lxpowerprofiles_meta_fg", beautiful.fg_minimize or "#999999"))
+    local label
+
+    if self.state.power_source == "battery" then
+        label = self.state.time_label and ("Time to empty: " .. self.state.time_label) or "Time to empty: -"
+    elseif self.state.battery_status == "Charging" then
+        label = self.state.time_label and ("Time to full: " .. self.state.time_label) or "Time to full: -"
+    else
+        label = "Time to full: -"
+    end
+
     self._popup_refs.status.markup = string.format(
-        "<span foreground='%s'>Power source: %s  |  fast toggle: %s / %s</span>",
-        gears.string.xml_escape(self:_theme_value("lxpowerprofiles_meta_fg", beautiful.fg_minimize or "#999999")),
-        gears.string.xml_escape(self.state.power_source),
-        gears.string.xml_escape(self:_active_pair()[1]),
-        gears.string.xml_escape(self:_active_pair()[2])
+        "<span foreground='%s'>Source: %s</span>\n<span foreground='%s'>Current Profile: %s</span>\n<span foreground='%s'>%s</span>",
+        meta_fg,
+        gears.string.xml_escape(self.state.power_source == "ac" and "AC" or "battery"),
+        meta_fg,
+        gears.string.xml_escape(self.state.profile or "unknown"),
+        meta_fg,
+        gears.string.xml_escape(label)
     )
 end
 
@@ -517,10 +591,14 @@ end
 
 function M:refresh()
     local source = self:_power_source()
+    local battery_info = self:_battery_info() or {}
 
     awful.spawn.easy_async_with_shell("powerprofilesctl get 2>/dev/null", function(stdout)
         self.state.power_source = source
         self.state.profile = util.trim(stdout or "") or self:_remembered_profile(source)
+        self.state.battery_status = battery_info.status
+        self.state.battery_percentage = battery_info.percentage
+        self.state.time_label = battery_info.time_label
         self:_refresh_widget()
         self:_refresh_popup()
     end)
@@ -568,9 +646,14 @@ function M.new(opts)
 
     self.widget = wibox.widget({
         {
-            icon,
+            {
+                icon,
+                forced_width = self:_theme_value("lxpowerprofiles_icon_width", 18),
+                strategy = "exact",
+                widget = wibox.container.constraint,
+            },
             label,
-            spacing = 6,
+            spacing = 8,
             layout = wibox.layout.fixed.horizontal,
         },
         left = 8,
