@@ -668,6 +668,7 @@ function M:_build_widget()
     local row = wibox.widget({
         content,
         left = 8,
+        right = 8,
         widget = wibox.container.margin,
     })
     self:_attach_mouse_controls(row)
