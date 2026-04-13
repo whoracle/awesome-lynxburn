@@ -208,7 +208,8 @@ theme.lxdisplay_osd_timeout = 1
 theme.lxdisplay_osd_screen_margin = 60
 
 theme.lxrunner_width = 520
-theme.lxrunner_row_count = 5
+theme.lxrunner_row_count = 10
+theme.lxrunner_history_limit = 10
 theme.lxrunner_bg = gray2
 theme.lxrunner_border_color = gray
 theme.lxrunner_border_width = 1

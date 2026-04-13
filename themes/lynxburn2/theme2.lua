@@ -172,6 +172,8 @@ local theme = {
     lxdisplay_osd_screen_margin = 60,
 
     lxrunner_input_bg = roles.panel_bg_muted,
+    lxrunner_row_count = 10,
+    lxrunner_history_limit = 10,
     lxrunner_row_fg = roles.text_meta,
     lxrunner_row_selected_bg = roles.raised_bg,
     lxrunner_row_selected_fg = roles.text,
