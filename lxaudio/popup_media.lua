@@ -430,19 +430,30 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
     if stream.volume then
         local volume_line = wibox.widget {
             {
-                make_info_line("Volume: " .. tostring(stream.volume) .. "%", {
+                make_info_line("Volume", {
                     left = 0,
                     right = 8,
                     top = 0,
                     bottom = 0,
                 }),
-                forced_width = 90,
+                forced_width = 54,
                 strategy = "max",
                 widget = wibox.container.constraint,
             },
             {
                 make_stream_volume_control(instance, stream),
                 widget = wibox.container.background,
+            },
+            {
+                wibox.widget {
+                    text = tostring(stream.volume) .. "%",
+                    align = "right",
+                    valign = "center",
+                    widget = wibox.widget.textbox,
+                },
+                forced_width = 40,
+                strategy = "max",
+                widget = wibox.container.constraint,
             },
             spacing = 8,
             layout = wibox.layout.flex.horizontal,
@@ -460,22 +471,32 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
         }))
 
         if source_output and source_output.volume then
-            local mic_label = source_output.muted and "Mic: muted" or ("Mic: " .. tostring(source_output.volume) .. "%")
             local mic_line = wibox.widget {
                 {
-                    make_info_line(mic_label, {
+                    make_info_line("Mic", {
                         left = 0,
                         right = 8,
                         top = 0,
                         bottom = 0,
                     }),
-                    forced_width = 90,
+                    forced_width = 54,
                     strategy = "max",
                     widget = wibox.container.constraint,
                 },
                 {
                     make_source_output_volume_control(instance, source_output),
                     widget = wibox.container.background,
+                },
+                {
+                    wibox.widget {
+                        text = source_output.muted and "muted" or (tostring(source_output.volume) .. "%"),
+                        align = "right",
+                        valign = "center",
+                        widget = wibox.widget.textbox,
+                    },
+                    forced_width = 40,
+                    strategy = "max",
+                    widget = wibox.container.constraint,
                 },
                 spacing = 8,
                 layout = wibox.layout.flex.horizontal,
