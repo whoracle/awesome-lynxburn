@@ -510,7 +510,7 @@ end
 function M:_start_media_popup_outside_click_dismiss()
     self:_stop_media_popup_outside_click_dismiss()
 
-    self._media_popup_outside_click_handler = function()
+    local handler = function()
         local popup = self._media_popup
         if not (popup and popup.visible) then
             return
@@ -524,9 +524,9 @@ function M:_start_media_popup_outside_click_dismiss()
         self:close_popups()
     end
 
-    self._media_popup_outside_click_binding = awful.button({}, 1, function()
-        self._media_popup_outside_click_handler()
-    end)
+    self._media_popup_outside_click_handler = handler
+
+    self._media_popup_outside_click_binding = awful.button({}, 1, handler)
 
     awful.mouse.append_global_mousebinding(self._media_popup_outside_click_binding)
 
