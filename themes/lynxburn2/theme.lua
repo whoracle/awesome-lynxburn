@@ -207,10 +207,10 @@ theme.lxdisplay_osd_margin = 16
 theme.lxdisplay_osd_timeout = 1
 theme.lxdisplay_osd_screen_margin = 60
 
-theme.lxbluetooth_icon = ""
-theme.lxnetwork_icon = ""
-theme.lxpowerprofiles_icon_ac = ""
-theme.lxpowerprofiles_icon_battery = ""
+theme.lxbluetooth_icon = " "
+theme.lxnetwork_icon = " "
+theme.lxpowerprofiles_icon_ac = " "
+theme.lxpowerprofiles_icon_battery = " "
 
 theme.lxrunner_width = 520
 theme.lxrunner_row_count = 10
