@@ -22,8 +22,11 @@ local config = require("config")
 -- Long-lived shared services are created after the theme is loaded so their
 -- widgets read final `beautiful` values rather than partially initialized ones.
 local lxaudio = config.services.audio()
+local lxbluetooth = nil
 local lxdisplay = nil
+local lxnetwork = nil
 local lxnotify = config.services.notify()
+local lxpowerprofiles = nil
 local lxrunner = nil
 
 config.helpers.setup_error_handling(awesome, naughty)
@@ -36,7 +39,10 @@ local theme_path = string.format(
 beautiful.init(theme_path)
 
 lxrunner = config.services.runner()
+lxbluetooth = config.services.bluetooth()
 lxdisplay = config.services.display()
+lxnetwork = config.services.network()
+lxpowerprofiles = config.services.powerprofiles()
 
 local osd_handlers = config.osd.new(beautiful, {
     volume_step = config.settings.volume_step,
@@ -55,8 +61,11 @@ local keymaps = config.keys.build({
     programs = config.programs,
     lain = lain,
     lxaudio = lxaudio,
+    lxbluetooth = lxbluetooth,
     lxdisplay = lxdisplay,
+    lxnetwork = lxnetwork,
     lxnotify = lxnotify,
+    lxpowerprofiles = lxpowerprofiles,
     lxrunner = lxrunner,
     osd = osd_handlers,
     quake = quake,

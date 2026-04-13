@@ -169,8 +169,11 @@ function M.build(context)
     local programs = context.programs
     local lxnotify = context.lxnotify
     local lxaudio = context.lxaudio
+    local lxbluetooth = context.lxbluetooth
     local lxdisplay = context.lxdisplay
+    local lxnetwork = context.lxnetwork
     local lxrunner = context.lxrunner
+    local lxpowerprofiles = context.lxpowerprofiles
     local osd = context.osd
     local lain = context.lain
     local key_overrides = helpers.load_optional_module("config.override.keys", {})
@@ -251,6 +254,24 @@ function M.build(context)
             hover_close = false,
             toggle_key = { modifiers = { settings.modkey }, key = "Next" },
         })
+    end
+
+    local function show_bluetooth_popup()
+        if lxbluetooth then
+            lxbluetooth:toggle_popup()
+        end
+    end
+
+    local function show_network_popup()
+        if lxnetwork then
+            lxnetwork:toggle_popup()
+        end
+    end
+
+    local function show_powerprofiles_popup()
+        if lxpowerprofiles then
+            lxpowerprofiles:toggle_popup()
+        end
     end
 
     local function show_calendar()
@@ -426,6 +447,9 @@ function M.build(context)
         shrink_gaps = shrink_gaps,
         show_media_popup = show_media_popup,
         show_notification_popup = show_notification_popup,
+        show_bluetooth_popup = show_bluetooth_popup,
+        show_network_popup = show_network_popup,
+        show_powerprofiles_popup = show_powerprofiles_popup,
         show_calendar = show_calendar,
         toggle_lxrunner = toggle_lxrunner,
         open_launcher = open_launcher,
@@ -482,6 +506,9 @@ function M.build(context)
         "layout_decrement_useless_gaps",
         "programs_show_media_popup",
         "programs_show_notification_popup",
+        "programs_show_bluetooth_popup",
+        "programs_show_network_popup",
+        "programs_show_powerprofiles_popup",
         "programs_show_calendar",
         "programs_lxrunner",
         "programs_launcher",
@@ -533,6 +560,9 @@ function M.build(context)
         layout_decrement_useless_gaps = key_spec({ settings.modkey, settings.ctrlkey }, "-", "shrink_gaps", "decrement useless gaps", grp_names[3]),
         programs_show_media_popup = key_spec({ settings.modkey }, "Prior", "show_media_popup", "show media popup", grp_names[4]),
         programs_show_notification_popup = key_spec({ settings.modkey }, "Next", "show_notification_popup", "show notification popup", grp_names[4]),
+        programs_show_bluetooth_popup = key_spec({ settings.modkey }, "F10", "show_bluetooth_popup", "show bluetooth popup", grp_names[4]),
+        programs_show_network_popup = key_spec({ settings.modkey }, "F11", "show_network_popup", "show network popup", grp_names[4]),
+        programs_show_powerprofiles_popup = key_spec({ settings.modkey }, "F12", "show_powerprofiles_popup", "show power profiles popup", grp_names[4]),
         programs_show_calendar = key_spec({ settings.modkey }, "c", "show_calendar", "show calendar", grp_names[4]),
         programs_lxrunner = key_spec({ settings.altkey }, "F2", "toggle_lxrunner", "lxrunner", grp_names[4]),
         programs_launcher = key_spec({ settings.altkey }, "F3", "open_launcher", "launcher", grp_names[4]),
