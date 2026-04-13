@@ -129,6 +129,20 @@ local function point_in_geometry(x, y, geo)
         and y >= geo.y and y < (geo.y + geo.height)
 end
 
+local function copy_button_list(buttons)
+    local copied = {}
+
+    if not buttons then
+        return copied
+    end
+
+    for _, button in ipairs(buttons) do
+        copied[#copied + 1] = button
+    end
+
+    return copied
+end
+
 ---Group stored entries into the burst-group structure used by the popup.
 ---@param notifications table[]
 ---@return table, table[]
@@ -720,8 +734,10 @@ function instance_methods:_start_popup_outside_click_dismiss()
     self._popup_outside_click_handler = handler
 
     self._popup_outside_click_binding = awful.button({}, 1, handler)
-    self._popup_saved_root_buttons = root.buttons()
-    root.buttons(gears.table.join(unpack(self._popup_saved_root_buttons or {}), self._popup_outside_click_binding))
+    self._popup_saved_root_buttons = copy_button_list(root.buttons())
+    local merged_root_buttons = copy_button_list(self._popup_saved_root_buttons)
+    merged_root_buttons[#merged_root_buttons + 1] = self._popup_outside_click_binding
+    root.buttons(merged_root_buttons)
 
     if client and client.connect_signal then
         client.connect_signal("button::press", self._popup_outside_click_handler)
