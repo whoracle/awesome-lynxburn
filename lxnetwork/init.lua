@@ -1000,7 +1000,7 @@ function M.new(opts)
                     valign = "center",
                     widget = wibox.container.place,
                 },
-                forced_width = self:_theme_value("lxnetwork_icon_width", 18),
+                forced_width = self:_theme_value("lxnetwork_icon_width", 24),
                 strategy = "exact",
                 widget = wibox.container.constraint,
             },
