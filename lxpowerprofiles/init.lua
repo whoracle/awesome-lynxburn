@@ -131,6 +131,26 @@ local function popup_toggle_key_matches(toggle_key, modifiers, key)
     return true
 end
 
+local function point_in_geometry(x, y, geo)
+    return geo
+        and x >= geo.x and x < (geo.x + geo.width)
+        and y >= geo.y and y < (geo.y + geo.height)
+end
+
+local function copy_button_list(buttons)
+    local copied = {}
+
+    if not buttons then
+        return copied
+    end
+
+    for _, button in ipairs(buttons) do
+        copied[#copied + 1] = button
+    end
+
+    return copied
+end
+
 function M:_theme_value(key, fallback)
     local value = beautiful[key]
     if value == nil then
@@ -255,6 +275,14 @@ function M:_build_popup()
     })
 end
 
+function M:hover_close_timeout()
+    return self:_theme_value("lxpowerprofiles_hover_close_timeout", 1.5)
+end
+
+function M:hover_close_poll_interval()
+    return self:_theme_value("lxpowerprofiles_hover_close_poll_interval", 0.25)
+end
+
 function M:_ensure_popup_selection()
     local count = #(self._popup_items or {})
     if count < 1 then
@@ -336,10 +364,108 @@ function M:blur_popup_keyboard_navigation()
 end
 
 function M:close_popup()
+    self:_stop_hover_close_timer()
+    self:_stop_popup_outside_click_dismiss()
     self:blur_popup_keyboard_navigation()
     if self._popup then
         self._popup.visible = false
     end
+end
+
+function M:_start_popup_outside_click_dismiss()
+    self:_stop_popup_outside_click_dismiss()
+
+    local handler = function()
+        local popup = self._popup
+        if not (popup and popup.visible) then
+            return
+        end
+
+        local coords = mouse.coords()
+        if point_in_geometry(coords.x, coords.y, popup:geometry()) then
+            return
+        end
+
+        self:close_popup()
+    end
+
+    self._popup_outside_click_handler = handler
+    self._popup_outside_click_binding = awful.button({}, 1, handler)
+    self._popup_saved_root_buttons = copy_button_list(root.buttons())
+    local merged_root_buttons = copy_button_list(self._popup_saved_root_buttons)
+    merged_root_buttons[#merged_root_buttons + 1] = self._popup_outside_click_binding
+    root.buttons(merged_root_buttons)
+
+    if client and client.connect_signal then
+        client.connect_signal("button::press", self._popup_outside_click_handler)
+    end
+
+    if drawin and drawin.connect_signal then
+        drawin.connect_signal("button::press", self._popup_outside_click_handler)
+    end
+end
+
+function M:_stop_popup_outside_click_dismiss()
+    if self._popup_outside_click_binding then
+        self._popup_outside_click_binding = nil
+    end
+
+    if self._popup_saved_root_buttons then
+        root.buttons(self._popup_saved_root_buttons)
+        self._popup_saved_root_buttons = nil
+    end
+
+    if self._popup_outside_click_handler then
+        if client and client.disconnect_signal then
+            client.disconnect_signal("button::press", self._popup_outside_click_handler)
+        end
+
+        if drawin and drawin.disconnect_signal then
+            drawin.disconnect_signal("button::press", self._popup_outside_click_handler)
+        end
+
+        self._popup_outside_click_handler = nil
+    end
+end
+
+function M:_stop_hover_close_timer()
+    if self._hover_close_timer then
+        self._hover_close_timer:stop()
+        self._hover_close_timer = nil
+    end
+end
+
+function M:_start_hover_close_timer()
+    self:_stop_hover_close_timer()
+
+    local outside_ticks = 0
+    local poll_interval = self:hover_close_poll_interval()
+    local hover_timeout = self:hover_close_timeout()
+    local max_outside_ticks = math.max(1, math.floor((hover_timeout / poll_interval) + 0.5))
+
+    self._hover_close_timer = gears.timer({
+        timeout = poll_interval,
+        autostart = true,
+        call_now = false,
+        callback = function()
+            local popup = self._popup
+            if not (popup and popup.visible) then
+                self:_stop_hover_close_timer()
+                return
+            end
+
+            local coords = mouse.coords()
+            if point_in_geometry(coords.x, coords.y, popup:geometry()) then
+                outside_ticks = 0
+                return
+            end
+
+            outside_ticks = outside_ticks + 1
+            if outside_ticks >= max_outside_ticks then
+                self:close_popup()
+            end
+        end,
+    })
 end
 
 function M:toggle_popup(anchor, opts)
@@ -359,11 +485,14 @@ function M:toggle_popup(anchor, opts)
     if visible then
         self:_refresh_popup()
     end
+    self:_start_popup_outside_click_dismiss()
 
     if opts.keyboard_navigation then
+        self:_stop_hover_close_timer()
         self:focus_popup_keyboard_navigation()
     else
         self:blur_popup_keyboard_navigation()
+        self:_start_hover_close_timer()
     end
 end
 
