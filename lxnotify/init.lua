@@ -702,7 +702,7 @@ end
 function instance_methods:_start_popup_outside_click_dismiss()
     self:_stop_popup_outside_click_dismiss()
 
-    self._popup_outside_click_binding = awful.button({}, 1, function()
+    self._popup_outside_click_handler = function()
         local popup_widget = self._popup
         if not (popup_widget and popup_widget.visible) then
             return
@@ -714,15 +714,39 @@ function instance_methods:_start_popup_outside_click_dismiss()
         end
 
         self:close_popups()
+    end
+
+    self._popup_outside_click_binding = awful.button({}, 1, function()
+        self._popup_outside_click_handler()
     end)
 
     awful.mouse.append_global_mousebinding(self._popup_outside_click_binding)
+
+    if client and client.connect_signal then
+        client.connect_signal("button::press", self._popup_outside_click_handler)
+    end
+
+    if drawin and drawin.connect_signal then
+        drawin.connect_signal("button::press", self._popup_outside_click_handler)
+    end
 end
 
 function instance_methods:_stop_popup_outside_click_dismiss()
     if self._popup_outside_click_binding then
         awful.mouse.remove_global_mousebinding(self._popup_outside_click_binding)
         self._popup_outside_click_binding = nil
+    end
+
+    if self._popup_outside_click_handler then
+        if client and client.disconnect_signal then
+            client.disconnect_signal("button::press", self._popup_outside_click_handler)
+        end
+
+        if drawin and drawin.disconnect_signal then
+            drawin.disconnect_signal("button::press", self._popup_outside_click_handler)
+        end
+
+        self._popup_outside_click_handler = nil
     end
 end
 
