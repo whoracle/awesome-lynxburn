@@ -317,12 +317,13 @@ function M.build(theme)
         followtag = true,
         settings = function()
             local fs_p = ""
+            local root_fs = fs_now["/"]
 
-            if fs_now["/"].percentage >= 90 then
+            if root_fs and root_fs.percentage >= 90 then
                 fs_p = markup.font(
                     theme.font,
                     theme.space .. markup(theme.tasklist_fg_normal, "root ")
-                    .. fs_now["/"].percentage .. markup(theme.tasklist_fg_normal, "%" .. theme.space)
+                    .. root_fs.percentage .. markup(theme.tasklist_fg_normal, "%" .. theme.space)
                 )
                 fs_root_icon.forced_width = nil
                 fs_root_icon.forced_height = nil
