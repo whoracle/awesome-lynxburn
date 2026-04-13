@@ -198,6 +198,51 @@ local function apply_dock_geometry(instance, popup_widget, anchor)
     })
 end
 
+local function make_signal_bar(instance, signal)
+    return wibox.widget({
+        max_value = 100,
+        value = signal or 0,
+        forced_width = instance:_theme_value("lxnetwork_signal_bar_width", 56),
+        forced_height = 8,
+        paddings = 0,
+        border_width = 0,
+        background_color = instance:_theme_value("lxnetwork_signal_bar_bg", beautiful.bg_minimize or "#140c0b"),
+        color = instance:_theme_value("lxnetwork_signal_bar_fg", beautiful.fg_normal or "#e2ccb0"),
+        widget = wibox.widget.progressbar,
+    })
+end
+
+local function make_network_row(instance, network, selected, onclick)
+    local name = network.active and ("● " .. network.ssid) or network.ssid
+    local row_content = wibox.widget({
+        {
+            markup = gears.string.xml_escape(name),
+            ellipsize = "end",
+            widget = wibox.widget.textbox,
+        },
+        nil,
+        {
+            {
+                make_signal_bar(instance, network.signal),
+                right = 2,
+                widget = wibox.container.margin,
+            },
+            halign = "right",
+            widget = wibox.container.place,
+        },
+        expand = "inside",
+        layout = wibox.layout.align.horizontal,
+    })
+
+    return popup_common.make_selectable_click_container(row_content, onclick, {
+        selected = selected,
+        inner_bg = instance:_theme_value("lxnetwork_button_bg", beautiful.bg_minimize or "#222222"),
+        hover_bg = instance:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
+        outer_bg = instance:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
+        selected_bg = instance:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+    })
+end
+
 function M:_theme_value(key, fallback)
     local value = beautiful[key]
     if value == nil then
@@ -218,16 +263,9 @@ function M:_refresh_widget()
         gears.string.xml_escape(self:_theme_value("lxnetwork_icon", ""))
     )
 
-    local label = "WiFi off"
-    if self.state.enabled then
-        label = self.state.current_ssid and ("WiFi " .. self.state.current_ssid) or "WiFi idle"
+    if self._refs.label then
+        self._refs.label.markup = ""
     end
-
-    self._refs.label.markup = string.format(
-        "<span foreground='%s'>%s</span>",
-        gears.string.xml_escape(fg),
-        gears.string.xml_escape(label)
-    )
 end
 
 function M:_close_password_prompt()
@@ -397,23 +435,10 @@ function M:_refresh_popup()
     }
 
     for _, network in ipairs(self.state.networks) do
-        local label = string.format("%s  %d%%", network.ssid, network.signal)
-        if network.security ~= "" and network.security ~= "--" then
-            label = label .. "  [" .. network.security .. "]"
-        end
-        if network.active then
-            label = "● " .. label
-        end
-
         local selected = self._popup_selected_index == (#self._popup_items + 1)
-        local row = popup_common.make_click_row(label, function()
+        local row = make_network_row(self, network, selected, function()
             self:_connect_network(network)
-        end, {
-            idle_bg = selected
-                and self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
-                or self:_theme_value("lxnetwork_button_bg", beautiful.bg_minimize or "#222222"),
-            hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
-        })
+        end)
 
         self._popup_items[#self._popup_items + 1] = {
             on_enter = function()
@@ -463,13 +488,14 @@ function M:_build_popup()
 
     return wibox.widget({
         {
-            popup_common.make_click_row("Scan WiFi", function()
+            popup_common.make_selectable_click_row("Scan WiFi", function()
                 self:scan()
             end, {
-                idle_bg = self._popup_selected_index == 1
-                    and self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
-                    or self:_theme_value("lxnetwork_button_bg", beautiful.bg_minimize or "#222222"),
+                selected = self._popup_selected_index == 1,
+                inner_bg = self:_theme_value("lxnetwork_button_bg", beautiful.bg_minimize or "#222222"),
                 hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
+                outer_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
+                selected_bg = self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
             }),
             current,
             popup_common.make_info_line(string.format(
@@ -809,6 +835,7 @@ function M.new(opts)
 
     local icon = wibox.widget({ markup = "", widget = wibox.widget.textbox })
     local label = wibox.widget({ markup = "", widget = wibox.widget.textbox })
+    label.visible = false
     self._refs.icon = icon
     self._refs.label = label
 

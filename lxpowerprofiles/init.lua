@@ -241,13 +241,14 @@ function M:_build_popup()
 
     for _, profile in ipairs(ALL_PROFILES) do
         local selected = self._popup_selected_index == (#self._popup_items + 1)
-        list:add(popup_common.make_click_row(profile, function()
+        list:add(popup_common.make_selectable_click_row(profile, function()
             self:set_profile(profile)
         end, {
-            idle_bg = selected
-                and self:_theme_value("lxpowerprofiles_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
-                or self:_theme_value("lxpowerprofiles_button_bg", beautiful.bg_minimize or "#222222"),
+            selected = selected,
+            inner_bg = self:_theme_value("lxpowerprofiles_button_bg", beautiful.bg_minimize or "#222222"),
             hover_bg = self:_theme_value("lxpowerprofiles_button_hover", beautiful.bg_focus or "#444444"),
+            outer_bg = self:_theme_value("lxpowerprofiles_popup_bg", beautiful.bg_normal or "#222222"),
+            selected_bg = self:_theme_value("lxpowerprofiles_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
         }))
         self._popup_items[#self._popup_items + 1] = {
             on_enter = function()

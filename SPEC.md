@@ -229,3 +229,16 @@ Avoid:
 - large settings-center style modules
 - low-value informational widgets
 - features that duplicate existing tools without improving the workflow
+
+## Cleanup Notes
+
+- Current MVP work reuses [lxaudio/popup_common.lua](/home/anthrax/tmp/awesome/lxaudio/popup_common.lua:1)
+  from non-audio modules.
+- That is acceptable for now to keep momentum, but it should not stay that way.
+- Follow-up options:
+  - duplicate the small shared popup helpers into each module if the overlap
+    stays tiny
+  - or extract them into a neutral `lxcommon` module if the shared surface keeps
+    growing
+- Preferred long-term direction: no direct inter-module dependency such as
+  `lxnetwork -> lxaudio` or `lxbluetooth -> lxaudio` just for popup helpers.

@@ -79,6 +79,8 @@ function M.make_click_container(child, onclick, opts)
     local hover_bg = opts.hover_bg
     local idle_bg = opts.idle_bg
 
+    bg.bg = idle_bg
+
     bg:connect_signal("mouse::enter", function()
         bg.bg = hover_bg
     end)
@@ -110,6 +112,39 @@ end
 function M.make_click_row(text, onclick, opts)
     opts = opts or {}
     return M.make_click_container(M.make_text(text, opts.text_opts), onclick, opts)
+end
+
+function M.make_selectable_click_container(child, onclick, opts)
+    opts = opts or {}
+
+    local inner = M.make_click_container(child, onclick, {
+        left = opts.left,
+        right = opts.right,
+        top = opts.top,
+        bottom = opts.bottom,
+        forced_height = opts.forced_height,
+        idle_bg = opts.inner_bg,
+        hover_bg = opts.hover_bg,
+        on_middle_click = opts.on_middle_click,
+        on_scroll_up = opts.on_scroll_up,
+        on_scroll_down = opts.on_scroll_down,
+    })
+
+    return wibox.widget({
+        {
+            inner,
+            margins = opts.selected and (opts.selection_margin or 2) or 0,
+            widget = wibox.container.margin,
+        },
+        bg = opts.selected and opts.selected_bg or opts.outer_bg,
+        shape = opts.shape or gears.shape.rounded_rect,
+        widget = wibox.container.background,
+    })
+end
+
+function M.make_selectable_click_row(text, onclick, opts)
+    opts = opts or {}
+    return M.make_selectable_click_container(M.make_text(text, opts.text_opts), onclick, opts)
 end
 
 function M.rebuild_popup(instance, popup_key, builder)

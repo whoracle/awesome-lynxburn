@@ -202,21 +202,9 @@ function M:_refresh_widget()
         gears.string.xml_escape(self:_theme_value("lxbluetooth_icon", ""))
     )
 
-    local label = "BT off"
-    if self.state.powered then
-        local connected = self.state.connected_count or 0
-        if connected > 0 then
-            label = string.format("BT %d", connected)
-        else
-            label = "BT on"
-        end
+    if self._refs.label then
+        self._refs.label.markup = ""
     end
-
-    self._refs.label.markup = string.format(
-        "<span foreground='%s'>%s</span>",
-        gears.string.xml_escape(icon_fg),
-        gears.string.xml_escape(label)
-    )
 end
 
 function M:_refresh_popup()
@@ -253,10 +241,6 @@ function M:_refresh_popup()
         if device.battery then
             suffix[#suffix + 1] = string.format("%d%%", device.battery)
         end
-        if device.trusted then
-            suffix[#suffix + 1] = "trusted"
-        end
-
         local summary = device.name or device.address
         if #suffix > 0 then
             summary = string.format("%s  [%s]", summary, table.concat(suffix, ", "))
@@ -264,18 +248,18 @@ function M:_refresh_popup()
 
         local next_index = #self._popup_items + 1
         local selected = self._popup_selected_index == next_index
-        local idle_bg = selected
-            and self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
-            or self:_theme_value("lxbluetooth_button_bg", beautiful.bg_minimize or "#222222")
-        local row = popup_common.make_click_row(prefix .. summary, function()
+        local row = popup_common.make_selectable_click_row(prefix .. summary, function()
             if device.connected then
                 self:_device_action("disconnect", device.address)
             else
                 self:_device_action("connect", device.address)
             end
         end, {
-            idle_bg = idle_bg,
+            selected = selected,
+            inner_bg = self:_theme_value("lxbluetooth_button_bg", beautiful.bg_minimize or "#222222"),
             hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
+            outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
+            selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
         })
 
         refs.list:add(row)
@@ -312,22 +296,24 @@ function M:_build_popup()
 
     local popup_widget = wibox.widget({
         {
-            popup_common.make_click_row("Open blueman-manager", function()
+            popup_common.make_selectable_click_row("Open blueman-manager", function()
                 local programs = require("config.programs")
                 awful.spawn.with_shell(programs.blueman_manager)
             end, {
-                idle_bg = self._popup_selected_index == 1
-                    and self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
-                    or self:_theme_value("lxbluetooth_button_bg", beautiful.bg_minimize or "#222222"),
+                selected = self._popup_selected_index == 1,
+                inner_bg = self:_theme_value("lxbluetooth_button_bg", beautiful.bg_minimize or "#222222"),
                 hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
+                outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
+                selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
             }),
-            popup_common.make_click_row("Toggle controller power", function()
+            popup_common.make_selectable_click_row("Toggle controller power", function()
                 self:toggle_power()
             end, {
-                idle_bg = self._popup_selected_index == 2
-                    and self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
-                    or self:_theme_value("lxbluetooth_button_bg", beautiful.bg_minimize or "#222222"),
+                selected = self._popup_selected_index == 2,
+                inner_bg = self:_theme_value("lxbluetooth_button_bg", beautiful.bg_minimize or "#222222"),
                 hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
+                outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
+                selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
             }),
             status,
             list,
@@ -680,6 +666,7 @@ function M.new(opts)
     local label = wibox.widget({
         markup = "",
         widget = wibox.widget.textbox,
+        visible = false,
     })
 
     self._refs.icon = icon
