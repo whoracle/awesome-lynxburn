@@ -356,6 +356,9 @@ function M.build(theme)
         local lxaudio = services.audio()
         local lxdisplay = services.display()
         local lxnotify = services.notify()
+        local audio_widget = wrap_widget(theme, lxaudio.widget)
+        local display_widget = wrap_widget(theme, lxdisplay.widget)
+        local notify_widget = wrap_widget(theme, lxnotify.widget)
 
         local wallpaper = theme.wallpaper
         if type(wallpaper) == "function" then
@@ -444,9 +447,9 @@ function M.build(theme)
                 memwidget,
                 fs_rootwidget,
                 spacer,
-                lxaudio.widget,
-                lxdisplay.widget,
-                lxnotify.widget,
+                audio_widget,
+                display_widget,
+                notify_widget,
                 mysystray,
                 myclock,
                 mydate,
