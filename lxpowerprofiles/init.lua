@@ -62,6 +62,21 @@ local function first_existing_battery_path()
     return path
 end
 
+local function dgpu_device_paths()
+    local handle = io.popen("ls -1d /sys/class/drm/card*/device 2>/dev/null")
+    if not handle then
+        return {}
+    end
+
+    local paths = {}
+    for line in handle:lines() do
+        paths[#paths + 1] = line
+    end
+    handle:close()
+
+    return paths
+end
+
 local function read_trimmed(path)
     local file = io.open(path, "r")
     if not file then
@@ -97,6 +112,15 @@ end
 
 local function profile_label(profile)
     return PROFILE_LABELS[profile] or tostring(profile or "unknown")
+end
+
+local function trim_lower(value)
+    local normalized = util.trim(value or "")
+    if not normalized or normalized == "" then
+        return nil
+    end
+
+    return string.lower(normalized)
 end
 
 local function normalize_popup_opts(arg1, arg2)
@@ -249,6 +273,54 @@ function M:_battery_info()
     }
 end
 
+function M:_dgpu_info()
+    for _, path in ipairs(dgpu_device_paths()) do
+        local vendor = trim_lower(read_trimmed(path .. "/vendor"))
+        if vendor == "0x10de" then
+            local runtime_status = trim_lower(read_trimmed(path .. "/power/runtime_status"))
+            local power_state = trim_lower(read_trimmed(path .. "/power_state"))
+
+            if runtime_status == "active" then
+                return {
+                    status = "active",
+                    active = true,
+                }
+            end
+
+            if runtime_status == "suspended" then
+                return {
+                    status = "idle",
+                    active = false,
+                }
+            end
+
+            if power_state == "d0" then
+                return {
+                    status = "active",
+                    active = true,
+                }
+            end
+
+            if power_state == "d3cold" or power_state == "d3hot" then
+                return {
+                    status = "off",
+                    active = false,
+                }
+            end
+
+            return {
+                status = runtime_status or power_state or "unknown",
+                active = runtime_status == "active" or power_state == "d0",
+            }
+        end
+    end
+
+    return {
+        status = "unknown",
+        active = false,
+    }
+end
+
 function M:_active_pair()
     return self.state.power_source == "ac" and ON_AC_PAIR or ON_BATTERY_PAIR
 end
@@ -276,8 +348,14 @@ function M:_toggle_target()
 end
 
 function M:_refresh_widget()
+    local source_icon = self.state.power_source == "ac"
+        and self:_theme_value("lxpowerprofiles_icon_ac", "")
+        or self:_theme_value("lxpowerprofiles_icon_battery", "")
     local fg = self:_theme_value("lxpowerprofiles_widget_fg", beautiful.fg_normal or "#ffffff")
-    local source_icon = self.state.power_source == "ac" and self:_theme_value("lxpowerprofiles_icon_ac", "") or self:_theme_value("lxpowerprofiles_icon_battery", "")
+
+    if self.state.power_source ~= "ac" and self.state.dgpu_active then
+        fg = self:_theme_value("lxpowerprofiles_widget_dgpu_active_fg", "#d88166")
+    end
 
     self._refs.icon.markup = string.format(
         "<span foreground='%s'>%s</span>",
@@ -322,6 +400,11 @@ function M:_refresh_popup()
         meta_fg,
         gears.string.xml_escape(profile_label(self.state.profile))
     )
+    self._popup_refs.gpu.markup = string.format(
+        "<span foreground='%s'>dGPU: %s</span>",
+        meta_fg,
+        gears.string.xml_escape(self.state.dgpu_status or "unknown")
+    )
     self._popup_refs.time.markup = string.format(
         "<span foreground='%s'>%s</span>",
         meta_fg,
@@ -332,10 +415,12 @@ end
 function M:_build_popup()
     local source = wibox.widget({ markup = "", widget = wibox.widget.textbox })
     local profile = wibox.widget({ markup = "", widget = wibox.widget.textbox })
+    local gpu = wibox.widget({ markup = "", widget = wibox.widget.textbox })
     local time = wibox.widget({ markup = "", widget = wibox.widget.textbox })
     local status = wibox.widget({
         source,
         profile,
+        gpu,
         time,
         spacing = 2,
         layout = wibox.layout.fixed.vertical,
@@ -365,6 +450,7 @@ function M:_build_popup()
         status = status,
         source = source,
         profile = profile,
+        gpu = gpu,
         time = time,
         list = list,
     }
@@ -625,6 +711,7 @@ end
 function M:refresh()
     local source = self:_power_source()
     local battery_info = self:_battery_info() or {}
+    local dgpu_info = self:_dgpu_info()
 
     awful.spawn.easy_async_with_shell("powerprofilesctl get 2>/dev/null", function(stdout)
         self.state.power_source = source
@@ -632,6 +719,8 @@ function M:refresh()
         self.state.battery_status = battery_info.status
         self.state.battery_percentage = battery_info.percentage
         self.state.time_label = battery_info.time_label
+        self.state.dgpu_status = dgpu_info.status
+        self.state.dgpu_active = dgpu_info.active
         self:_refresh_widget()
         self:_refresh_popup()
     end)
@@ -664,6 +753,8 @@ function M.new(opts)
     self.state = {
         power_source = "battery",
         profile = "power-saver",
+        dgpu_status = "unknown",
+        dgpu_active = false,
     }
     self._preferred_profiles = {
         battery = "power-saver",
