@@ -922,16 +922,11 @@ function M.new(opts)
     self._refs = {}
 
     local icon = wibox.widget({ markup = "", widget = wibox.widget.textbox })
-    local label = wibox.widget({ markup = "", widget = wibox.widget.textbox })
-    label.visible = false
     self._refs.icon = icon
-    self._refs.label = label
 
     self.widget = wibox.widget({
         {
             icon,
-            label,
-            spacing = 6,
             layout = wibox.layout.fixed.horizontal,
         },
         left = 8,
