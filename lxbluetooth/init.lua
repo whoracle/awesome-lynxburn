@@ -667,13 +667,25 @@ function M.new(opts)
 
     local icon = wibox.widget({
         markup = "",
+        align = "center",
+        valign = "center",
         widget = wibox.widget.textbox,
     })
     self._refs.icon = icon
 
     self.widget = wibox.widget({
         {
-            icon,
+            {
+                {
+                    icon,
+                    halign = "center",
+                    valign = "center",
+                    widget = wibox.container.place,
+                },
+                forced_width = self:_theme_value("lxbluetooth_icon_width", 18),
+                strategy = "exact",
+                widget = wibox.container.constraint,
+            },
             layout = wibox.layout.fixed.horizontal,
         },
         left = 8,

@@ -510,12 +510,14 @@ function M:_refresh_popup()
     end
 
     local refs = self._popup_refs
-    local current_label = self.state.scan_in_progress
-        and "Current: scanning..."
-        or ("Current: " .. (self.state.current_ssid or "offline"))
-    refs.current.markup = string.format(
+    refs.current_header.markup = string.format(
+        "<span foreground='%s'>Current</span>",
+        gears.string.xml_escape(self:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999"))
+    )
+    local current_label = self.state.scan_in_progress and "scanning..." or (self.state.current_ssid or "offline")
+    refs.current_value.markup = string.format(
         "<span foreground='%s'>%s</span>",
-        gears.string.xml_escape(self:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999")),
+        gears.string.xml_escape(self:_theme_value("lxnetwork_widget_fg", beautiful.fg_normal or "#ffffff")),
         gears.string.xml_escape(current_label)
     )
 
@@ -568,7 +570,11 @@ function M:_refresh_popup()
 end
 
 function M:_build_popup()
-    local current = wibox.widget({
+    local current_header = wibox.widget({
+        markup = "",
+        widget = wibox.widget.textbox,
+    })
+    local current_value = wibox.widget({
         markup = "",
         widget = wibox.widget.textbox,
     })
@@ -576,7 +582,8 @@ function M:_build_popup()
     local available_list = wibox.layout.fixed.vertical()
 
     self._popup_refs = {
-        current = current,
+        current_header = current_header,
+        current_value = current_value,
         known_list = known_list,
         available_list = available_list,
     }
@@ -594,15 +601,16 @@ function M:_build_popup()
                 outer_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
                 selected_bg = self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
             }),
-            current,
+            current_header,
+            current_value,
             popup_common.make_info_line(string.format(
                 "<span foreground='%s'>Known</span>",
-                gears.string.xml_escape(self:_theme_value("lxnetwork_widget_fg", beautiful.fg_normal or "#ffffff"))
+                gears.string.xml_escape(self:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999"))
             )),
             known_list,
             popup_common.make_info_line(string.format(
                 "<span foreground='%s'>Available</span>",
-                gears.string.xml_escape(self:_theme_value("lxnetwork_widget_fg", beautiful.fg_normal or "#ffffff"))
+                gears.string.xml_escape(self:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999"))
             )),
             available_list,
             spacing = 8,
