@@ -86,6 +86,48 @@ local function make_volume_bar(value, muted)
     }
 end
 
+local function make_meter_row(label, control, value_text)
+    return wibox.widget {
+        {
+            {
+                make_info_line(label, {
+                    left = 0,
+                    right = 0,
+                    top = 0,
+                    bottom = 0,
+                }),
+                right = 10,
+                widget = wibox.container.margin,
+            },
+            forced_width = 60,
+            strategy = "exact",
+            widget = wibox.container.constraint,
+        },
+        {
+            control,
+            widget = wibox.container.background,
+        },
+        {
+            {
+                wibox.widget {
+                    text = value_text,
+                    align = "right",
+                    valign = "center",
+                    widget = wibox.widget.textbox,
+                },
+                left = 10,
+                widget = wibox.container.margin,
+            },
+            forced_width = 48,
+            strategy = "exact",
+            widget = wibox.container.constraint,
+        },
+        spacing = 0,
+        expand = "inside",
+        layout = wibox.layout.align.horizontal,
+    }
+end
+
 local function make_stream_volume_control(instance, stream)
     local audio = require("lxaudio.audio")
 
@@ -428,36 +470,11 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
     end
 
     if stream.volume then
-        local volume_line = wibox.widget {
-            {
-                make_info_line("Volume", {
-                    left = 0,
-                    right = 8,
-                    top = 0,
-                    bottom = 0,
-                }),
-                forced_width = 54,
-                strategy = "max",
-                widget = wibox.container.constraint,
-            },
-            {
-                make_stream_volume_control(instance, stream),
-                widget = wibox.container.background,
-            },
-            {
-                wibox.widget {
-                    text = tostring(stream.volume) .. "%",
-                    align = "right",
-                    valign = "center",
-                    widget = wibox.widget.textbox,
-                },
-                forced_width = 40,
-                strategy = "max",
-                widget = wibox.container.constraint,
-            },
-            spacing = 8,
-            layout = wibox.layout.flex.horizontal,
-        }
+        local volume_line = make_meter_row(
+            "Volume",
+            make_stream_volume_control(instance, stream),
+            tostring(stream.volume) .. "%"
+        )
 
         info_layout:add(wrap_output_scrollable(wibox.widget {
             volume_line,
@@ -471,36 +488,11 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
         }))
 
         if source_output and source_output.volume then
-            local mic_line = wibox.widget {
-                {
-                    make_info_line("Mic", {
-                        left = 0,
-                        right = 8,
-                        top = 0,
-                        bottom = 0,
-                    }),
-                    forced_width = 54,
-                    strategy = "max",
-                    widget = wibox.container.constraint,
-                },
-                {
-                    make_source_output_volume_control(instance, source_output),
-                    widget = wibox.container.background,
-                },
-                {
-                    wibox.widget {
-                        text = source_output.muted and "muted" or (tostring(source_output.volume) .. "%"),
-                        align = "right",
-                        valign = "center",
-                        widget = wibox.widget.textbox,
-                    },
-                    forced_width = 40,
-                    strategy = "max",
-                    widget = wibox.container.constraint,
-                },
-                spacing = 8,
-                layout = wibox.layout.flex.horizontal,
-            }
+            local mic_line = make_meter_row(
+                "Mic",
+                make_source_output_volume_control(instance, source_output),
+                source_output.muted and "muted" or (tostring(source_output.volume) .. "%")
+            )
 
             info_layout:add(wibox.widget {
                 mic_line,
