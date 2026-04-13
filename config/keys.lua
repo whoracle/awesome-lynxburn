@@ -332,6 +332,10 @@ function M.build(context)
         c:raise()
     end
 
+    local function toggle_quake()
+        context.quake:toggle()
+    end
+
     local function view_tag(i)
         return function()
             local focused_screen = awful.screen.focused()
@@ -375,6 +379,7 @@ function M.build(context)
     end
 
     local actions = {
+        toggle_quake = toggle_quake,
         jump_to_urgent_client = awful.client.urgent.jumpto,
         restore_minimized = restore_minimized,
         cycle_focus = cycle_focus,
@@ -480,6 +485,7 @@ function M.build(context)
     }
 
     local global_specs = {
+        programs_quake_terminal = key_spec({ settings.modkey }, "dead_circumflex", "toggle_quake", "quake terminal", grp_names[4]),
         window_jump_to_urgent_client = key_spec({ settings.modkey }, "u", "jump_to_urgent_client", "jump to urgent client", grp_names[1]),
         window_restore_minimized_program = key_spec({ settings.modkey, settings.ctrlkey }, "n", "restore_minimized", "restore minimized program", grp_names[1]),
         window_focus_next_by_index = key_spec({ settings.modkey }, "Tab", "cycle_focus", "focus next by index", grp_names[1]),
