@@ -323,10 +323,10 @@ local function build_widget(instance)
     }
 
     list:add(build_header(default_sink_label, default_source_label))
+    list:add(build_advanced_card(instance))
     list:add(build_outputs_card(instance, sinks))
     list:add(build_inputs_card(instance, sources))
     list:add(build_streams_card(instance, streams, sinks))
-    list:add(build_advanced_card(instance))
 
     return wibox.widget {
         {
