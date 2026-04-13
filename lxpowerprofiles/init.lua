@@ -297,19 +297,34 @@ function M:_refresh_popup()
         label = "Time to full: -"
     end
 
-    self._popup_refs.status.markup = string.format(
-        "<span foreground='%s'>Source: %s</span>\n<span foreground='%s'>Current Profile: %s</span>\n<span foreground='%s'>%s</span>",
+    self._popup_refs.source.markup = string.format(
+        "<span foreground='%s'>Source: %s</span>",
         meta_fg,
-        gears.string.xml_escape(self.state.power_source == "ac" and "AC" or "battery"),
+        gears.string.xml_escape(self.state.power_source == "ac" and "AC" or "battery")
+    )
+    self._popup_refs.profile.markup = string.format(
+        "<span foreground='%s'>Current Profile: %s</span>",
         meta_fg,
-        gears.string.xml_escape(self.state.profile or "unknown"),
+        gears.string.xml_escape(self.state.profile or "unknown")
+    )
+    self._popup_refs.time.markup = string.format(
+        "<span foreground='%s'>%s</span>",
         meta_fg,
         gears.string.xml_escape(label)
     )
 end
 
 function M:_build_popup()
-    local status = wibox.widget({ markup = "", widget = wibox.widget.textbox })
+    local source = wibox.widget({ markup = "", widget = wibox.widget.textbox })
+    local profile = wibox.widget({ markup = "", widget = wibox.widget.textbox })
+    local time = wibox.widget({ markup = "", widget = wibox.widget.textbox })
+    local status = wibox.widget({
+        source,
+        profile,
+        time,
+        spacing = 2,
+        layout = wibox.layout.fixed.vertical,
+    })
     local list = wibox.layout.fixed.vertical()
     self._popup_items = {}
 
@@ -333,6 +348,9 @@ function M:_build_popup()
 
     self._popup_refs = {
         status = status,
+        source = source,
+        profile = profile,
+        time = time,
         list = list,
     }
 
