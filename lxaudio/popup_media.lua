@@ -153,6 +153,12 @@ local function make_source_output_volume_control(instance, source_output)
             audio.set_source_output_volume(source_output.id, target)
         elseif button == 2 then
             audio.toggle_source_output_mute(source_output.id)
+        elseif button == 4 then
+            local current = tonumber(source_output.volume) or 0
+            audio.set_source_output_volume(source_output.id, current + ((instance.opts.step or 0.05) * 100))
+        elseif button == 5 then
+            local current = tonumber(source_output.volume) or 0
+            audio.set_source_output_volume(source_output.id, current - ((instance.opts.step or 0.05) * 100))
         else
             return
         end
