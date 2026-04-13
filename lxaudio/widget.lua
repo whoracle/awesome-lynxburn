@@ -198,6 +198,7 @@ function M.build(instance)
             layout = wibox.layout.fixed.horizontal,
         },
         left = 8,
+        right = 8,
         widget = wibox.container.margin,
     }
 
