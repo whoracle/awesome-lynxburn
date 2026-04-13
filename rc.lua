@@ -29,7 +29,7 @@ local lxrunner = nil
 config.helpers.setup_error_handling(awesome, naughty)
 
 local theme_path = string.format(
-    "%s/.config/awesome/themes/%s/theme.lua",
+    "%s/.config/awesome/themes/%s/theme2.lua",
     os.getenv("HOME"),
     config.settings.theme_name
 )

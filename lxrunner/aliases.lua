@@ -1,6 +1,6 @@
 return {
     {
-        name = "vpntoggle",
+        name = "senecvpn",
         type = "shell",
         command = [[
             nmcli c show --active | grep senec
@@ -17,7 +17,7 @@ return {
     {
         name = "browser",
         type = "template",
-        command = "/usr/bin/vivaldi %s",
+        command = "/usr/bin/vivaldi-home %s",
         env = {},
     },
     -- {
