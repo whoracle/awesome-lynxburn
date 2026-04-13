@@ -97,23 +97,24 @@ local function make_stream_volume_control(instance, stream)
         widget = wibox.container.place,
     }
 
-    bar_container:buttons(gears.table.join(
-        awful.button({}, 1, function()
-            local geo = mouse.current_widget_geometry
-            local coords = mouse.coords()
-            if not (geo and geo.width and geo.x) or geo.width <= 0 then
-                return
-            end
+    bar_container:connect_signal("button::press", function(_, lx, _, button, _, hit)
+        if button ~= 1 then
+            return
+        end
 
-            local relative_x = math.max(0, math.min(geo.width, coords.x - geo.x))
-            local target = math.floor(((relative_x / geo.width) * 100) + 0.5)
-            audio.set_sink_input_volume(stream.id, target)
+        local width = hit and hit.width or nil
+        if not width or width <= 0 then
+            return
+        end
 
-            if instance._defer_media_popup_refresh then
-                instance:_defer_media_popup_refresh()
-            end
-        end)
-    ))
+        local relative_x = math.max(0, math.min(width, lx))
+        local target = math.floor(((relative_x / width) * 100) + 0.5)
+        audio.set_sink_input_volume(stream.id, target)
+
+        if instance._defer_media_popup_refresh then
+            instance:_defer_media_popup_refresh()
+        end
+    end)
 
     return bar_container
 end
