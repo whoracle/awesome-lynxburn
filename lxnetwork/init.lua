@@ -307,6 +307,38 @@ local function make_network_row(instance, network, selected, onclick)
     })
 end
 
+local function current_network_entry(instance)
+    local current_ssid = instance.state.current_ssid
+    if not current_ssid or current_ssid == "" then
+        return nil
+    end
+
+    local best_match = nil
+
+    for _, network in ipairs(instance.state.networks or {}) do
+        if network.ssid == current_ssid then
+            if not best_match or network.signal > best_match.signal then
+                best_match = network
+            end
+        end
+    end
+
+    if best_match then
+        local current = {}
+        for key, value in pairs(best_match) do
+            current[key] = value
+        end
+        current.active = false
+        return current
+    end
+
+    return {
+        ssid = current_ssid,
+        signal = 0,
+        standard = nil,
+    }
+end
+
 function M:_refresh_connection_state(callback)
     awful.spawn.easy_async_with_shell("nmcli radio wifi 2>/dev/null", function(radio_stdout)
         local enabled = tostring(radio_stdout or ""):match("enabled") ~= nil
@@ -514,12 +546,26 @@ function M:_refresh_popup()
         "<span foreground='%s'>Current</span>",
         gears.string.xml_escape(self:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999"))
     )
-    local current_label = self.state.scan_in_progress and "scanning..." or (self.state.current_ssid or "offline")
-    refs.current_value.markup = string.format(
-        "<span foreground='%s'>%s</span>",
-        gears.string.xml_escape(self:_theme_value("lxnetwork_widget_fg", beautiful.fg_normal or "#ffffff")),
-        gears.string.xml_escape(current_label)
-    )
+    refs.current_value_container:reset()
+
+    if self.state.scan_in_progress then
+        refs.current_value.markup = string.format(
+            "<span foreground='%s'>scanning...</span>",
+            gears.string.xml_escape(self:_theme_value("lxnetwork_widget_fg", beautiful.fg_normal or "#ffffff"))
+        )
+        refs.current_value_container:add(refs.current_value)
+    else
+        local current_network = current_network_entry(self)
+        if current_network then
+            refs.current_value_container:add(make_network_row(self, current_network, false, nil))
+        else
+            refs.current_value.markup = string.format(
+                "<span foreground='%s'>offline</span>",
+                gears.string.xml_escape(self:_theme_value("lxnetwork_widget_fg", beautiful.fg_normal or "#ffffff"))
+            )
+            refs.current_value_container:add(refs.current_value)
+        end
+    end
 
     refs.known_list:reset()
     refs.available_list:reset()
@@ -584,12 +630,14 @@ function M:_build_popup()
         markup = "",
         widget = wibox.widget.textbox,
     })
+    local current_value_container = wibox.layout.fixed.vertical()
     local known_list = wibox.layout.fixed.vertical()
     local available_list = wibox.layout.fixed.vertical()
 
     self._popup_refs = {
         current_header = current_header,
         current_value = current_value,
+        current_value_container = current_value_container,
         known_list = known_list,
         available_list = available_list,
     }
@@ -608,7 +656,7 @@ function M:_build_popup()
                 selected_bg = self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
             }),
             current_header,
-            current_value,
+            current_value_container,
             popup_common.make_info_line(string.format(
                 "<span foreground='%s'>Known</span>",
                 gears.string.xml_escape(self:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999"))
