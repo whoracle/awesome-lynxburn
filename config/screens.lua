@@ -6,6 +6,18 @@ local helpers = require("config.helpers")
 
 local M = {}
 
+local function normalize_profile(profile)
+    if type(profile) ~= "table" then
+        return profile
+    end
+
+    if profile.layout == nil and type(profile[1]) == "string" then
+        profile.layout = profile[1]
+    end
+
+    return profile
+end
+
 local function resolve_layout(layout_name)
     if layout_name == nil then
         return nil
@@ -52,6 +64,10 @@ function M.setup(settings)
         default_screen_profiles(),
         helpers.load_optional_module("config.override.screens", {})
     )
+
+    for screen_name, profile in pairs(screen_profiles) do
+        screen_profiles[screen_name] = normalize_profile(profile)
+    end
 
     screen.connect_signal("property::geometry", function(s)
         if beautiful.wallpaper then

@@ -210,6 +210,7 @@ function M:_show_brightness_osd(percent)
     self._osd.bar.value = value
     self._osd.bar.color = beautiful.lxdisplay_osd_bar_fg
         or beautiful.lxdisplay_bar_fg
+        or beautiful.lxaudio_bar_fg
         or beautiful.fg_normal
         or "#ffffff"
     self._osd.popup.screen = awful.screen.focused()
@@ -240,7 +241,10 @@ function M:_update_widget(percent)
 
     if self._bar then
         self._bar.value = value
-        self._bar.color = beautiful.lxdisplay_bar_fg or beautiful.fg_normal or "#ffffff"
+        self._bar.color = beautiful.lxdisplay_bar_fg
+            or beautiful.lxaudio_bar_fg
+            or beautiful.fg_normal
+            or "#ffffff"
     end
 end
 
@@ -637,8 +641,14 @@ function M:_build_widget()
             forced_height = beautiful.lxdisplay_bar_height or 8,
             paddings = 0,
             border_width = 0,
-            background_color = beautiful.lxdisplay_bar_bg or beautiful.bg_minimize or "#444444",
-            color = beautiful.lxdisplay_bar_fg or beautiful.fg_normal or "#ffffff",
+            background_color = beautiful.lxdisplay_bar_bg
+                or beautiful.lxaudio_bar_bg
+                or beautiful.bg_minimize
+                or "#444444",
+            color = beautiful.lxdisplay_bar_fg
+                or beautiful.lxaudio_bar_fg
+                or beautiful.fg_normal
+                or "#ffffff",
             widget = wibox.widget.progressbar,
         })
 
@@ -683,8 +693,16 @@ function M:_build_osd()
             forced_height = height,
             shape = gears.shape.rounded_bar,
             bar_shape = gears.shape.rounded_bar,
-            background_color = beautiful.lxdisplay_osd_bar_bg or beautiful.bg_minimize or "#444444",
-            color = beautiful.lxdisplay_osd_bar_fg or beautiful.fg_normal or "#ffffff",
+            background_color = beautiful.lxdisplay_osd_bar_bg
+                or beautiful.lxdisplay_bar_bg
+                or beautiful.lxaudio_bar_bg
+                or beautiful.bg_minimize
+                or "#444444",
+            color = beautiful.lxdisplay_osd_bar_fg
+                or beautiful.lxdisplay_bar_fg
+                or beautiful.lxaudio_bar_fg
+                or beautiful.fg_normal
+                or "#ffffff",
             widget = wibox.widget.progressbar,
         }),
     }
