@@ -48,6 +48,8 @@ local roles = {
     raised_bg = palette.hover,
     hover_bg = palette.hover_strong,
     notification_bg = palette.black,
+    bar_bg = palette.bg_alt,
+    bar_fg = palette.fg,
 }
 
 local theme = {
@@ -133,7 +135,8 @@ local theme = {
     lxaudio_icon_muted = "",
     lxaudio_icon_brightness = "󰃠",
     lxaudio_icon_mic_active = "🎙",
-    lxaudio_bar_fg = roles.text_accent,
+    lxaudio_bar_bg = roles.bar_bg,
+    lxaudio_bar_fg = roles.bar_fg,
 
     lxnotify_icon_suspended = "󰂛 ",
     lxnotify_icon_notifications = "󰂚 ",
@@ -157,7 +160,10 @@ local theme = {
     lxdisplay_icon_night = "󰖔 ",
     lxdisplay_show_bar = false,
     lxdisplay_widget_suspended_fg = "#8b8177",
-    lxdisplay_bar_fg = roles.text_accent,
+    lxdisplay_bar_bg = roles.bar_bg,
+    lxdisplay_bar_fg = roles.bar_fg,
+    lxdisplay_osd_bar_bg = roles.bar_bg,
+    lxdisplay_osd_bar_fg = roles.bar_fg,
     lxdisplay_osd_width = 260,
     lxdisplay_osd_height = 18,
     lxdisplay_osd_margin = 16,
