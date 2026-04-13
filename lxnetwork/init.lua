@@ -278,6 +278,36 @@ local function make_network_row(instance, network, selected, onclick)
     })
 end
 
+function M:_refresh_connection_state(callback)
+    awful.spawn.easy_async_with_shell("nmcli radio wifi 2>/dev/null", function(radio_stdout)
+        local enabled = tostring(radio_stdout or ""):match("enabled") ~= nil
+
+        awful.spawn.easy_async_with_shell(
+            "nmcli -t -e yes -f NAME,TYPE connection show --active 2>/dev/null",
+            function(active_stdout)
+                local active = parse_active_connection(active_stdout)
+
+                awful.spawn.easy_async_with_shell(
+                    "nmcli -t -e yes -f NAME,TYPE connection show 2>/dev/null",
+                    function(known_stdout)
+                        local known = parse_known_connections(known_stdout)
+
+                        self.state.enabled = enabled
+                        self.state.current_ssid = active.ssid
+
+                        if callback then
+                            callback(known)
+                        else
+                            self:_refresh_widget()
+                            self:_refresh_popup()
+                        end
+                    end
+                )
+            end
+        )
+    end)
+end
+
 function M:_theme_value(key, fallback)
     local value = beautiful[key]
     if value == nil then
@@ -451,10 +481,13 @@ function M:_refresh_popup()
     end
 
     local refs = self._popup_refs
+    local current_label = self.state.scan_in_progress
+        and "Current: scanning..."
+        or ("Current: " .. (self.state.current_ssid or "offline"))
     refs.current.markup = string.format(
-        "<span foreground='%s'>Current: %s</span>",
+        "<span foreground='%s'>%s</span>",
         gears.string.xml_escape(self:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999")),
-        gears.string.xml_escape(self.state.current_ssid or "offline")
+        gears.string.xml_escape(current_label)
     )
 
     refs.known_list:reset()
@@ -791,57 +824,43 @@ function M:toggle_popup(anchor, opts)
 end
 
 function M:scan()
-    awful.spawn.easy_async_with_shell("nmcli device wifi list --rescan yes >/dev/null 2>&1", function()
-        self:refresh()
+    self.state.scan_in_progress = true
+    self.state.networks = {}
+    self:_refresh_popup()
+
+    self:_refresh_connection_state(function(known)
+        awful.spawn.easy_async_with_shell(
+            "nmcli -t -e yes -f IN-USE,SSID,BSSID,SECURITY,SIGNAL device wifi list --rescan yes 2>/dev/null",
+            function(list_stdout)
+                local networks = parse_wifi_list(list_stdout)
+                local deduped = {}
+
+                for _, network in ipairs(networks) do
+                    local key = network.ssid .. "\0" .. network.bssid
+                    if not deduped[key] then
+                        network.known = known[network.ssid] == true
+                        deduped[key] = network
+                    end
+                end
+
+                local ordered = {}
+                for _, network in pairs(deduped) do
+                    ordered[#ordered + 1] = network
+                end
+
+                table.sort(ordered, sort_networks)
+
+                self.state.networks = ordered
+                self.state.scan_in_progress = false
+                self:_refresh_widget()
+                self:_refresh_popup()
+            end
+        )
     end)
 end
 
 function M:refresh()
-    awful.spawn.easy_async_with_shell("nmcli radio wifi 2>/dev/null", function(radio_stdout)
-        local enabled = tostring(radio_stdout or ""):match("enabled") ~= nil
-
-        awful.spawn.easy_async_with_shell(
-            "nmcli -t -e yes -f NAME,TYPE connection show --active 2>/dev/null",
-            function(active_stdout)
-                local active = parse_active_connection(active_stdout)
-
-                awful.spawn.easy_async_with_shell(
-                    "nmcli -t -e yes -f NAME,TYPE connection show 2>/dev/null",
-                    function(known_stdout)
-                        local known = parse_known_connections(known_stdout)
-
-                        awful.spawn.easy_async_with_shell(
-                            "nmcli -t -e yes -f IN-USE,SSID,BSSID,SECURITY,SIGNAL device wifi list --rescan no 2>/dev/null",
-                            function(list_stdout)
-                                local networks = parse_wifi_list(list_stdout)
-                                local deduped = {}
-
-                                for _, network in ipairs(networks) do
-                                    local key = network.ssid .. "\0" .. network.bssid
-                                    if not deduped[key] then
-                                        network.known = known[network.ssid] == true
-                                        deduped[key] = network
-                                    end
-                                end
-
-                                local ordered = {}
-                                for _, network in pairs(deduped) do
-                                    ordered[#ordered + 1] = network
-                                end
-                                table.sort(ordered, sort_networks)
-
-                                self.state.enabled = enabled
-                                self.state.current_ssid = active.ssid
-                                self.state.networks = ordered
-                                self:_refresh_widget()
-                                self:_refresh_popup()
-                            end
-                        )
-                    end
-                )
-            end
-        )
-    end)
+    self:_refresh_connection_state()
 end
 
 function M:_start_timer()
@@ -864,6 +883,7 @@ function M.new(opts)
         enabled = false,
         current_ssid = nil,
         networks = {},
+        scan_in_progress = false,
     }
     self._popup_selected_index = 1
     self._refs = {}
