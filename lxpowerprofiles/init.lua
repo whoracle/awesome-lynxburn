@@ -24,6 +24,12 @@ local PROFILE_LABELS = {
     performance = "performance",
 }
 
+local PROFILE_THEME_KEYS = {
+    ["power-saver"] = "lxpowerprofiles_profile_fg_powersave",
+    balanced = "lxpowerprofiles_profile_fg_balanced",
+    performance = "lxpowerprofiles_profile_fg_performance",
+}
+
 local function merge_defaults(opts)
     opts = opts or {}
     local merged = {}
@@ -351,11 +357,9 @@ function M:_refresh_widget()
     local source_icon = self.state.power_source == "ac"
         and self:_theme_value("lxpowerprofiles_icon_ac", "")
         or self:_theme_value("lxpowerprofiles_icon_battery", "")
-    local fg = self:_theme_value("lxpowerprofiles_widget_fg", beautiful.fg_normal or "#ffffff")
-
-    if self.state.power_source ~= "ac" and self.state.dgpu_active then
-        fg = self:_theme_value("lxpowerprofiles_widget_dgpu_active_fg", "#d88166")
-    end
+    local profile_key = PROFILE_THEME_KEYS[self.state.profile]
+    local fg = profile_key and self:_theme_value(profile_key, nil)
+        or self:_theme_value("lxpowerprofiles_widget_fg", beautiful.fg_normal or "#ffffff")
 
     self._refs.icon.markup = string.format(
         "<span foreground='%s'>%s</span>",

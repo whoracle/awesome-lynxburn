@@ -171,10 +171,13 @@ local theme = {
     lxdisplay_osd_timeout = 1,
     lxdisplay_osd_screen_margin = 60,
 
-    lxbluetooth_icon = " ",
-    lxnetwork_icon = " ",
-    lxpowerprofiles_icon_ac = " ",
-    lxpowerprofiles_icon_battery = " ",
+    lxbluetooth_icon = "",
+    lxnetwork_icon = "",
+    lxpowerprofiles_icon_ac = "",
+    lxpowerprofiles_icon_battery = "",
+    lxpowerprofiles_profile_fg_powersave = roles.text_muted,
+    lxpowerprofiles_profile_fg_balanced = roles.text,
+    lxpowerprofiles_profile_fg_performance = palette.critical,
 
     lxrunner_input_bg = roles.panel_bg_muted,
     lxrunner_row_count = 10,

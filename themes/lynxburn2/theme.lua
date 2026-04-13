@@ -211,6 +211,9 @@ theme.lxbluetooth_icon = ""
 theme.lxnetwork_icon = ""
 theme.lxpowerprofiles_icon_ac = ""
 theme.lxpowerprofiles_icon_battery = ""
+theme.lxpowerprofiles_profile_fg_powersave = "#9b8f86"
+theme.lxpowerprofiles_profile_fg_balanced = white
+theme.lxpowerprofiles_profile_fg_performance = "#d97777"
 
 theme.lxrunner_width = 520
 theme.lxrunner_row_count = 10
