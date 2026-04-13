@@ -227,6 +227,7 @@ function M.build(theme)
         server = "lynxcore.org",
         mail = mail_account,
         password = mail_password_lookup,
+        login_options = "AUTH=LOGIN",
         settings = function()
             local count = ""
 

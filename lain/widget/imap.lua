@@ -30,6 +30,7 @@ local function factory(args)
     local is_plain   = args.is_plain or false
     local followtag  = args.followtag or false
     local notify     = args.notify or "on"
+    local login_options = args.login_options
     local settings   = args.settings or function() end
 
     local request = "STATUS INBOX (MESSAGES RECENT UNSEEN)"
@@ -84,6 +85,11 @@ local function factory(args)
             "-X", request,
             "-k",
         }
+
+        if type(login_options) == "string" and #login_options > 0 then
+            curl[#curl + 1] = "--login-options"
+            curl[#curl + 1] = login_options
+        end
 
         helpers.async(curl, function(f, exit_code)
             if exit_code ~= 0 then
