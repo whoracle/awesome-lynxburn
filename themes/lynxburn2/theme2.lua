@@ -171,6 +171,11 @@ local theme = {
     lxdisplay_osd_timeout = 1,
     lxdisplay_osd_screen_margin = 60,
 
+    lxbluetooth_icon = "",
+    lxnetwork_icon = "",
+    lxpowerprofiles_icon_ac = "",
+    lxpowerprofiles_icon_battery = "",
+
     lxrunner_input_bg = roles.panel_bg_muted,
     lxrunner_row_count = 10,
     lxrunner_history_limit = 10,
