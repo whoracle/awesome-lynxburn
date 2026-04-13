@@ -111,6 +111,12 @@ end
 -- instance-level control API.
 function M.build(instance)
     local mic_visible = instance.opts.show_mic_activity and instance.state.mic_active or false
+    local output_fg = instance.state.muted
+        and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
+        or (beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
+    local mic_fg = instance.state.mic_muted
+        and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
+        or (beautiful.lxaudio_mic_bar_fg or beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
 
     local icon = wibox.widget {
         text = instance.state.muted and instance.opts.icon_muted or instance.opts.icon_unmuted,
@@ -128,7 +134,7 @@ function M.build(instance)
         paddings         = 0,
         border_width     = 0,
         background_color = beautiful.lxaudio_bar_bg or beautiful.bg_minimize or "#140c0b",
-        color            = beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0",
+        color            = output_fg,
         widget           = wibox.widget.progressbar,
     }
 
@@ -149,7 +155,7 @@ function M.build(instance)
         paddings         = 0,
         border_width     = 0,
         background_color = beautiful.lxaudio_mic_bar_bg or beautiful.lxaudio_bar_bg or beautiful.bg_minimize or "#140c0b",
-        color            = beautiful.lxaudio_mic_bar_fg or beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0",
+        color            = mic_fg,
         visible          = mic_visible,
         widget           = wibox.widget.progressbar,
     }

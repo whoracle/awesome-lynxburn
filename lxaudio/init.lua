@@ -143,6 +143,9 @@ function M:refresh()
 
         if self._refs.bar then
             self._refs.bar.value = math.max(0, math.min(1, self.state.volume))
+            self._refs.bar.color = self.state.muted
+                and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
+                or (beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
         end
 
         if self._refs.mic then
@@ -160,6 +163,9 @@ function M:refresh()
         if self._refs.mic_bar then
             self._refs.mic_bar.value = math.max(0, math.min(1, self.state.mic_volume))
             self._refs.mic_bar.visible = self.opts.show_mic_activity and self.state.mic_active or false
+            self._refs.mic_bar.color = self.state.mic_muted
+                and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
+                or (beautiful.lxaudio_mic_bar_fg or beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
         end
     end
 end
