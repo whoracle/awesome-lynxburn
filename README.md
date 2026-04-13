@@ -137,7 +137,7 @@ What each override is for:
 - `programs.lua`: terminal/browser/launcher commands, autostart, Redshift
 - `theme.lua`: colors, wallpaper, theme-local module sizing and styling
 - `screens.lua`: per-monitor default layout and DPI
-- `keys.lua`: append new bindings or transform the generated keymaps
+- `keys.lua`: override named key specs or disable bindings
 - `lxrunner_aliases.lua`: override or add lxrunner aliases by alias name
 
 ## Theme Split
