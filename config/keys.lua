@@ -242,14 +242,14 @@ function M.build(context)
         lxaudio:toggle_media_popup(nil, {
             hover_close = false,
             anchor = "center",
-            toggle_key = { modifiers = { settings.altkey }, key = "Prior" },
+            toggle_key = { modifiers = { settings.modkey }, key = "Prior" },
         })
     end
 
     local function show_notification_popup()
         lxnotify:toggle_notification_popup({
             hover_close = false,
-            toggle_key = { modifiers = { settings.altkey }, key = "Next" },
+            toggle_key = { modifiers = { settings.modkey }, key = "Next" },
         })
     end
 
@@ -531,9 +531,9 @@ function M.build(context)
         layout_select_prev_layout = key_spec({ settings.modkey, settings.shiftkey }, "space", "prev_layout", "select prev layout", grp_names[3]),
         layout_increment_useless_gaps = key_spec({ settings.modkey, settings.ctrlkey }, "+", "grow_gaps", "increment useless gaps", grp_names[3]),
         layout_decrement_useless_gaps = key_spec({ settings.modkey, settings.ctrlkey }, "-", "shrink_gaps", "decrement useless gaps", grp_names[3]),
-        programs_show_media_popup = key_spec({ settings.altkey }, "Prior", "show_media_popup", "show media popup", grp_names[4]),
-        programs_show_notification_popup = key_spec({ settings.altkey }, "Next", "show_notification_popup", "show notification popup", grp_names[4]),
-        programs_show_calendar = key_spec({ settings.altkey }, "c", "show_calendar", "show calendar", grp_names[4]),
+        programs_show_media_popup = key_spec({ settings.modkey }, "Prior", "show_media_popup", "show media popup", grp_names[4]),
+        programs_show_notification_popup = key_spec({ settings.modkey }, "Next", "show_notification_popup", "show notification popup", grp_names[4]),
+        programs_show_calendar = key_spec({ settings.modkey }, "c", "show_calendar", "show calendar", grp_names[4]),
         programs_lxrunner = key_spec({ settings.altkey }, "F2", "toggle_lxrunner", "lxrunner", grp_names[4]),
         programs_launcher = key_spec({ settings.altkey }, "F3", "open_launcher", "launcher", grp_names[4]),
         programs_terminal = key_spec({ settings.modkey }, "q", "open_terminal", "terminal", grp_names[4]),

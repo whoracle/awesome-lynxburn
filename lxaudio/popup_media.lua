@@ -86,6 +86,42 @@ local function make_volume_bar(value, muted)
     }
 end
 
+local function set_sink_input_percent(audio, stream_id, percent)
+    if audio.set_sink_input_volume then
+        audio.set_sink_input_volume(stream_id, percent)
+        return true
+    end
+
+    if audio.set_sink_input_value then
+        audio.set_sink_input_value(stream_id, percent)
+        return true
+    end
+
+    awful.spawn("pactl set-sink-input-volume " .. tostring(stream_id) .. " " .. tostring(percent) .. "%", false)
+    if tonumber(percent) and tonumber(percent) > 0 then
+        awful.spawn("pactl set-sink-input-mute " .. tostring(stream_id) .. " 0", false)
+    end
+    return true
+end
+
+local function set_source_output_percent(audio, source_output_id, percent)
+    if audio.set_source_output_volume then
+        audio.set_source_output_volume(source_output_id, percent)
+        return true
+    end
+
+    if audio.set_source_output_value then
+        audio.set_source_output_value(source_output_id, percent)
+        return true
+    end
+
+    awful.spawn("pactl set-source-output-volume " .. tostring(source_output_id) .. " " .. tostring(percent) .. "%", false)
+    if tonumber(percent) and tonumber(percent) > 0 then
+        awful.spawn("pactl set-source-output-mute " .. tostring(source_output_id) .. " 0", false)
+    end
+    return true
+end
+
 local function make_meter_row(label, control, value_text)
     return wibox.widget {
         {
@@ -151,7 +187,7 @@ local function make_stream_volume_control(instance, stream)
 
         local relative_x = math.max(0, math.min(width, lx))
         local target = math.floor(((relative_x / width) * 100) + 0.5)
-        audio.set_sink_input_volume(stream.id, target)
+        set_sink_input_percent(audio, stream.id, target)
 
         if instance._defer_media_popup_refresh then
             instance:_defer_media_popup_refresh()
@@ -192,15 +228,15 @@ local function make_source_output_volume_control(instance, source_output)
 
             local relative_x = math.max(0, math.min(width, lx))
             local target = math.floor(((relative_x / width) * 100) + 0.5)
-            audio.set_source_output_volume(source_output.id, target)
+            set_source_output_percent(audio, source_output.id, target)
         elseif button == 2 then
             audio.toggle_source_output_mute(source_output.id)
         elseif button == 4 then
             local current = tonumber(source_output.volume) or 0
-            audio.set_source_output_volume(source_output.id, current + ((instance.opts.step or 0.05) * 100))
+            set_source_output_percent(audio, source_output.id, current + ((instance.opts.step or 0.05) * 100))
         elseif button == 5 then
             local current = tonumber(source_output.volume) or 0
-            audio.set_source_output_volume(source_output.id, current - ((instance.opts.step or 0.05) * 100))
+            set_source_output_percent(audio, source_output.id, current - ((instance.opts.step or 0.05) * 100))
         else
             return
         end

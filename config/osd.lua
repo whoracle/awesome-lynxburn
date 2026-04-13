@@ -1,4 +1,5 @@
 local naughty = require("naughty")
+local gears = require("gears")
 local wibox = require("wibox")
 
 local M = {}
@@ -12,6 +13,7 @@ local M = {}
 ---@return table
 function M.new(beautiful, _options)
     local osd_timeout = 1
+    local osd_margin = 16
 
     local text_osd = {
         notification = nil,
@@ -58,6 +60,14 @@ function M.new(beautiful, _options)
             widget_template = widget_template,
         })
 
+        if not state.box then
+            if state.notification then
+                state.notification:destroy()
+                state.notification = nil
+            end
+            return false
+        end
+
         state.box.width = 260 + (16 * 2)
         state.box.visible = false
 
@@ -65,14 +75,16 @@ function M.new(beautiful, _options)
             state.notification = nil
             state.box = nil
         end)
+
+        return true
     end
 
     local function ensure_text_osd(app_name)
         if text_osd.box then
-            return
+            return true
         end
 
-        build_box(text_osd, {
+        return build_box(text_osd, {
             {
                 {
                     {
@@ -93,7 +105,16 @@ function M.new(beautiful, _options)
     end
 
     local function show_text_osd(text, app_name)
-        ensure_text_osd(app_name or "")
+        if not ensure_text_osd(app_name or "") then
+            naughty.notify({
+                title = "",
+                text = text,
+                timeout = osd_timeout,
+                app_name = app_name or "",
+                screen = screen.primary,
+            })
+            return
+        end
 
         display_text.text = text
         text_osd.box.screen = screen.primary
