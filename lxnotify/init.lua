@@ -11,6 +11,7 @@ local format = require("lxnotify.format")
 local popup = require("lxnotify.popup")
 local util = require("lxnotify.util")
 local widget = require("lxnotify.widget")
+local unpack = table.unpack or unpack
 
 local lxnotify = {}
 local instance_methods = {}
@@ -719,8 +720,8 @@ function instance_methods:_start_popup_outside_click_dismiss()
     self._popup_outside_click_handler = handler
 
     self._popup_outside_click_binding = awful.button({}, 1, handler)
-
-    awful.mouse.append_global_mousebinding(self._popup_outside_click_binding)
+    self._popup_saved_root_buttons = root.buttons()
+    root.buttons(gears.table.join(unpack(self._popup_saved_root_buttons or {}), self._popup_outside_click_binding))
 
     if client and client.connect_signal then
         client.connect_signal("button::press", self._popup_outside_click_handler)
@@ -733,8 +734,12 @@ end
 
 function instance_methods:_stop_popup_outside_click_dismiss()
     if self._popup_outside_click_binding then
-        awful.mouse.remove_global_mousebinding(self._popup_outside_click_binding)
         self._popup_outside_click_binding = nil
+    end
+
+    if self._popup_saved_root_buttons then
+        root.buttons(self._popup_saved_root_buttons)
+        self._popup_saved_root_buttons = nil
     end
 
     if self._popup_outside_click_handler then

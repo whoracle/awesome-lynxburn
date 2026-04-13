@@ -2,6 +2,7 @@ local awful = require("awful")
 local gears = require("gears")
 local beautiful = require("beautiful")
 local keygrabber = require("awful.keygrabber")
+local unpack = table.unpack or unpack
 
 local M = {}
 M.__index = M
@@ -527,8 +528,8 @@ function M:_start_media_popup_outside_click_dismiss()
     self._media_popup_outside_click_handler = handler
 
     self._media_popup_outside_click_binding = awful.button({}, 1, handler)
-
-    awful.mouse.append_global_mousebinding(self._media_popup_outside_click_binding)
+    self._media_popup_saved_root_buttons = root.buttons()
+    root.buttons(gears.table.join(unpack(self._media_popup_saved_root_buttons or {}), self._media_popup_outside_click_binding))
 
     if client and client.connect_signal then
         client.connect_signal("button::press", self._media_popup_outside_click_handler)
@@ -541,8 +542,12 @@ end
 
 function M:_stop_media_popup_outside_click_dismiss()
     if self._media_popup_outside_click_binding then
-        awful.mouse.remove_global_mousebinding(self._media_popup_outside_click_binding)
         self._media_popup_outside_click_binding = nil
+    end
+
+    if self._media_popup_saved_root_buttons then
+        root.buttons(self._media_popup_saved_root_buttons)
+        self._media_popup_saved_root_buttons = nil
     end
 
     if self._media_popup_outside_click_handler then
