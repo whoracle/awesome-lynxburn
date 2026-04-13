@@ -14,9 +14,15 @@ local DEFAULTS = {
     refresh_interval = 20,
 }
 
-local ON_BATTERY_PAIR = { "powersave", "balanced" }
+local ON_BATTERY_PAIR = { "power-saver", "balanced" }
 local ON_AC_PAIR = { "balanced", "performance" }
-local ALL_PROFILES = { "powersave", "balanced", "performance" }
+local ALL_PROFILES = { "power-saver", "balanced", "performance" }
+
+local PROFILE_LABELS = {
+    ["power-saver"] = "powersave",
+    balanced = "balanced",
+    performance = "performance",
+}
 
 local function merge_defaults(opts)
     opts = opts or {}
@@ -87,6 +93,10 @@ local function format_duration_hours(hours)
     local hh = math.floor(total_minutes / 60)
     local mm = total_minutes % 60
     return string.format("%d:%02d", hh, mm)
+end
+
+local function profile_label(profile)
+    return PROFILE_LABELS[profile] or tostring(profile or "unknown")
 end
 
 local function normalize_popup_opts(arg1, arg2)
@@ -274,10 +284,15 @@ function M:_refresh_widget()
         gears.string.xml_escape(fg),
         gears.string.xml_escape(source_icon)
     )
+    local compact_text = ""
+    if self.state.power_source ~= "ac" and self.state.battery_status == "Discharging" then
+        compact_text = self.state.time_label or ""
+    end
+
     self._refs.label.markup = string.format(
         "<span foreground='%s'>%s</span>",
         gears.string.xml_escape(fg),
-        gears.string.xml_escape(self.state.profile or "unknown")
+        gears.string.xml_escape(compact_text)
     )
 end
 
@@ -305,7 +320,7 @@ function M:_refresh_popup()
     self._popup_refs.profile.markup = string.format(
         "<span foreground='%s'>Current Profile: %s</span>",
         meta_fg,
-        gears.string.xml_escape(self.state.profile or "unknown")
+        gears.string.xml_escape(profile_label(self.state.profile))
     )
     self._popup_refs.time.markup = string.format(
         "<span foreground='%s'>%s</span>",
@@ -328,10 +343,10 @@ function M:_build_popup()
     local list = wibox.layout.fixed.vertical()
     self._popup_items = {}
 
-    for _, profile in ipairs(ALL_PROFILES) do
+    for _, profile_name in ipairs(ALL_PROFILES) do
         local selected = self._popup_selected_index == (#self._popup_items + 1)
-        list:add(popup_common.make_selectable_click_row(profile, function()
-            self:set_profile(profile)
+        list:add(popup_common.make_selectable_click_row(profile_label(profile_name), function()
+            self:set_profile(profile_name)
         end, {
             selected = selected,
             inner_bg = self:_theme_value("lxpowerprofiles_popup_bg", beautiful.bg_normal or "#222222"),
@@ -341,7 +356,7 @@ function M:_build_popup()
         }))
         self._popup_items[#self._popup_items + 1] = {
             on_enter = function()
-                self:set_profile(profile)
+                self:set_profile(profile_name)
             end,
         }
     end
@@ -648,10 +663,10 @@ function M.new(opts)
     self.opts = opts
     self.state = {
         power_source = "battery",
-        profile = "powersave",
+        profile = "power-saver",
     }
     self._preferred_profiles = {
-        battery = "powersave",
+        battery = "power-saver",
         ac = "balanced",
     }
     self._popup_selected_index = 1
