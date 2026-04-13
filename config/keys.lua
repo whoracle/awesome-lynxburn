@@ -217,7 +217,11 @@ function M.build(context)
     end
 
     local function show_media_popup()
-        lxaudio:toggle_media_popup(nil, { hover_close = false, anchor = "center" })
+        lxaudio:toggle_media_popup(nil, {
+            hover_close = false,
+            anchor = "center",
+            toggle_key = { modifiers = { settings.altkey }, key = "Prior" },
+        })
     end
 
     local function show_notification_popup()

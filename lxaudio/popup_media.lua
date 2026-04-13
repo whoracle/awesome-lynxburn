@@ -61,12 +61,6 @@ local function make_info_line(text, opts)
     return common.make_info_line(text, opts)
 end
 
-local function make_click_row(text, onclick, opts)
-    opts = opts or {}
-    opts.hover_bg = opts.hover_bg or COLORS.hover
-    return common.make_click_row(text, onclick, opts)
-end
-
 local function make_click_container(child, onclick, opts)
     opts = opts or {}
     opts.hover_bg = opts.hover_bg or COLORS.hover
@@ -75,6 +69,43 @@ end
 
 local function make_card(child)
     return common.make_card(child)
+end
+
+local function make_volume_bar(value, muted)
+    return wibox.widget {
+        max_value = 1,
+        value = math.max(0, math.min(1, (tonumber(value) or 0) / 100)),
+        forced_height = 8,
+        paddings = 0,
+        border_width = 0,
+        background_color = beautiful.lxaudio_bar_bg or beautiful.bg_minimize or "#140c0b",
+        color = muted
+            and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0"),
+        widget = wibox.widget.progressbar,
+    }
+end
+
+local function decorate_stream_card(card, selected)
+    if not selected then
+        return card
+    end
+
+    return wibox.widget {
+        {
+            card,
+            margins = 1,
+            widget = wibox.container.margin,
+        },
+        shape = gears.shape.rounded_rect,
+        border_width = 1,
+        border_color = beautiful.lxaudio_selected_border
+            or beautiful.border_focus
+            or beautiful.lxaudio_bar_fg
+            or beautiful.fg_normal
+            or "#e2ccb0",
+        widget = wibox.container.background,
+    }
 end
 
 local function build_transport_row(instance, player, player_info)
@@ -114,7 +145,7 @@ local function build_transport_row(instance, player, player_info)
         widget = wibox.container.place,
     }
 
-    return wibox.widget {
+    local container = wibox.widget {
         centered,
         left = 12,
         right = 8,
@@ -122,13 +153,13 @@ local function build_transport_row(instance, player, player_info)
         bottom = 4,
         widget = wibox.container.margin,
     }
+
+    container.forced_height = 32
+    return container
 end
 
-local function build_stream_card(instance, stream, default_sink_name)
+local function build_stream_card(instance, stream, default_sink_name, selected)
     local media = require("lxaudio.media")
-
-    instance.ui_state.stream_expanded = instance.ui_state.stream_expanded or {}
-    local expanded = instance.ui_state.stream_expanded[stream.id] == true
 
     local matched_player = stream._matched_player or media.player_for_stream(stream)
     local player_info = matched_player and media.get_player_info(matched_player) or nil
@@ -138,28 +169,30 @@ local function build_stream_card(instance, stream, default_sink_name)
         layout = wibox.layout.fixed.vertical,
     }
 
-    local mute_prefix = stream.muted and beautiful.lxaudio_icon_muted .. "  " or ""
-
-    local function toggle_expand()
-        local current = instance.ui_state.stream_expanded[stream.id] == true
-        instance.ui_state.stream_expanded[stream.id] = not current
-        M.rebuild(instance)
-    end
+    local mute_prefix = stream.muted and ((beautiful.lxaudio_icon_muted or "M") .. "  ") or ""
 
     local function scroll_up()
         local audio = require("lxaudio.audio")
         audio.change_sink_input_volume(stream.id, instance.opts.step or 0.05)
+        if instance._defer_media_popup_refresh then
+            instance:_defer_media_popup_refresh()
+        end
     end
 
     local function scroll_down()
         local audio = require("lxaudio.audio")
         audio.change_sink_input_volume(stream.id, -(instance.opts.step or 0.05))
+        if instance._defer_media_popup_refresh then
+            instance:_defer_media_popup_refresh()
+        end
     end
 
     local function middle_click()
         local audio = require("lxaudio.audio")
         audio.toggle_sink_input_mute(stream.id)
-        M.rebuild(instance)
+        if instance._defer_media_popup_refresh then
+            instance:_defer_media_popup_refresh()
+        end
     end
 
     local info_layout = wibox.widget {
@@ -167,9 +200,7 @@ local function build_stream_card(instance, stream, default_sink_name)
         layout = wibox.layout.fixed.vertical,
     }
 
-    local header_prefix = expanded and "▼  " or "▶  "
-    local stream_line = header_prefix .. mute_prefix .. (stream.label or ("Stream " .. tostring(stream.id)))
-    local stream_row = make_info_line(stream_line, {
+    local stream_row = make_info_line(mute_prefix .. (stream.label or ("Stream " .. tostring(stream.id))), {
         left = 0,
         right = 0,
         top = 1,
@@ -235,14 +266,16 @@ local function build_stream_card(instance, stream, default_sink_name)
             info_layout:add(meta_row)
         end
 
-        local status_row = make_info_line("[" .. player_info.status .. "]", {
-            left = 20,
-            right = 0,
-            top = 0,
-            bottom = 0,
-        })
-        status_row.forced_height = 15
-        info_layout:add(status_row)
+        if player_info.status then
+            local status_row = make_info_line("[" .. player_info.status .. "]", {
+                left = 20,
+                right = 0,
+                top = 0,
+                bottom = 0,
+            })
+            status_row.forced_height = 15
+            info_layout:add(status_row)
+        end
     end
 
     if stream.volume then
@@ -254,6 +287,30 @@ local function build_stream_card(instance, stream, default_sink_name)
         })
         volume_row.forced_height = 15
         info_layout:add(volume_row)
+
+        info_layout:add(wibox.widget {
+            {
+                make_volume_bar(stream.volume, stream.muted),
+                valign = "center",
+                widget = wibox.container.place,
+            },
+            left = 20,
+            right = 0,
+            top = 2,
+            bottom = 2,
+            widget = wibox.container.margin,
+        })
+    end
+
+    if stream.sink_name and default_sink_name and stream.sink_name ~= default_sink_name then
+        local output_row = make_info_line("Output: " .. (stream.sink_label or stream.sink_name), {
+            left = 20,
+            right = 0,
+            top = 0,
+            bottom = 0,
+        })
+        output_row.forced_height = 15
+        info_layout:add(output_row)
     end
 
     local main_clickable_layout = wibox.widget {
@@ -267,7 +324,7 @@ local function build_stream_card(instance, stream, default_sink_name)
 
     main_clickable_layout:add(info_layout)
 
-    layout:add(make_click_container(main_clickable_layout, toggle_expand, {
+    layout:add(make_click_container(main_clickable_layout, nil, {
         left = 1,
         right = 1,
         top = 4,
@@ -281,16 +338,7 @@ local function build_stream_card(instance, stream, default_sink_name)
         layout:add(build_transport_row(instance, matched_player, player_info))
     end
 
-    if stream.sink_name and default_sink_name and stream.sink_name ~= default_sink_name then
-        layout:add(make_info_line("Output: " .. (stream.sink_label or stream.sink_name), {
-            left = 1,
-            right = 1,
-            top = 2,
-            bottom = 2,
-        }))
-    end
-
-    return make_card(layout)
+    return decorate_stream_card(make_card(layout), selected)
 end
 
 local function build_widget(instance)
@@ -298,8 +346,10 @@ local function build_widget(instance)
     local media = require("lxaudio.media")
 
     local streams = audio.list_sink_inputs() or {}
+    local sinks = audio.list_sinks() or {}
     local streams_with_player = {}
     local streams_without_player = {}
+    local popup_items = {}
 
     for _, stream in ipairs(streams) do
         local matched_player = media.player_for_stream(stream)
@@ -319,12 +369,21 @@ local function build_widget(instance)
         end
     end
 
+    local total_streams = #streams_with_player + #streams_without_player
+    if total_streams < 1 then
+        total_streams = 1
+    end
+
+    instance.media_popup_selected_index = math.max(1, math.min(instance.media_popup_selected_index or 1, total_streams))
+
     local list = wibox.widget {
         spacing = 28,
         layout = wibox.layout.fixed.vertical,
     }
 
     if #streams == 0 then
+        instance._media_popup_items = {}
+
         list:add(make_card(
             wibox.widget {
                 make_info_line("No active playback streams", {
@@ -347,9 +406,15 @@ local function build_widget(instance)
             }))
 
             for _, stream in ipairs(streams_with_player) do
-            list:add(build_stream_card(instance, stream, default_sink_name))
+                popup_items[#popup_items + 1] = stream
+                list:add(build_stream_card(
+                    instance,
+                    stream,
+                    default_sink_name,
+                    #popup_items == instance.media_popup_selected_index
+                ))
+            end
         end
-    end
 
         if #streams_without_player > 0 then
             list:add(make_info_line("Other Streams", {
@@ -361,9 +426,17 @@ local function build_widget(instance)
             }))
 
             for _, stream in ipairs(streams_without_player) do
-            list:add(build_stream_card(instance, stream, default_sink_name))
+                popup_items[#popup_items + 1] = stream
+                list:add(build_stream_card(
+                    instance,
+                    stream,
+                    default_sink_name,
+                    #popup_items == instance.media_popup_selected_index
+                ))
+            end
         end
-    end
+
+        instance._media_popup_items = popup_items
     end
 
     return wibox.widget {

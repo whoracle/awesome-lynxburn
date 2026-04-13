@@ -508,6 +508,15 @@ function M.toggle_sink_input_mute(stream_id)
     awful.spawn("pactl set-sink-input-mute " .. util.shell_escape(stream_id) .. " toggle", false)
 end
 
+function M.set_sink_input_volume(stream_id, percent)
+    local value = math.max(0, math.floor((tonumber(percent) or 0) + 0.5))
+    awful.spawn("pactl set-sink-input-volume " .. util.shell_escape(stream_id) .. " " .. value .. "%", false)
+
+    if value > 0 then
+        awful.spawn("pactl set-sink-input-mute " .. util.shell_escape(stream_id) .. " 0", false)
+    end
+end
+
 -- Source outputs are used as a coarse "microphone currently active" signal.
 function M.list_source_outputs()
     local short = parse_tabular_short_list(util.read_command("pactl list short source-outputs 2>/dev/null"), "source-output")

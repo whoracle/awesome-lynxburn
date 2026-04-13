@@ -1,5 +1,6 @@
 local gears = require("gears")
 local beautiful = require("beautiful")
+local keygrabber = require("awful.keygrabber")
 
 local M = {}
 M.__index = M
@@ -42,6 +43,59 @@ local function normalize_popup_args(anchor_geo, opts)
     end
 
     return anchor_geo, opts or {}
+end
+
+local function normalize_popup_toggle_key(toggle_key)
+    if type(toggle_key) ~= "table" or type(toggle_key.key) ~= "string" then
+        return nil
+    end
+
+    local normalized = {
+        key = toggle_key.key,
+        modifiers = {},
+        modifier_set = {},
+    }
+
+    if type(toggle_key.modifiers) == "table" then
+        for _, modifier in ipairs(toggle_key.modifiers) do
+            if type(modifier) == "string" and modifier ~= "" then
+                normalized.modifier_set[modifier] = true
+            end
+        end
+    end
+
+    for modifier in pairs(normalized.modifier_set) do
+        normalized.modifiers[#normalized.modifiers + 1] = modifier
+    end
+
+    table.sort(normalized.modifiers)
+
+    return normalized
+end
+
+local function popup_toggle_key_matches(toggle_key, modifiers, key)
+    if not toggle_key or key ~= toggle_key.key then
+        return false
+    end
+
+    local active_modifiers = {}
+    for _, modifier in ipairs(modifiers or {}) do
+        active_modifiers[modifier] = true
+    end
+
+    for modifier in pairs(active_modifiers) do
+        if not toggle_key.modifier_set[modifier] then
+            return false
+        end
+    end
+
+    for modifier in pairs(toggle_key.modifier_set) do
+        if not active_modifiers[modifier] then
+            return false
+        end
+    end
+
+    return true
 end
 
 -- Clear cached submodules so reloads pick up on-disk changes without
@@ -206,6 +260,18 @@ function M:_defer_refresh_and_osd(show_osd, renderer)
     end)
 end
 
+function M:_defer_media_popup_refresh()
+    gears.timer.start_new(0.1, function()
+        self:refresh()
+
+        if self._media_popup and self._media_popup.visible then
+            require("lxaudio.popup_media").rebuild(self)
+        end
+
+        return false
+    end)
+end
+
 -- Rebuild all internal modules and refresh the widget in place.
 function M:reload()
     self:_clear_modules()
@@ -213,6 +279,151 @@ function M:reload()
     self:_build_widget()
     self:_start_timer()
     self:refresh()
+end
+
+function M:_ensure_media_popup_selection()
+    local item_count = #(self._media_popup_items or {})
+    if item_count < 1 then
+        self.media_popup_selected_index = 1
+        return
+    end
+
+    self.media_popup_selected_index = math.max(1, math.min(self.media_popup_selected_index or 1, item_count))
+end
+
+function M:move_media_popup_selection(delta)
+    self:_ensure_media_popup_selection()
+
+    local item_count = #(self._media_popup_items or {})
+    if item_count < 1 then
+        return
+    end
+
+    self.media_popup_selected_index = math.max(1, math.min((self.media_popup_selected_index or 1) + delta, item_count))
+
+    if self._media_popup and self._media_popup.visible then
+        require("lxaudio.popup_media").rebuild(self)
+    end
+end
+
+function M:selected_media_popup_item()
+    self:_ensure_media_popup_selection()
+    return (self._media_popup_items or {})[self.media_popup_selected_index or 1]
+end
+
+function M:change_selected_media_stream_volume(delta)
+    local stream = self:selected_media_popup_item()
+    if not stream then
+        return
+    end
+
+    self:_with_audio(function(audio)
+        if not audio.change_sink_input_volume then
+            return
+        end
+
+        audio.change_sink_input_volume(stream.id, delta)
+        self:_defer_media_popup_refresh()
+    end)
+end
+
+function M:toggle_selected_media_stream_mute()
+    local stream = self:selected_media_popup_item()
+    if not stream then
+        return
+    end
+
+    self:_with_audio(function(audio)
+        if not audio.toggle_sink_input_mute then
+            return
+        end
+
+        audio.toggle_sink_input_mute(stream.id)
+        self:_defer_media_popup_refresh()
+    end)
+end
+
+function M:set_selected_media_stream_volume(percent)
+    local stream = self:selected_media_popup_item()
+    if not stream then
+        return
+    end
+
+    self:_with_audio(function(audio)
+        if not audio.set_sink_input_volume then
+            return
+        end
+
+        audio.set_sink_input_volume(stream.id, percent)
+        self:_defer_media_popup_refresh()
+    end)
+end
+
+function M:_handle_media_popup_keygrabber(_, modifiers, key, event)
+    if event ~= "press" then
+        return
+    end
+
+    if not (self._media_popup and self._media_popup.visible) then
+        self:blur_media_popup_keyboard_navigation()
+        return
+    end
+
+    if popup_toggle_key_matches(self._media_popup_toggle_key, modifiers, key) then
+        self:close_popups()
+        return
+    end
+
+    if key == "Escape" then
+        self:close_popups()
+    elseif key == "Up" then
+        self:move_media_popup_selection(-1)
+    elseif key == "Down" then
+        self:move_media_popup_selection(1)
+    elseif key == "Left" then
+        self:change_selected_media_stream_volume(-(self.opts.step or 0.05))
+    elseif key == "Right" then
+        self:change_selected_media_stream_volume(self.opts.step or 0.05)
+    elseif key == "Home" then
+        self:toggle_selected_media_stream_mute()
+    elseif key == "End" then
+        self:set_selected_media_stream_volume(100)
+    end
+end
+
+function M:focus_media_popup_keyboard_navigation()
+    if not self._media_popup_keygrabber then
+        self._media_popup_keygrabber = keygrabber({
+            stop_callback = function()
+                self._media_popup_keyboard_navigation_active = false
+            end,
+            keypressed_callback = function(grabber, modifiers, key, event)
+                self:_handle_media_popup_keygrabber(grabber, modifiers, key, event)
+            end,
+        })
+    end
+
+    self._media_popup_keyboard_navigation_active = true
+
+    if self._media_popup_keygrabber.grabber then
+        return
+    end
+
+    self._media_popup_keygrabber:start()
+end
+
+function M:blur_media_popup_keyboard_navigation()
+    self._media_popup_keyboard_navigation_active = false
+    self._media_popup_toggle_key = nil
+
+    if self._media_popup_keygrabber and self._media_popup_keygrabber.grabber then
+        self._media_popup_keygrabber:stop()
+    end
+end
+
+function M:blur_devices_popup_keyboard_navigation()
+    -- placeholder to keep popup close/open flows symmetric if devices-side
+    -- keyboard navigation is added later.
 end
 
 -- Toggle mute on the current default output device.
@@ -307,6 +518,8 @@ function M.new(opts)
         mic_muted = false,
         mic_active = false,
     }
+    self.media_popup_selected_index = 1
+    self._media_popup_items = {}
 
     self.ui_state = self.ui_state or {
         media_players_expanded = true,
@@ -382,8 +595,10 @@ function M:_toggle_popup(kind, anchor_geo, opts)
 
     if kind == "media" and self._devices_popup then
         self._devices_popup.visible = false
+        self:blur_devices_popup_keyboard_navigation()
     elseif kind == "devices" and self._media_popup then
         self._media_popup.visible = false
+        self:blur_media_popup_keyboard_navigation()
     end
 
     local popup_module
@@ -400,10 +615,22 @@ function M:_toggle_popup(kind, anchor_geo, opts)
     if shown and self[popup_ref] and self[popup_ref].visible then
         if opts.hover_close == false then
             self:_stop_hover_close_timer()
+            if kind == "media" then
+                self._media_popup_toggle_key = normalize_popup_toggle_key(opts.toggle_key)
+                self:focus_media_popup_keyboard_navigation()
+            else
+                self:blur_media_popup_keyboard_navigation()
+            end
         else
+            if kind == "media" then
+                self:blur_media_popup_keyboard_navigation()
+            end
             self:_start_hover_close_timer(kind, is_geometry(anchor_geo) and anchor_geo or nil)
         end
     else
+        if kind == "media" then
+            self:blur_media_popup_keyboard_navigation()
+        end
         self:_stop_hover_close_timer()
     end
 
@@ -416,8 +643,10 @@ function M:_show_popup(kind, anchor_geo, opts)
 
     if kind == "media" and self._devices_popup then
         self._devices_popup.visible = false
+        self:blur_devices_popup_keyboard_navigation()
     elseif kind == "devices" and self._media_popup then
         self._media_popup.visible = false
+        self:blur_media_popup_keyboard_navigation()
     end
 
     local popup_module
@@ -431,7 +660,16 @@ function M:_show_popup(kind, anchor_geo, opts)
 
     if opts.hover_close == false then
         self:_stop_hover_close_timer()
+        if kind == "media" then
+            self._media_popup_toggle_key = normalize_popup_toggle_key(opts.toggle_key)
+            self:focus_media_popup_keyboard_navigation()
+        else
+            self:blur_media_popup_keyboard_navigation()
+        end
     else
+        if kind == "media" then
+            self:blur_media_popup_keyboard_navigation()
+        end
         self:_start_hover_close_timer(kind, is_geometry(anchor_geo) and anchor_geo or nil)
     end
 end
@@ -502,6 +740,8 @@ end
 -- Close all popups and stop any hover-close timer.
 function M:close_popups()
     self:_stop_hover_close_timer()
+    self:blur_media_popup_keyboard_navigation()
+    self:blur_devices_popup_keyboard_navigation()
 
     if self._media_popup then
         self._media_popup.visible = false
