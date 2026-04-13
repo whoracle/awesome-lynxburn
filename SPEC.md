@@ -242,3 +242,8 @@ Avoid:
     growing
 - Preferred long-term direction: no direct inter-module dependency such as
   `lxnetwork -> lxaudio` or `lxbluetooth -> lxaudio` just for popup helpers.
+- `lxnetwork` currently renders Wi-Fi generation hints as plain text suffixes
+  such as `[WiFi 6]` when multiple meaningful variants of the same SSID are
+  shown.
+- Follow-up: replace that plain suffix with a small styled tag/badge once the
+  network popup visuals are stabilized.

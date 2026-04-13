@@ -65,6 +65,7 @@ local function parse_wifi_list(stdout)
         local bssid = fields[3]
         local security = fields[4]
         local signal = fields[5]
+        local rate = fields[6]
 
         if bssid then
             networks[#networks + 1] = {
@@ -73,11 +74,33 @@ local function parse_wifi_list(stdout)
                 bssid = bssid,
                 security = security,
                 signal = tonumber(signal) or 0,
+                rate = rate,
             }
         end
     end
 
     return networks
+end
+
+local function infer_wifi_standard(rate_text)
+    local mbps = tonumber(tostring(rate_text or ""):match("([%d%.]+)%s*Mbit/s"))
+    if not mbps then
+        return nil
+    end
+
+    if mbps >= 1000 then
+        return "WiFi 6"
+    end
+
+    if mbps >= 400 then
+        return "WiFi 5"
+    end
+
+    if mbps >= 100 then
+        return "WiFi 4"
+    end
+
+    return nil
 end
 
 local function parse_known_connections(stdout)
@@ -248,7 +271,13 @@ local function make_signal_bar(instance, signal)
 end
 
 local function make_network_row(instance, network, selected, onclick)
-    local name = network.active and ("● " .. network.ssid) or network.ssid
+    local name = network.ssid
+    if network.standard then
+        name = string.format("%s [%s]", name, network.standard)
+    end
+    if network.active then
+        name = "● " .. name
+    end
     local row_content = wibox.widget({
         {
             markup = gears.string.xml_escape(name),
@@ -830,15 +859,19 @@ function M:scan()
 
     self:_refresh_connection_state(function(known)
         awful.spawn.easy_async_with_shell(
-            "nmcli -t -e yes -f IN-USE,SSID,BSSID,SECURITY,SIGNAL device wifi list --rescan yes 2>/dev/null",
+            "nmcli -t -e yes -f IN-USE,SSID,BSSID,SECURITY,SIGNAL,RATE device wifi list --rescan yes 2>/dev/null",
             function(list_stdout)
                 local networks = parse_wifi_list(list_stdout)
                 local deduped = {}
 
                 for _, network in ipairs(networks) do
-                    local key = network.ssid .. "\0" .. network.bssid
-                    if not deduped[key] then
-                        network.known = known[network.ssid] == true
+                    network.known = known[network.ssid] == true
+                    network.standard = infer_wifi_standard(network.rate)
+
+                    local key = network.ssid .. "\0" .. (network.standard or "")
+                    local existing = deduped[key]
+
+                    if not existing or network.signal > existing.signal then
                         deduped[key] = network
                     end
                 end
