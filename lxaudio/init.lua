@@ -409,6 +409,30 @@ function M:transport_selected_media_player(action)
     self:_defer_media_popup_refresh()
 end
 
+function M:set_popup_key_actions(map)
+    self.opts.popup_key_actions = map or {}
+end
+
+function M:_handle_popup_media_action(action)
+    if action == "volume_up" then
+        self:volume_up(nil, { show_osd = true })
+    elseif action == "volume_down" then
+        self:volume_down(nil, { show_osd = true })
+    elseif action == "toggle_mute" then
+        self:toggle_mute({ show_osd = true })
+    elseif action == "media_prev" then
+        self:transport_selected_media_player("previous")
+    elseif action == "media_play_pause" then
+        self:transport_selected_media_player("play_pause")
+    elseif action == "media_next" then
+        self:transport_selected_media_player("next")
+    else
+        return false
+    end
+
+    return true
+end
+
 function M:_handle_media_popup_keygrabber(_, modifiers, key, event)
     if event ~= "press" then
         return
@@ -421,6 +445,11 @@ function M:_handle_media_popup_keygrabber(_, modifiers, key, event)
 
     if popup_toggle_key_matches(self._media_popup_toggle_key, modifiers, key) then
         self:close_popups()
+        return
+    end
+
+    local popup_key_actions = self.opts.popup_key_actions or {}
+    if self:_handle_popup_media_action(popup_key_actions[key]) then
         return
     end
 
@@ -438,12 +467,6 @@ function M:_handle_media_popup_keygrabber(_, modifiers, key, event)
         self:set_selected_media_stream_volume(100)
     elseif key == "End" then
         self:toggle_selected_media_stream_mute()
-    elseif key == "XF86AudioPrev" then
-        self:transport_selected_media_player("previous")
-    elseif key == "XF86AudioPlay" then
-        self:transport_selected_media_player("play_pause")
-    elseif key == "XF86AudioNext" then
-        self:transport_selected_media_player("next")
     end
 end
 

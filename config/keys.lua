@@ -134,6 +134,28 @@ local function compile_key_specs(specs, ordered_names, actions, join)
     return join(unpack(keys))
 end
 
+local function build_lxaudio_popup_key_actions(global_specs)
+    local popup_bindings = {
+        media_toggle_play_pause = true,
+        media_next_media_item = true,
+        media_prev_media_item = true,
+        media_volume_up = true,
+        media_volume_down = true,
+        media_toggle_mute = true,
+    }
+
+    local popup_actions = {}
+
+    for binding_name in pairs(popup_bindings) do
+        local spec = global_specs[binding_name]
+        if spec and not spec.disabled and type(spec.key) == "string" and type(spec.on_press) == "string" then
+            popup_actions[spec.key] = spec.on_press
+        end
+    end
+
+    return popup_actions
+end
+
 ---Build root and client keymaps from the shared config context.
 ---
 ---This module intentionally owns only keybinding definitions and their local
@@ -596,6 +618,10 @@ function M.build(context)
 
     if type(key_overrides.client) == "table" then
         helpers.deep_merge(client_specs, key_overrides.client)
+    end
+
+    if lxaudio and lxaudio.set_popup_key_actions then
+        lxaudio:set_popup_key_actions(build_lxaudio_popup_key_actions(global_specs))
     end
 
     local keymaps = {
