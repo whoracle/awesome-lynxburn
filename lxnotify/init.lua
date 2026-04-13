@@ -122,6 +122,12 @@ local function popup_toggle_key_matches(toggle_key, modifiers, key)
     return true
 end
 
+local function point_in_geometry(x, y, geo)
+    return geo
+        and x >= geo.x and x < (geo.x + geo.width)
+        and y >= geo.y and y < (geo.y + geo.height)
+end
+
 ---Group stored entries into the burst-group structure used by the popup.
 ---@param notifications table[]
 ---@return table, table[]
@@ -677,6 +683,7 @@ function instance_methods:focus_popup_keyboard_navigation()
     end
 
     self._popup_keygrabber:start()
+    self:_start_popup_outside_click_dismiss()
 end
 
 function instance_methods:set_popup_toggle_key(toggle_key)
@@ -685,9 +692,37 @@ end
 
 function instance_methods:blur_popup_keyboard_navigation()
     self._popup_keyboard_navigation_active = false
+    self:_stop_popup_outside_click_dismiss()
 
     if self._popup_keygrabber and self._popup_keygrabber.grabber then
         self._popup_keygrabber:stop()
+    end
+end
+
+function instance_methods:_start_popup_outside_click_dismiss()
+    self:_stop_popup_outside_click_dismiss()
+
+    self._popup_outside_click_binding = awful.button({}, 1, function()
+        local popup_widget = self._popup
+        if not (popup_widget and popup_widget.visible) then
+            return
+        end
+
+        local coords = mouse.coords()
+        if point_in_geometry(coords.x, coords.y, popup_widget:geometry()) then
+            return
+        end
+
+        self:close_popups()
+    end)
+
+    awful.mouse.append_global_mousebinding(self._popup_outside_click_binding)
+end
+
+function instance_methods:_stop_popup_outside_click_dismiss()
+    if self._popup_outside_click_binding then
+        awful.mouse.remove_global_mousebinding(self._popup_outside_click_binding)
+        self._popup_outside_click_binding = nil
     end
 end
 
