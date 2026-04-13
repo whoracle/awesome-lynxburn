@@ -6,6 +6,7 @@ local keygrabber = require("awful.keygrabber")
 
 local popup_common = require("lxaudio.popup_common")
 local util = require("lxaudio.util")
+local notify_util = require("lxnotify.util")
 
 local M = {}
 M.__index = M
@@ -94,6 +95,89 @@ local function sort_networks(a, b)
     return a.ssid < b.ssid
 end
 
+local function normalize_popup_opts(arg1, arg2)
+    if type(arg2) == "table" then
+        return arg2
+    end
+
+    if type(arg1) == "table" then
+        return arg1
+    end
+
+    return {}
+end
+
+local function normalize_popup_toggle_key(toggle_key)
+    if type(toggle_key) ~= "table" or type(toggle_key.key) ~= "string" then
+        return nil
+    end
+
+    local normalized = {
+        key = toggle_key.key,
+        modifiers = {},
+        modifier_set = {},
+    }
+
+    if type(toggle_key.modifiers) == "table" then
+        for _, modifier in ipairs(toggle_key.modifiers) do
+            if type(modifier) == "string" and modifier ~= "" then
+                normalized.modifier_set[modifier] = true
+            end
+        end
+    end
+
+    for modifier in pairs(normalized.modifier_set) do
+        normalized.modifiers[#normalized.modifiers + 1] = modifier
+    end
+
+    table.sort(normalized.modifiers)
+
+    return normalized
+end
+
+local function popup_toggle_key_matches(toggle_key, modifiers, key)
+    if not toggle_key or key ~= toggle_key.key then
+        return false
+    end
+
+    local active_modifiers = {}
+    for _, modifier in ipairs(modifiers or {}) do
+        active_modifiers[modifier] = true
+    end
+
+    for modifier in pairs(active_modifiers) do
+        if not toggle_key.modifier_set[modifier] then
+            return false
+        end
+    end
+
+    for modifier in pairs(toggle_key.modifier_set) do
+        if not active_modifiers[modifier] then
+            return false
+        end
+    end
+
+    return true
+end
+
+local function apply_dock_geometry(instance, popup_widget, anchor)
+    local target_screen = notify_util.resolve_screen(anchor)
+    local workarea = target_screen.workarea
+    local width = math.min(instance:_theme_value("lxnetwork_popup_width", 380), workarea.width)
+
+    popup_widget.screen = target_screen
+    popup_widget.minimum_width = width
+    popup_widget.maximum_width = width
+    popup_widget.minimum_height = workarea.height
+    popup_widget.maximum_height = workarea.height
+    popup_widget:geometry({
+        x = workarea.x + workarea.width - width,
+        y = workarea.y,
+        width = width,
+        height = workarea.height,
+    })
+end
+
 function M:_theme_value(key, fallback)
     local value = beautiful[key]
     if value == nil then
@@ -137,6 +221,10 @@ function M:_close_password_prompt()
 
     self._password_target = nil
     self._password_input = ""
+
+    if self._popup and self._popup.visible and self._popup_keyboard_navigation_requested then
+        self:focus_popup_keyboard_navigation()
+    end
 end
 
 function M:_refresh_password_prompt()
@@ -177,6 +265,11 @@ end
 function M:_show_password_prompt(target)
     self._password_target = target
     self._password_input = ""
+    self._popup_keyboard_navigation_requested = self._popup_keyboard_navigation_active == true
+
+    if self._popup_keyboard_navigation_requested then
+        self:blur_popup_keyboard_navigation()
+    end
 
     if not self._password_popup then
         local body = wibox.widget({
@@ -275,6 +368,13 @@ function M:_refresh_popup()
     refs.available_list:reset()
     local known_count = 0
     local available_count = 0
+    self._popup_items = {
+        {
+            on_enter = function()
+                self:scan()
+            end,
+        },
+    }
 
     for _, network in ipairs(self.state.networks) do
         local label = string.format("%s  %d%%", network.ssid, network.signal)
@@ -285,12 +385,21 @@ function M:_refresh_popup()
             label = "● " .. label
         end
 
+        local selected = self._popup_selected_index == (#self._popup_items + 1)
         local row = popup_common.make_click_row(label, function()
             self:_connect_network(network)
         end, {
-            idle_bg = self:_theme_value("lxnetwork_button_bg", beautiful.bg_minimize or "#222222"),
+            idle_bg = selected
+                and self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
+                or self:_theme_value("lxnetwork_button_bg", beautiful.bg_minimize or "#222222"),
             hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
         })
+
+        self._popup_items[#self._popup_items + 1] = {
+            on_enter = function()
+                self:_connect_network(network)
+            end,
+        }
 
         if network.known then
             refs.known_list:add(row)
@@ -337,7 +446,9 @@ function M:_build_popup()
             popup_common.make_click_row("Scan WiFi", function()
                 self:scan()
             end, {
-                idle_bg = self:_theme_value("lxnetwork_button_bg", beautiful.bg_minimize or "#222222"),
+                idle_bg = self._popup_selected_index == 1
+                    and self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
+                    or self:_theme_value("lxnetwork_button_bg", beautiful.bg_minimize or "#222222"),
                 hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
             }),
             current,
@@ -359,13 +470,123 @@ function M:_build_popup()
     })
 end
 
-function M:toggle_popup(anchor)
-    local visible = popup_common.toggle_popup(self, "_popup", "_popup_anchor", anchor, function()
-        return self:_build_popup()
-    end)
+function M:_ensure_popup_selection()
+    local count = #(self._popup_items or {})
+    if count < 1 then
+        self._popup_selected_index = 1
+        return
+    end
 
-    if visible then
-        self:_refresh_popup()
+    self._popup_selected_index = math.max(1, math.min(self._popup_selected_index or 1, count))
+end
+function M:move_popup_selection(delta)
+    self:_ensure_popup_selection()
+    local count = #(self._popup_items or {})
+    if count < 1 then
+        return
+    end
+
+    self._popup_selected_index = math.max(1, math.min((self._popup_selected_index or 1) + delta, count))
+    if self._popup and self._popup.visible then
+        self._popup.widget = self:_build_popup()
+    end
+end
+
+function M:activate_selected_popup_item()
+    self:_ensure_popup_selection()
+    local item = (self._popup_items or {})[self._popup_selected_index or 1]
+    if item and type(item.on_enter) == "function" then
+        item.on_enter()
+    end
+end
+
+function M:_handle_popup_keygrabber(_, modifiers, key, event)
+    if event ~= "press" then
+        return
+    end
+
+    if not (self._popup and self._popup.visible) then
+        self:blur_popup_keyboard_navigation()
+        return
+    end
+
+    if popup_toggle_key_matches(self._popup_toggle_key, modifiers, key) or key == "Escape" then
+        self:close_popup()
+        return
+    end
+
+    if key == "Up" then
+        self:move_popup_selection(-1)
+    elseif key == "Down" then
+        self:move_popup_selection(1)
+    elseif key == "Return" or key == "KP_Enter" then
+        self:activate_selected_popup_item()
+    end
+end
+
+function M:focus_popup_keyboard_navigation()
+    if not self._popup_keygrabber then
+        self._popup_keygrabber = keygrabber({
+            stop_callback = function()
+                self._popup_keyboard_navigation_active = false
+            end,
+            keypressed_callback = function(grabber, modifiers, key, event)
+                self:_handle_popup_keygrabber(grabber, modifiers, key, event)
+            end,
+        })
+    end
+
+    self._popup_keyboard_navigation_active = true
+    if not self._popup_keygrabber.grabber then
+        self._popup_keygrabber:start()
+    end
+end
+
+function M:blur_popup_keyboard_navigation()
+    self._popup_keyboard_navigation_active = false
+    if self._popup_keygrabber and self._popup_keygrabber.grabber then
+        self._popup_keygrabber:stop()
+    end
+end
+
+function M:close_popup()
+    self:blur_popup_keyboard_navigation()
+    self:_close_password_prompt()
+    if self._popup then
+        self._popup.visible = false
+    end
+end
+
+function M:toggle_popup(anchor, opts)
+    opts = normalize_popup_opts(anchor, opts)
+
+    if self._popup and self._popup.visible then
+        self:close_popup()
+        return
+    end
+
+    self._popup_toggle_key = normalize_popup_toggle_key(opts.toggle_key)
+
+    if not self._popup then
+        self._popup = awful.popup({
+            visible = false,
+            ontop = true,
+            type = "dock",
+            bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
+            widget = self:_build_popup(),
+        })
+    else
+        self._popup.widget = self:_build_popup()
+    end
+
+    apply_dock_geometry(self, self._popup, anchor)
+    self._popup.visible = true
+    self:_refresh_popup()
+
+    if opts.keyboard_navigation then
+        self:focus_popup_keyboard_navigation()
+    else
+        self:blur_popup_keyboard_navigation()
     end
 end
 
@@ -444,6 +665,7 @@ function M.new(opts)
         current_ssid = nil,
         networks = {},
     }
+    self._popup_selected_index = 1
     self._refs = {}
 
     local icon = wibox.widget({ markup = "", widget = wibox.widget.textbox })

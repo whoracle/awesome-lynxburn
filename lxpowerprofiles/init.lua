@@ -2,6 +2,7 @@ local awful = require("awful")
 local beautiful = require("beautiful")
 local gears = require("gears")
 local wibox = require("wibox")
+local keygrabber = require("awful.keygrabber")
 
 local popup_common = require("lxaudio.popup_common")
 local util = require("lxaudio.util")
@@ -63,6 +64,71 @@ local function contains(list, target)
     end
 
     return false
+end
+
+local function normalize_popup_opts(arg1, arg2)
+    if type(arg2) == "table" then
+        return arg2
+    end
+
+    if type(arg1) == "table" then
+        return arg1
+    end
+
+    return {}
+end
+
+local function normalize_popup_toggle_key(toggle_key)
+    if type(toggle_key) ~= "table" or type(toggle_key.key) ~= "string" then
+        return nil
+    end
+
+    local normalized = {
+        key = toggle_key.key,
+        modifiers = {},
+        modifier_set = {},
+    }
+
+    if type(toggle_key.modifiers) == "table" then
+        for _, modifier in ipairs(toggle_key.modifiers) do
+            if type(modifier) == "string" and modifier ~= "" then
+                normalized.modifier_set[modifier] = true
+            end
+        end
+    end
+
+    for modifier in pairs(normalized.modifier_set) do
+        normalized.modifiers[#normalized.modifiers + 1] = modifier
+    end
+
+    table.sort(normalized.modifiers)
+
+    return normalized
+end
+
+local function popup_toggle_key_matches(toggle_key, modifiers, key)
+    if not toggle_key or key ~= toggle_key.key then
+        return false
+    end
+
+    local active_modifiers = {}
+    for _, modifier in ipairs(modifiers or {}) do
+        active_modifiers[modifier] = true
+    end
+
+    for modifier in pairs(active_modifiers) do
+        if not toggle_key.modifier_set[modifier] then
+            return false
+        end
+    end
+
+    for modifier in pairs(toggle_key.modifier_set) do
+        if not active_modifiers[modifier] then
+            return false
+        end
+    end
+
+    return true
 end
 
 function M:_theme_value(key, fallback)
@@ -151,14 +217,23 @@ end
 function M:_build_popup()
     local status = wibox.widget({ markup = "", widget = wibox.widget.textbox })
     local list = wibox.layout.fixed.vertical()
+    self._popup_items = {}
 
     for _, profile in ipairs(ALL_PROFILES) do
+        local selected = self._popup_selected_index == (#self._popup_items + 1)
         list:add(popup_common.make_click_row(profile, function()
             self:set_profile(profile)
         end, {
-            idle_bg = self:_theme_value("lxpowerprofiles_button_bg", beautiful.bg_minimize or "#222222"),
+            idle_bg = selected
+                and self:_theme_value("lxpowerprofiles_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
+                or self:_theme_value("lxpowerprofiles_button_bg", beautiful.bg_minimize or "#222222"),
             hover_bg = self:_theme_value("lxpowerprofiles_button_hover", beautiful.bg_focus or "#444444"),
         }))
+        self._popup_items[#self._popup_items + 1] = {
+            on_enter = function()
+                self:set_profile(profile)
+            end,
+        }
     end
 
     self._popup_refs = {
@@ -180,13 +255,115 @@ function M:_build_popup()
     })
 end
 
-function M:toggle_popup(anchor)
+function M:_ensure_popup_selection()
+    local count = #(self._popup_items or {})
+    if count < 1 then
+        self._popup_selected_index = 1
+        return
+    end
+
+    self._popup_selected_index = math.max(1, math.min(self._popup_selected_index or 1, count))
+end
+
+function M:move_popup_selection(delta)
+    self:_ensure_popup_selection()
+    local count = #(self._popup_items or {})
+    if count < 1 then
+        return
+    end
+
+    self._popup_selected_index = math.max(1, math.min((self._popup_selected_index or 1) + delta, count))
+    if self._popup and self._popup.visible then
+        self._popup.widget = self:_build_popup()
+    end
+end
+
+function M:activate_selected_popup_item()
+    self:_ensure_popup_selection()
+    local item = (self._popup_items or {})[self._popup_selected_index or 1]
+    if item and type(item.on_enter) == "function" then
+        item.on_enter()
+    end
+end
+
+function M:_handle_popup_keygrabber(_, modifiers, key, event)
+    if event ~= "press" then
+        return
+    end
+
+    if not (self._popup and self._popup.visible) then
+        self:blur_popup_keyboard_navigation()
+        return
+    end
+
+    if popup_toggle_key_matches(self._popup_toggle_key, modifiers, key) or key == "Escape" then
+        self:close_popup()
+        return
+    end
+
+    if key == "Up" then
+        self:move_popup_selection(-1)
+    elseif key == "Down" then
+        self:move_popup_selection(1)
+    elseif key == "Return" or key == "KP_Enter" then
+        self:activate_selected_popup_item()
+    end
+end
+
+function M:focus_popup_keyboard_navigation()
+    if not self._popup_keygrabber then
+        self._popup_keygrabber = keygrabber({
+            stop_callback = function()
+                self._popup_keyboard_navigation_active = false
+            end,
+            keypressed_callback = function(grabber, modifiers, key, event)
+                self:_handle_popup_keygrabber(grabber, modifiers, key, event)
+            end,
+        })
+    end
+
+    self._popup_keyboard_navigation_active = true
+    if not self._popup_keygrabber.grabber then
+        self._popup_keygrabber:start()
+    end
+end
+
+function M:blur_popup_keyboard_navigation()
+    self._popup_keyboard_navigation_active = false
+    if self._popup_keygrabber and self._popup_keygrabber.grabber then
+        self._popup_keygrabber:stop()
+    end
+end
+
+function M:close_popup()
+    self:blur_popup_keyboard_navigation()
+    if self._popup then
+        self._popup.visible = false
+    end
+end
+
+function M:toggle_popup(anchor, opts)
+    opts = normalize_popup_opts(anchor, opts)
+
+    if self._popup and self._popup.visible then
+        self:close_popup()
+        return
+    end
+
+    self._popup_toggle_key = normalize_popup_toggle_key(opts.toggle_key)
+
     local visible = popup_common.toggle_popup(self, "_popup", "_popup_anchor", anchor, function()
         return self:_build_popup()
     end)
 
     if visible then
         self:_refresh_popup()
+    end
+
+    if opts.keyboard_navigation then
+        self:focus_popup_keyboard_navigation()
+    else
+        self:blur_popup_keyboard_navigation()
     end
 end
 
@@ -251,6 +428,7 @@ function M.new(opts)
         battery = "powersave",
         ac = "balanced",
     }
+    self._popup_selected_index = 1
     self._refs = {}
 
     local icon = wibox.widget({ markup = "", widget = wibox.widget.textbox })

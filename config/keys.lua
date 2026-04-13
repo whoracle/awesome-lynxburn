@@ -258,19 +258,28 @@ function M.build(context)
 
     local function show_bluetooth_popup()
         if lxbluetooth then
-            lxbluetooth:toggle_popup()
+            lxbluetooth:toggle_popup(nil, {
+                keyboard_navigation = true,
+                toggle_key = { modifiers = { settings.modkey }, key = "F10" },
+            })
         end
     end
 
     local function show_network_popup()
         if lxnetwork then
-            lxnetwork:toggle_popup()
+            lxnetwork:toggle_popup(nil, {
+                keyboard_navigation = true,
+                toggle_key = { modifiers = { settings.modkey }, key = "F11" },
+            })
         end
     end
 
     local function show_powerprofiles_popup()
         if lxpowerprofiles then
-            lxpowerprofiles:toggle_popup()
+            lxpowerprofiles:toggle_popup(nil, {
+                keyboard_navigation = true,
+                toggle_key = { modifiers = { settings.modkey }, key = "F12" },
+            })
         end
     end
 
