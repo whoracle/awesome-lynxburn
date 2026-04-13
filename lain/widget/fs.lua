@@ -25,6 +25,12 @@ local query      = query_size .. "," .. query_free .. "," .. query_used
 local function mounted_paths()
     local paths = {}
     local seen = {}
+    local function add_path(path)
+        if path and not seen[path] then
+            seen[path] = true
+            paths[#paths + 1] = path
+        end
+    end
 
     local ok_monitor, volume_monitor = pcall(function()
         return Gio.VolumeMonitor and Gio.VolumeMonitor.get and Gio.VolumeMonitor.get()
@@ -42,25 +48,16 @@ local function mounted_paths()
                     return location and location:get_path() or nil
                 end)
 
-                if ok_path and path and not seen[path] then
-                    seen[path] = true
-                    paths[#paths + 1] = path
+                if ok_path then
+                    add_path(path)
                 end
             end
         end
     end
 
-    if #paths > 0 then
-        return paths
-    end
-
     for line in io.lines("/proc/mounts") do
         local _device, path = line:match("^(%S+)%s+(%S+)")
-
-        if path and not seen[path] then
-            seen[path] = true
-            paths[#paths + 1] = path
-        end
+        add_path(path)
     end
 
     return paths
