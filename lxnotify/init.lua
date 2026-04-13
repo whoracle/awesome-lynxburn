@@ -702,7 +702,7 @@ end
 function instance_methods:_start_popup_outside_click_dismiss()
     self:_stop_popup_outside_click_dismiss()
 
-    self._popup_outside_click_handler = function()
+    local handler = function()
         local popup_widget = self._popup
         if not (popup_widget and popup_widget.visible) then
             return
@@ -716,9 +716,9 @@ function instance_methods:_start_popup_outside_click_dismiss()
         self:close_popups()
     end
 
-    self._popup_outside_click_binding = awful.button({}, 1, function()
-        self._popup_outside_click_handler()
-    end)
+    self._popup_outside_click_handler = handler
+
+    self._popup_outside_click_binding = awful.button({}, 1, handler)
 
     awful.mouse.append_global_mousebinding(self._popup_outside_click_binding)
 
