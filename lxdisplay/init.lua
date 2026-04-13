@@ -665,7 +665,11 @@ function M:_build_widget()
         self._bar = nil
     end
 
-    local row = wibox.widget(content)
+    local row = wibox.widget({
+        content,
+        left = 8,
+        widget = wibox.container.margin,
+    })
     self:_attach_mouse_controls(row)
 
     self._row = row

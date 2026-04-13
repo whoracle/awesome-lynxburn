@@ -171,6 +171,7 @@ theme.lxaudio_bar_fg = white
 theme.lxnotify_icon_suspended = "󰂛  "
 theme.lxnotify_icon_notifications = "󰂚  "
 theme.lxnotify_icon_idle = "󰂚 "
+theme.lxnotify_widget_font = "Terminus 7"
 theme.lxnotify_widget_fg = "#e8d7b6"
 theme.lxnotify_widget_suspended_fg = "#9b8f86"
 theme.lxnotify_popup_bg = gray2

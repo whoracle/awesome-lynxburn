@@ -2,12 +2,15 @@ local awful = require("awful")
 local gears = require("gears")
 local wibox = require("wibox")
 
+local beautiful = require("beautiful")
+
 local widget = {}
 
 function widget.new(instance)
     local text_widget = wibox.widget({
         align = "center",
         valign = "center",
+        font = beautiful.lxnotify_widget_font or beautiful.font,
         widget = wibox.widget.textbox,
     })
 

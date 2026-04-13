@@ -185,10 +185,14 @@ function M.build(instance)
     instance._refs.mic_cluster = mic_cluster
 
     local row = wibox.widget {
-        mic_cluster,
-        output_cluster,
-        spacing = 6,
-        layout = wibox.layout.fixed.horizontal,
+        {
+            mic_cluster,
+            output_cluster,
+            spacing = 6,
+            layout = wibox.layout.fixed.horizontal,
+        },
+        left = 8,
+        widget = wibox.container.margin,
     }
 
     instance._anchor = row

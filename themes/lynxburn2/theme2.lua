@@ -141,6 +141,7 @@ local theme = {
     lxnotify_icon_suspended = "󰂛 ",
     lxnotify_icon_notifications = "󰂚 ",
     lxnotify_icon_idle = "󰂚 ",
+    lxnotify_widget_font = "Terminus 7",
     lxnotify_widget_fg = "#e8d7b6",
     lxnotify_widget_suspended_fg = roles.text_muted,
     lxnotify_notification_card_bg = roles.raised_bg,
