@@ -279,25 +279,33 @@ local function build_stream_card(instance, stream, default_sink_name, selected)
     end
 
     if stream.volume then
-        local volume_row = make_info_line("Volume: " .. tostring(stream.volume) .. "%", {
-            left = 20,
-            right = 0,
-            top = 0,
-            bottom = 0,
-        })
-        volume_row.forced_height = 15
-        info_layout:add(volume_row)
-
-        info_layout:add(wibox.widget {
+        local volume_line = wibox.widget {
+            {
+                make_info_line("Volume: " .. tostring(stream.volume) .. "%", {
+                    left = 0,
+                    right = 8,
+                    top = 0,
+                    bottom = 0,
+                }),
+                forced_width = 90,
+                strategy = "max",
+                widget = wibox.container.constraint,
+            },
             {
                 make_volume_bar(stream.volume, stream.muted),
                 valign = "center",
                 widget = wibox.container.place,
             },
+            spacing = 8,
+            layout = wibox.layout.flex.horizontal,
+        }
+
+        info_layout:add(wibox.widget {
+            volume_line,
             left = 20,
             right = 0,
-            top = 2,
-            bottom = 2,
+            top = 0,
+            bottom = 0,
             widget = wibox.container.margin,
         })
     end

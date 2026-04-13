@@ -359,6 +359,49 @@ function M:set_selected_media_stream_volume(percent)
     end)
 end
 
+function M:selected_media_popup_player()
+    local stream = self:selected_media_popup_item()
+    if not stream then
+        return nil
+    end
+
+    if stream._matched_player then
+        return stream._matched_player
+    end
+
+    local ok, media = pcall(require, "lxaudio.media")
+    if not ok or not media or not media.player_for_stream then
+        return nil
+    end
+
+    stream._matched_player = media.player_for_stream(stream)
+    return stream._matched_player
+end
+
+function M:transport_selected_media_player(action)
+    local player = self:selected_media_popup_player()
+    if not player then
+        return
+    end
+
+    local ok, media = pcall(require, "lxaudio.media")
+    if not ok or not media then
+        return
+    end
+
+    if action == "previous" and media.previous then
+        media.previous(player)
+    elseif action == "play_pause" and media.play_pause then
+        media.play_pause(player)
+    elseif action == "next" and media.next then
+        media.next(player)
+    else
+        return
+    end
+
+    self:_defer_media_popup_refresh()
+end
+
 function M:_handle_media_popup_keygrabber(_, modifiers, key, event)
     if event ~= "press" then
         return
@@ -388,6 +431,12 @@ function M:_handle_media_popup_keygrabber(_, modifiers, key, event)
         self:toggle_selected_media_stream_mute()
     elseif key == "End" then
         self:set_selected_media_stream_volume(100)
+    elseif key == "XF86AudioPrev" then
+        self:transport_selected_media_player("previous")
+    elseif key == "XF86AudioPlay" then
+        self:transport_selected_media_player("play_pause")
+    elseif key == "XF86AudioNext" then
+        self:transport_selected_media_player("next")
     end
 end
 
