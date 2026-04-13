@@ -152,6 +152,112 @@ local function build_inputs_card(instance, sources)
     return card
 end
 
+local function build_stream_route_rows(instance, stream, sinks, layout)
+    local audio = require("lxaudio.audio")
+
+    layout:add(make_info_line("Route to:", {
+        left = 12,
+        right = 8,
+        top = 6,
+        bottom = 2,
+    }))
+
+    for _, sink in ipairs(sinks) do
+        local prefix = (sink.id == stream.sink_id) and "■ " or "□ "
+        layout:add(make_click_row(prefix .. (sink.label or sink.name), function()
+            audio.move_sink_input(stream.id, sink.name)
+            instance:refresh()
+            M.rebuild(instance)
+        end, {
+            left = 20,
+            right = 8,
+            top = 4,
+            bottom = 4,
+        }))
+    end
+end
+
+local function build_streams_card(instance, streams, sinks)
+    instance.ui_state = instance.ui_state or {}
+    instance.ui_state.devices_stream_expanded = instance.ui_state.devices_stream_expanded or {}
+
+    local layout = wibox.widget {
+        spacing = 1,
+        layout = wibox.layout.fixed.vertical,
+    }
+
+    layout:add(make_info_line("Playback Streams", {
+        left = 8,
+        right = 8,
+        top = 2,
+        bottom = 4,
+        forced_height = 20,
+    }))
+
+    if #streams == 0 then
+        layout:add(make_info_line("(none)", {
+            left = 12,
+            right = 8,
+            top = 2,
+            bottom = 2,
+        }))
+        return make_card(layout)
+    end
+
+    for _, stream in ipairs(streams) do
+        local expanded = instance.ui_state.devices_stream_expanded[stream.id] == true
+        local sublayout = wibox.widget {
+            spacing = 1,
+            layout = wibox.layout.fixed.vertical,
+        }
+
+        local prefix = expanded and "▼ " or "▶ "
+        local muted_prefix = stream.muted and ((beautiful.lxaudio_icon_muted or "M") .. "  ") or ""
+        local title = prefix .. muted_prefix .. (stream.label or ("Stream " .. tostring(stream.id)))
+
+        sublayout:add(make_click_row(title, function()
+            instance.ui_state.devices_stream_expanded[stream.id] = not expanded
+            M.rebuild(instance)
+        end, {
+            left = 12,
+            right = 8,
+            top = 4,
+            bottom = 2,
+        }))
+
+        if stream.detail then
+            sublayout:add(make_info_line(stream.detail, {
+                left = 24,
+                right = 8,
+                top = 0,
+                bottom = 0,
+                forced_height = 16,
+            }))
+        end
+
+        local output_line = "Output: " .. (stream.sink_label or stream.sink_name or "-")
+        if stream.volume then
+            output_line = output_line .. "  [" .. tostring(stream.volume) .. "%]"
+        end
+
+        sublayout:add(make_info_line(output_line, {
+            left = 24,
+            right = 8,
+            top = 0,
+            bottom = expanded and 2 or 4,
+            forced_height = 16,
+        }))
+
+        if expanded then
+            build_stream_route_rows(instance, stream, sinks, sublayout)
+        end
+
+        layout:add(sublayout)
+    end
+
+    return make_card(layout)
+end
+
 local function build_advanced_card(instance)
     local audio = require("lxaudio.audio")
 
@@ -192,6 +298,7 @@ local function build_widget(instance)
 
     local sinks = audio.list_sinks() or {}
     local sources = audio.list_sources() or {}
+    local streams = audio.list_sink_inputs() or {}
 
     local default_sink_label = nil
     local default_source_label = nil
@@ -218,6 +325,7 @@ local function build_widget(instance)
     list:add(build_header(default_sink_label, default_source_label))
     list:add(build_outputs_card(instance, sinks))
     list:add(build_inputs_card(instance, sources))
+    list:add(build_streams_card(instance, streams, sinks))
     list:add(build_advanced_card(instance))
 
     return wibox.widget {

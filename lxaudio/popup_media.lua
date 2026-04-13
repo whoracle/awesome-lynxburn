@@ -124,31 +124,7 @@ local function build_transport_row(instance, player, player_info)
     }
 end
 
-local function build_route_rows(instance, stream, sinks, layout)
-    local audio = require("lxaudio.audio")
-
-    layout:add(make_info_line("Route to:", {
-        left = 1,
-        right = 1,
-        top = 6,
-        bottom = 2,
-    }))
-
-    for _, sink in ipairs(sinks) do
-        local prefix = (sink.id == stream.sink_id) and "■ " or "□ "
-        layout:add(make_click_row(prefix .. (sink.label or sink.name), function()
-            audio.move_sink_input(stream.id, sink.name)
-            M.rebuild(instance)
-        end, {
-            left = 1,
-            right = 1,
-            top = 4,
-            bottom = 4,
-        }))
-    end
-end
-
-local function build_stream_card(instance, stream, sinks, default_sink_name)
+local function build_stream_card(instance, stream, default_sink_name)
     local media = require("lxaudio.media")
 
     instance.ui_state.stream_expanded = instance.ui_state.stream_expanded or {}
@@ -314,10 +290,6 @@ local function build_stream_card(instance, stream, sinks, default_sink_name)
         }))
     end
 
-    if expanded then
-        build_route_rows(instance, stream, sinks, layout)
-    end
-
     return make_card(layout)
 end
 
@@ -326,8 +298,6 @@ local function build_widget(instance)
     local media = require("lxaudio.media")
 
     local streams = audio.list_sink_inputs() or {}
-    local sinks = audio.list_sinks() or {}
-
     local streams_with_player = {}
     local streams_without_player = {}
 
@@ -377,9 +347,9 @@ local function build_widget(instance)
             }))
 
             for _, stream in ipairs(streams_with_player) do
-                list:add(build_stream_card(instance, stream, sinks, default_sink_name))
-            end
+            list:add(build_stream_card(instance, stream, default_sink_name))
         end
+    end
 
         if #streams_without_player > 0 then
             list:add(make_info_line("Other Streams", {
@@ -391,9 +361,9 @@ local function build_widget(instance)
             }))
 
             for _, stream in ipairs(streams_without_player) do
-                list:add(build_stream_card(instance, stream, sinks, default_sink_name))
-            end
+            list:add(build_stream_card(instance, stream, default_sink_name))
         end
+    end
     end
 
     return wibox.widget {

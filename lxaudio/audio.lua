@@ -451,14 +451,33 @@ function M.list_sink_inputs()
 
     for _, stream in ipairs(short) do
         local p = props[stream.id] or {}
-        stream.app_name = p["application.name"] or p["media.name"] or ("Stream " .. tostring(stream.id))
-        stream.media_name = p["media.name"]
+        local app_name = p["application.name"]
+        local media_name = p["media.name"]
+        local window_title = p["window.x11.title"] or p["application.process.title"] or p["node.description"]
+        local binary = p["application.process.binary"] or p["application.process.name"]
+
+        stream.app_name = app_name or media_name or ("Stream " .. tostring(stream.id))
+        stream.media_name = media_name
+        stream.window_title = window_title
+        stream.binary = binary
+        stream.props = p
         stream.label = stream.app_name
         stream.volume = volumes[stream.id] or nil
         stream.muted = mutes[stream.id] or false
 
         if stream.media_name and stream.media_name ~= stream.app_name then
             stream.label = stream.app_name .. " — " .. stream.media_name
+        end
+
+        if stream.window_title and stream.window_title ~= ""
+            and stream.window_title ~= stream.media_name
+            and stream.window_title ~= stream.app_name
+        then
+            stream.detail = stream.window_title
+        elseif stream.media_name and stream.media_name ~= "" and stream.media_name ~= stream.app_name then
+            stream.detail = stream.media_name
+        elseif stream.binary and stream.binary ~= "" and stream.binary ~= stream.app_name then
+            stream.detail = stream.binary
         end
 
         local sink = sink_map[stream.sink_id]
