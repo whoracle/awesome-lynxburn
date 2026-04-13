@@ -1,8 +1,11 @@
 local M = {}
 
 local lxaudio_instance
+local lxbluetooth_instance
 local lxdisplay_instance
+local lxnetwork_instance
 local lxnotify_instance
+local lxpowerprofiles_instance
 local lxrunner_instance
 
 ---Shared singleton accessors for the long-lived helper modules.
@@ -19,6 +22,19 @@ function M.audio()
     end
 
     return lxaudio_instance
+end
+
+function M.bluetooth()
+    local settings = require("config.settings")
+    if settings.widgets and settings.widgets.bluetooth == false then
+        return nil
+    end
+
+    if not lxbluetooth_instance then
+        lxbluetooth_instance = require("lxbluetooth").new()
+    end
+
+    return lxbluetooth_instance
 end
 
 ---Return the shared lxnotify instance.
@@ -53,6 +69,19 @@ function M.display()
     return lxdisplay_instance
 end
 
+function M.network()
+    local settings = require("config.settings")
+    if settings.widgets and settings.widgets.network == false then
+        return nil
+    end
+
+    if not lxnetwork_instance then
+        lxnetwork_instance = require("lxnetwork").new()
+    end
+
+    return lxnetwork_instance
+end
+
 ---Return the shared lxrunner instance.
 ---@return table
 function M.runner()
@@ -61,6 +90,19 @@ function M.runner()
     end
 
     return lxrunner_instance
+end
+
+function M.powerprofiles()
+    local settings = require("config.settings")
+    if settings.widgets and settings.widgets.powerprofiles == false then
+        return nil
+    end
+
+    if not lxpowerprofiles_instance then
+        lxpowerprofiles_instance = require("lxpowerprofiles").new()
+    end
+
+    return lxpowerprofiles_instance
 end
 
 return M

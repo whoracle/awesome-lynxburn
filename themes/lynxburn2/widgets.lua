@@ -356,11 +356,39 @@ function M.build(theme)
 
     return function(s)
         local lxaudio = services.audio()
+        local lxbluetooth = services.bluetooth()
         local lxdisplay = services.display()
+        local lxnetwork = services.network()
         local lxnotify = services.notify()
+        local lxpowerprofiles = services.powerprofiles()
         local audio_widget = wrap_widget(theme, lxaudio.widget)
         local display_widget = wrap_widget(theme, lxdisplay.widget)
         local notify_widget = wrap_widget(theme, lxnotify.widget)
+        local right_widgets = {
+            layout = wibox.layout.fixed.horizontal,
+            mailwidget,
+            sysloadwidget,
+            cpuwidget,
+            memwidget,
+            fs_rootwidget,
+            spacer,
+        }
+
+        if lxbluetooth then
+            table.insert(right_widgets, wrap_widget(theme, lxbluetooth.widget))
+        end
+
+        if lxnetwork then
+            table.insert(right_widgets, wrap_widget(theme, lxnetwork.widget))
+        end
+
+        if lxpowerprofiles then
+            table.insert(right_widgets, wrap_widget(theme, lxpowerprofiles.widget))
+        end
+
+        table.insert(right_widgets, audio_widget)
+        table.insert(right_widgets, display_widget)
+        table.insert(right_widgets, notify_widget)
 
         local wallpaper = theme.wallpaper
         if type(wallpaper) == "function" then
@@ -441,22 +469,13 @@ function M.build(theme)
                 spacer,
             },
             s.mytasklist,
-            {
-                layout = wibox.layout.fixed.horizontal,
-                mailwidget,
-                sysloadwidget,
-                cpuwidget,
-                memwidget,
-                fs_rootwidget,
-                spacer,
-                audio_widget,
-                display_widget,
-                notify_widget,
-                mysystray,
-                myclock,
-                mydate,
-                powermenu_widget,
-            },
+            (function()
+                table.insert(right_widgets, mysystray)
+                table.insert(right_widgets, myclock)
+                table.insert(right_widgets, mydate)
+                table.insert(right_widgets, powermenu_widget)
+                return right_widgets
+            end)(),
         })
     end
 end

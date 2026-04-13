@@ -20,6 +20,11 @@ local settings = {
         center = 1,
         right = 2,
     },
+    widgets = {
+        bluetooth = false,
+        network = false,
+        powerprofiles = false,
+    },
 }
 
 return helpers.deep_merge(
