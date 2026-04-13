@@ -325,16 +325,31 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
         end
     end
 
+    local function wrap_output_scrollable(child, opts)
+        opts = opts or {}
+        return make_click_container(child, nil, {
+            left = opts.left or 0,
+            right = opts.right or 0,
+            top = opts.top or 0,
+            bottom = opts.bottom or 0,
+            on_middle_click = opts.on_middle_click,
+            on_scroll_up = scroll_up,
+            on_scroll_down = scroll_down,
+        })
+    end
+
     local info_layout = wibox.widget {
         spacing = 1,
         layout = wibox.layout.fixed.vertical,
     }
 
-    local stream_row = make_info_line(mute_prefix .. (stream.label or ("Stream " .. tostring(stream.id))), {
+    local stream_row = wrap_output_scrollable(make_info_line(mute_prefix .. (stream.label or ("Stream " .. tostring(stream.id))), {
         left = 0,
         right = 0,
         top = 1,
         bottom = 1,
+    }), {
+        on_middle_click = middle_click,
     })
     stream_row.forced_height = 20
     info_layout:add(stream_row)
@@ -393,7 +408,9 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
                 bottom = 0,
             })
             meta_row.forced_height = 15
-            info_layout:add(meta_row)
+            info_layout:add(wrap_output_scrollable(meta_row, {
+                on_middle_click = middle_click,
+            }))
         end
 
         if player_info.status then
@@ -404,7 +421,9 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
                 bottom = 0,
             })
             status_row.forced_height = 15
-            info_layout:add(status_row)
+            info_layout:add(wrap_output_scrollable(status_row, {
+                on_middle_click = middle_click,
+            }))
         end
     end
 
@@ -429,14 +448,16 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
             layout = wibox.layout.flex.horizontal,
         }
 
-        info_layout:add(wibox.widget {
+        info_layout:add(wrap_output_scrollable(wibox.widget {
             volume_line,
             left = 20,
             right = 0,
             top = 0,
             bottom = 0,
             widget = wibox.container.margin,
-        })
+        }, {
+            on_middle_click = middle_click,
+        }))
 
         if source_output and source_output.volume then
             local mic_label = source_output.muted and "Mic: muted" or ("Mic: " .. tostring(source_output.volume) .. "%")
@@ -479,32 +500,37 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
             bottom = 0,
         })
         output_row.forced_height = 15
-        info_layout:add(output_row)
+        info_layout:add(wrap_output_scrollable(output_row, {
+            on_middle_click = middle_click,
+        }))
     end
-
-    local main_clickable_layout = wibox.widget {
-        spacing = 2,
-        layout = wibox.layout.fixed.vertical,
-    }
 
     if art_widget then
-        main_clickable_layout:add(art_widget)
+        layout:add(wrap_output_scrollable(art_widget, {
+            left = 1,
+            right = 1,
+            top = 4,
+            bottom = 2,
+            on_middle_click = middle_click,
+        }))
     end
 
-    main_clickable_layout:add(info_layout)
-
-    layout:add(make_click_container(main_clickable_layout, nil, {
+    layout:add(wibox.widget {
+        info_layout,
         left = 1,
         right = 1,
-        top = 4,
+        top = art_widget and 0 or 4,
         bottom = 4,
-        on_middle_click = middle_click,
-        on_scroll_up = scroll_up,
-        on_scroll_down = scroll_down,
-    }))
+        widget = wibox.container.margin,
+    })
 
     if player_info and matched_player then
-        layout:add(build_transport_row(instance, matched_player, player_info))
+        layout:add(wrap_output_scrollable(build_transport_row(instance, matched_player, player_info), {
+            left = 0,
+            right = 0,
+            top = 0,
+            bottom = 0,
+        }))
     end
 
     return decorate_stream_card(make_card(layout), selected)
