@@ -86,6 +86,38 @@ local function make_volume_bar(value, muted)
     }
 end
 
+local function make_stream_volume_control(instance, stream)
+    local audio = require("lxaudio.audio")
+
+    local bar = make_volume_bar(stream.volume, stream.muted)
+
+    local bar_container = wibox.widget {
+        bar,
+        valign = "center",
+        widget = wibox.container.place,
+    }
+
+    bar_container:buttons(gears.table.join(
+        awful.button({}, 1, function()
+            local geo = mouse.current_widget_geometry
+            local coords = mouse.coords()
+            if not (geo and geo.width and geo.x) or geo.width <= 0 then
+                return
+            end
+
+            local relative_x = math.max(0, math.min(geo.width, coords.x - geo.x))
+            local target = math.floor(((relative_x / geo.width) * 100) + 0.5)
+            audio.set_sink_input_volume(stream.id, target)
+
+            if instance._defer_media_popup_refresh then
+                instance:_defer_media_popup_refresh()
+            end
+        end)
+    ))
+
+    return bar_container
+end
+
 local function decorate_stream_card(card, selected)
     if not selected then
         return card
@@ -292,9 +324,8 @@ local function build_stream_card(instance, stream, default_sink_name, selected)
                 widget = wibox.container.constraint,
             },
             {
-                make_volume_bar(stream.volume, stream.muted),
-                valign = "center",
-                widget = wibox.container.place,
+                make_stream_volume_control(instance, stream),
+                widget = wibox.container.background,
             },
             spacing = 8,
             layout = wibox.layout.flex.horizontal,

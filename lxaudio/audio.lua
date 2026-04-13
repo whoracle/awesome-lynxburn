@@ -5,6 +5,7 @@ local util = require("lxaudio.util")
 local M = {}
 local subscription_pid = nil
 local subscription_debounce = nil
+local parse_first_percent
 
 -- Parse `pactl list short ...` output into small typed row tables.
 local function parse_tabular_short_list(out, kind)
@@ -92,6 +93,24 @@ local function get_default_source()
     return util.trim(out)
 end
 
+local function get_sink_volume_percent(name)
+    if not name then
+        return nil
+    end
+
+    local out = util.read_command("pactl get-sink-volume " .. util.shell_escape(name) .. " 2>/dev/null") or ""
+    return parse_first_percent(out)
+end
+
+local function get_source_volume_percent(name)
+    if not name then
+        return nil
+    end
+
+    local out = util.read_command("pactl get-source-volume " .. util.shell_escape(name) .. " 2>/dev/null") or ""
+    return parse_first_percent(out)
+end
+
 -- Read widget-facing default output volume and mute state, preferring `wpctl`
 -- when available but falling back to `pactl`.
 local function get_volume_info()
@@ -170,7 +189,7 @@ local function get_input_volume_info()
     }
 end
 
-local function parse_first_percent(s)
+parse_first_percent = function(s)
     if not s then
         return nil
     end
@@ -181,6 +200,29 @@ local function parse_first_percent(s)
     end
 
     return tonumber(pct)
+end
+
+local function clamp_percent(value)
+    return math.max(0, math.min(100, math.floor((tonumber(value) or 0) + 0.5)))
+end
+
+local function get_sink_input_volume_percent(stream_id)
+    local dump = util.read_command("pactl list sink-inputs 2>/dev/null") or ""
+    local current_id = nil
+
+    for _, line in ipairs(util.split_lines(dump)) do
+        local id = line:match("^Sink Input #(%d+)")
+        if id then
+            current_id = id
+        elseif current_id == tostring(stream_id) and line:match("^%s*Volume:") then
+            local pct = parse_first_percent(line)
+            if pct then
+                return pct
+            end
+        end
+    end
+
+    return nil
 end
 
 local function map_sink_input_mutes(out)
@@ -283,11 +325,13 @@ function M.change_volume(delta)
         return
     end
 
-    if delta >= 0 then
-        awful.spawn("pactl set-sink-volume " .. util.shell_escape(sink) .. " " .. step .. "%+", false)
-    else
-        awful.spawn("pactl set-sink-volume " .. util.shell_escape(sink) .. " " .. step .. "%-", false)
+    local current = get_sink_volume_percent(sink)
+    if current == nil then
+        return
     end
+
+    local target = delta >= 0 and (current + step) or (current - step)
+    awful.spawn("pactl set-sink-volume " .. util.shell_escape(sink) .. " " .. clamp_percent(target) .. "%", false)
 end
 
 -- Toggle mute on all non-monitor input devices so the compact mic controls
@@ -353,11 +397,13 @@ function M.change_input_volume(delta)
         return
     end
 
-    if delta >= 0 then
-        awful.spawn("pactl set-source-volume " .. util.shell_escape(source) .. " " .. step .. "%+", false)
-    else
-        awful.spawn("pactl set-source-volume " .. util.shell_escape(source) .. " " .. step .. "%-", false)
+    local current = get_source_volume_percent(source)
+    if current == nil then
+        return
     end
+
+    local target = delta >= 0 and (current + step) or (current - step)
+    awful.spawn("pactl set-source-volume " .. util.shell_escape(source) .. " " .. clamp_percent(target) .. "%", false)
 end
 
 -- List available output devices, tagging the current default sink.
@@ -497,11 +543,19 @@ function M.change_sink_input_volume(stream_id, delta)
         step = 1
     end
 
-    if delta >= 0 then
-        awful.spawn("pactl set-sink-input-volume " .. util.shell_escape(stream_id) .. " +" .. step .. "%", false)
-    else
-        awful.spawn("pactl set-sink-input-volume " .. util.shell_escape(stream_id) .. " -" .. step .. "%", false)
+    local current = get_sink_input_volume_percent(stream_id)
+    if current == nil then
+        return
     end
+
+    local target = current
+    if delta >= 0 then
+        target = current + step
+    else
+        target = current - step
+    end
+
+    M.set_sink_input_volume(stream_id, target)
 end
 
 function M.toggle_sink_input_mute(stream_id)
@@ -509,7 +563,7 @@ function M.toggle_sink_input_mute(stream_id)
 end
 
 function M.set_sink_input_volume(stream_id, percent)
-    local value = math.max(0, math.floor((tonumber(percent) or 0) + 0.5))
+    local value = clamp_percent(percent)
     awful.spawn("pactl set-sink-input-volume " .. util.shell_escape(stream_id) .. " " .. value .. "%", false)
 
     if value > 0 then
