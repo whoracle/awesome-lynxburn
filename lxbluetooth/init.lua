@@ -217,6 +217,7 @@ function M:_refresh_popup()
     self._popup_items = {
         {
             on_enter = function()
+                self:close_popup()
                 local programs = require("config.programs")
                 awful.spawn.with_shell(programs.blueman_manager)
             end,
@@ -297,6 +298,7 @@ function M:_build_popup()
     local popup_widget = wibox.widget({
         {
             popup_common.make_selectable_click_row("Open blueman-manager", function()
+                self:close_popup()
                 local programs = require("config.programs")
                 awful.spawn.with_shell(programs.blueman_manager)
             end, {
