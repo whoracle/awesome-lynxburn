@@ -1,3 +1,4 @@
+local awful = require("awful")
 local gears = require("gears")
 local beautiful = require("beautiful")
 local keygrabber = require("awful.keygrabber")
@@ -96,6 +97,12 @@ local function popup_toggle_key_matches(toggle_key, modifiers, key)
     end
 
     return true
+end
+
+local function point_in_geometry(x, y, geo)
+    return geo
+        and x >= geo.x and x < (geo.x + geo.width)
+        and y >= geo.y and y < (geo.y + geo.height)
 end
 
 -- Clear cached submodules so reloads pick up on-disk changes without
@@ -459,11 +466,13 @@ function M:focus_media_popup_keyboard_navigation()
     end
 
     self._media_popup_keygrabber:start()
+    self:_start_media_popup_outside_click_dismiss()
 end
 
 function M:blur_media_popup_keyboard_navigation()
     self._media_popup_keyboard_navigation_active = false
     self._media_popup_toggle_key = nil
+    self:_stop_media_popup_outside_click_dismiss()
 
     if self._media_popup_keygrabber and self._media_popup_keygrabber.grabber then
         self._media_popup_keygrabber:stop()
@@ -473,6 +482,33 @@ end
 function M:blur_devices_popup_keyboard_navigation()
     -- placeholder to keep popup close/open flows symmetric if devices-side
     -- keyboard navigation is added later.
+end
+
+function M:_start_media_popup_outside_click_dismiss()
+    self:_stop_media_popup_outside_click_dismiss()
+
+    self._media_popup_outside_click_binding = awful.button({}, 1, function()
+        local popup = self._media_popup
+        if not (popup and popup.visible) then
+            return
+        end
+
+        local coords = mouse.coords()
+        if point_in_geometry(coords.x, coords.y, popup:geometry()) then
+            return
+        end
+
+        self:close_popups()
+    end)
+
+    awful.mouse.append_global_mousebinding(self._media_popup_outside_click_binding)
+end
+
+function M:_stop_media_popup_outside_click_dismiss()
+    if self._media_popup_outside_click_binding then
+        awful.mouse.remove_global_mousebinding(self._media_popup_outside_click_binding)
+        self._media_popup_outside_click_binding = nil
+    end
 end
 
 -- Toggle mute on the current default output device.
