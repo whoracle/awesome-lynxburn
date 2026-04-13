@@ -247,3 +247,13 @@ Avoid:
   shown.
 - Follow-up: replace that plain suffix with a small styled tag/badge once the
   network popup visuals are stabilized.
+- Future `lxcommon` should also own popup coordination so only one `lx*` popup
+  can be open at a time.
+- Preferred shape:
+  - each active module registers its popup handle(s) during init
+  - each handle exposes at least a stable `close()` callback and ideally an
+    `is_visible()` callback
+  - popup-open paths notify the shared manager before showing
+  - popup-close paths notify the shared manager when hidden
+- This should cover both single-popup modules and modules with multiple named
+  popups such as `lxaudio`.
