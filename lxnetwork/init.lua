@@ -30,11 +30,42 @@ local function merge_defaults(opts)
     return merged
 end
 
+local function split_nmcli_fields(line)
+    local fields = {}
+    local current = {}
+    local escaped = false
+
+    for index = 1, #line do
+        local char = line:sub(index, index)
+
+        if escaped then
+            current[#current + 1] = char
+            escaped = false
+        elseif char == "\\" then
+            escaped = true
+        elseif char == ":" then
+            fields[#fields + 1] = table.concat(current)
+            current = {}
+        else
+            current[#current + 1] = char
+        end
+    end
+
+    fields[#fields + 1] = table.concat(current)
+    return fields
+end
+
 local function parse_wifi_list(stdout)
     local networks = {}
 
     for _, line in ipairs(util.split_lines(stdout)) do
-        local active, ssid, bssid, security, signal = line:match("^([^:]*):(.*):([^:]*):([^:]*):([^:]*)$")
+        local fields = split_nmcli_fields(line)
+        local active = fields[1]
+        local ssid = fields[2]
+        local bssid = fields[3]
+        local security = fields[4]
+        local signal = fields[5]
+
         if bssid then
             networks[#networks + 1] = {
                 active = active == "*",
@@ -53,7 +84,9 @@ local function parse_known_connections(stdout)
     local known = {}
 
     for _, line in ipairs(util.split_lines(stdout)) do
-        local name, kind = line:match("^([^:]+):([^:]+)$")
+        local fields = split_nmcli_fields(line)
+        local name = fields[1]
+        local kind = fields[2]
         if name and kind == "802-11-wireless" then
             known[name] = true
         end
@@ -69,7 +102,9 @@ local function parse_active_connection(stdout)
     }
 
     for _, line in ipairs(util.split_lines(stdout)) do
-        local name, kind = line:match("^([^:]+):([^:]+)$")
+        local fields = split_nmcli_fields(line)
+        local name = fields[1]
+        local kind = fields[2]
         if name and kind == "802-11-wireless" then
             current.ssid = name
             break
@@ -236,7 +271,7 @@ local function make_network_row(instance, network, selected, onclick)
 
     return popup_common.make_selectable_click_container(row_content, onclick, {
         selected = selected,
-        inner_bg = instance:_theme_value("lxnetwork_button_bg", beautiful.bg_minimize or "#222222"),
+        inner_bg = instance:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
         hover_bg = instance:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
         outer_bg = instance:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
         selected_bg = instance:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
@@ -492,7 +527,7 @@ function M:_build_popup()
                 self:scan()
             end, {
                 selected = self._popup_selected_index == 1,
-                inner_bg = self:_theme_value("lxnetwork_button_bg", beautiful.bg_minimize or "#222222"),
+                inner_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
                 hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
                 outer_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
                 selected_bg = self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
@@ -766,17 +801,17 @@ function M:refresh()
         local enabled = tostring(radio_stdout or ""):match("enabled") ~= nil
 
         awful.spawn.easy_async_with_shell(
-            "nmcli -t -e no -f NAME,TYPE connection show --active 2>/dev/null",
+            "nmcli -t -e yes -f NAME,TYPE connection show --active 2>/dev/null",
             function(active_stdout)
                 local active = parse_active_connection(active_stdout)
 
                 awful.spawn.easy_async_with_shell(
-                    "nmcli -t -e no -f NAME,TYPE connection show 2>/dev/null",
+                    "nmcli -t -e yes -f NAME,TYPE connection show 2>/dev/null",
                     function(known_stdout)
                         local known = parse_known_connections(known_stdout)
 
                         awful.spawn.easy_async_with_shell(
-                            "nmcli -t -e no -f IN-USE,SSID,BSSID,SECURITY,SIGNAL device wifi list --rescan no 2>/dev/null",
+                            "nmcli -t -e yes -f IN-USE,SSID,BSSID,SECURITY,SIGNAL device wifi list --rescan no 2>/dev/null",
                             function(list_stdout)
                                 local networks = parse_wifi_list(list_stdout)
                                 local deduped = {}

@@ -245,7 +245,7 @@ function M:_build_popup()
             self:set_profile(profile)
         end, {
             selected = selected,
-            inner_bg = self:_theme_value("lxpowerprofiles_button_bg", beautiful.bg_minimize or "#222222"),
+            inner_bg = self:_theme_value("lxpowerprofiles_popup_bg", beautiful.bg_normal or "#222222"),
             hover_bg = self:_theme_value("lxpowerprofiles_button_hover", beautiful.bg_focus or "#444444"),
             outer_bg = self:_theme_value("lxpowerprofiles_popup_bg", beautiful.bg_normal or "#222222"),
             selected_bg = self:_theme_value("lxpowerprofiles_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),

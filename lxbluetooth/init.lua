@@ -256,7 +256,7 @@ function M:_refresh_popup()
             end
         end, {
             selected = selected,
-            inner_bg = self:_theme_value("lxbluetooth_button_bg", beautiful.bg_minimize or "#222222"),
+            inner_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
             hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
             outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
             selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
@@ -301,7 +301,7 @@ function M:_build_popup()
                 awful.spawn.with_shell(programs.blueman_manager)
             end, {
                 selected = self._popup_selected_index == 1,
-                inner_bg = self:_theme_value("lxbluetooth_button_bg", beautiful.bg_minimize or "#222222"),
+                inner_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
                 hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
                 outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
                 selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
@@ -310,7 +310,7 @@ function M:_build_popup()
                 self:toggle_power()
             end, {
                 selected = self._popup_selected_index == 2,
-                inner_bg = self:_theme_value("lxbluetooth_button_bg", beautiful.bg_minimize or "#222222"),
+                inner_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
                 hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
                 outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
                 selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
@@ -354,7 +354,11 @@ function M:move_popup_selection(delta)
     end
 
     self._popup_selected_index = math.max(1, math.min((self._popup_selected_index or 1) + delta, count))
-    self:_refresh_popup()
+    if self._popup and self._popup.visible then
+        self._popup.widget = self:_build_popup()
+    else
+        self:_refresh_popup()
+    end
 end
 
 function M:activate_selected_popup_item()
