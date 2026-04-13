@@ -33,7 +33,7 @@ local function default_screen_profiles()
             dpi = 96,
         },
         center = {
-            layout = "fair",
+            layout = "centerwork",
             dpi = 110,
         },
         right = {
