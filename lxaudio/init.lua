@@ -139,6 +139,9 @@ function M:refresh()
     if self._refs then
         if self._refs.icon then
             self._refs.icon.text = self.state.muted and self.opts.icon_muted or self.opts.icon_unmuted
+            self._refs.icon.fg = self.state.muted
+                and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
+                or (beautiful.lxaudio_widget_fg or beautiful.fg_normal or "#ffffff")
         end
 
         if self._refs.bar then
