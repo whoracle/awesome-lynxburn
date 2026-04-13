@@ -983,12 +983,27 @@ function M.new(opts)
     self._popup_selected_index = 1
     self._refs = {}
 
-    local icon = wibox.widget({ markup = "", widget = wibox.widget.textbox })
+    local icon = wibox.widget({
+        markup = "",
+        align = "center",
+        valign = "center",
+        widget = wibox.widget.textbox,
+    })
     self._refs.icon = icon
 
     self.widget = wibox.widget({
         {
-            icon,
+            {
+                {
+                    icon,
+                    halign = "center",
+                    valign = "center",
+                    widget = wibox.container.place,
+                },
+                forced_width = self:_theme_value("lxnetwork_icon_width", 18),
+                strategy = "exact",
+                widget = wibox.container.constraint,
+            },
             layout = wibox.layout.fixed.horizontal,
         },
         left = 8,
