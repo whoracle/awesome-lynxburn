@@ -22,6 +22,50 @@ local query_free = Gio.FILE_ATTRIBUTE_FILESYSTEM_FREE
 local query_used = Gio.FILE_ATTRIBUTE_FILESYSTEM_USED
 local query      = query_size .. "," .. query_free .. "," .. query_used
 
+local function mounted_paths()
+    local paths = {}
+    local seen = {}
+
+    local ok_monitor, volume_monitor = pcall(function()
+        return Gio.VolumeMonitor and Gio.VolumeMonitor.get and Gio.VolumeMonitor.get()
+    end)
+
+    if ok_monitor and volume_monitor and volume_monitor.get_mounts then
+        local ok_mounts, mounts = pcall(function()
+            return volume_monitor:get_mounts()
+        end)
+
+        if ok_mounts and mounts then
+            for _, mount in ipairs(mounts) do
+                local ok_path, path = pcall(function()
+                    local location = mount.get_default_location and mount:get_default_location()
+                    return location and location:get_path() or nil
+                end)
+
+                if ok_path and path and not seen[path] then
+                    seen[path] = true
+                    paths[#paths + 1] = path
+                end
+            end
+        end
+    end
+
+    if #paths > 0 then
+        return paths
+    end
+
+    for line in io.lines("/proc/mounts") do
+        local _device, path = line:match("^(%S+)%s+(%S+)")
+
+        if path and not seen[path] then
+            seen[path] = true
+            paths[#paths + 1] = path
+        end
+    end
+
+    return paths
+end
+
 -- File systems info
 -- lain.widget.fs
 
@@ -76,8 +120,7 @@ local function factory(args)
         fs_now = {}
 
         local notifypaths = {}
-        for _, mount in ipairs(Gio.unix_mounts_get()) do
-            local path = Gio.unix_mount_get_mount_path(mount)
+        for _, path in ipairs(mounted_paths()) do
             local root = Gio.File.new_for_path(path)
             local info = root:query_filesystem_info(query)
 
