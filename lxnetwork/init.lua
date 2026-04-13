@@ -534,6 +534,10 @@ function M:_refresh_popup()
     }
 
     for _, network in ipairs(self.state.networks) do
+        if network.active or (self.state.current_ssid and network.ssid == self.state.current_ssid) then
+            goto continue
+        end
+
         local selected = self._popup_selected_index == (#self._popup_items + 1)
         local row = make_network_row(self, network, selected, function()
             self:_connect_network(network)
@@ -552,6 +556,8 @@ function M:_refresh_popup()
             refs.available_list:add(row)
             available_count = available_count + 1
         end
+
+        ::continue::
     end
 
     if known_count == 0 then
