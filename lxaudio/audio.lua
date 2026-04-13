@@ -266,6 +266,25 @@ local function map_source_output_mutes(out)
     return result
 end
 
+local function map_source_output_volumes(out)
+    local result = {}
+
+    local current_id = nil
+    for _, line in ipairs(util.split_lines(out)) do
+        local id = line:match("^Source Output #(%d+)")
+        if id then
+            current_id = id
+        elseif current_id then
+            local pct = parse_first_percent(line)
+            if pct and line:match("^%s*Volume:") then
+                result[current_id] = pct
+            end
+        end
+    end
+
+    return result
+end
+
 -- Return the minimum state needed by the compact widget.
 function M.get_widget_state(_opts)
     local volume_info = get_volume_info()
@@ -576,12 +595,56 @@ function M.list_source_outputs()
     local short = parse_tabular_short_list(util.read_command("pactl list short source-outputs 2>/dev/null"), "source-output")
     local source_outputs_dump = util.read_command("pactl list source-outputs 2>/dev/null")
     local mutes = map_source_output_mutes(source_outputs_dump)
+    local volumes = map_source_output_volumes(source_outputs_dump)
+    local props = map_stream_props_by_id(source_outputs_dump)
+    local sources = M.list_sources()
+    local source_map = {}
+
+    for _, source in ipairs(sources) do
+        source_map[source.id] = source
+    end
 
     for _, source_output in ipairs(short) do
+        local p = props[source_output.id] or {}
+        local app_name = p["application.name"]
+        local media_name = p["media.name"]
+        local window_title = p["window.x11.title"] or p["application.process.title"] or p["node.description"]
+        local binary = p["application.process.binary"] or p["application.process.name"]
+
+        source_output.app_name = app_name or media_name or ("Source Output " .. tostring(source_output.id))
+        source_output.media_name = media_name
+        source_output.window_title = window_title
+        source_output.binary = binary
+        source_output.props = p
+        source_output.label = source_output.app_name
+        source_output.volume = volumes[source_output.id] or nil
         source_output.muted = mutes[source_output.id] or false
+
+        if source_output.media_name and source_output.media_name ~= source_output.app_name then
+            source_output.label = source_output.app_name .. " — " .. source_output.media_name
+        end
+
+        local source = source_map[source_output.source_id]
+        if source then
+            source_output.source_name = source.name
+            source_output.source_label = source.label or source.name
+        end
     end
 
     return short
+end
+
+function M.set_source_output_volume(source_output_id, percent)
+    local value = clamp_percent(percent)
+    awful.spawn("pactl set-source-output-volume " .. util.shell_escape(source_output_id) .. " " .. value .. "%", false)
+
+    if value > 0 then
+        awful.spawn("pactl set-source-output-mute " .. util.shell_escape(source_output_id) .. " 0", false)
+    end
+end
+
+function M.toggle_source_output_mute(source_output_id)
+    awful.spawn("pactl set-source-output-mute " .. util.shell_escape(source_output_id) .. " toggle", false)
 end
 
 function M.move_sink_input(stream_id, sink_name)

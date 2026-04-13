@@ -119,6 +119,97 @@ local function make_stream_volume_control(instance, stream)
     return bar_container
 end
 
+local function make_source_output_volume_control(instance, source_output)
+    local audio = require("lxaudio.audio")
+
+    local bar = wibox.widget {
+        max_value = 1,
+        value = math.max(0, math.min(1, (tonumber(source_output.volume) or 0) / 100)),
+        forced_height = 8,
+        paddings = 0,
+        border_width = 0,
+        background_color = beautiful.lxaudio_mic_bar_bg or beautiful.lxaudio_bar_bg or beautiful.bg_minimize or "#140c0b",
+        color = source_output.muted
+            and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxaudio_mic_bar_fg or beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0"),
+        widget = wibox.widget.progressbar,
+    }
+
+    local bar_container = wibox.widget {
+        bar,
+        valign = "center",
+        widget = wibox.container.place,
+    }
+
+    bar_container:connect_signal("button::press", function(_, lx, _, button, _, hit)
+        if button == 1 then
+            local width = hit and hit.width or nil
+            if not width or width <= 0 then
+                return
+            end
+
+            local relative_x = math.max(0, math.min(width, lx))
+            local target = math.floor(((relative_x / width) * 100) + 0.5)
+            audio.set_source_output_volume(source_output.id, target)
+        elseif button == 2 then
+            audio.toggle_source_output_mute(source_output.id)
+        else
+            return
+        end
+
+        if instance._defer_media_popup_refresh then
+            instance:_defer_media_popup_refresh()
+        end
+    end)
+
+    return bar_container
+end
+
+local function normalize_match_value(value)
+    value = tostring(value or ""):lower()
+    value = value:gsub("%..*$", "")
+    value = value:gsub("[^%w]", "")
+    return value
+end
+
+local function find_matching_source_output(stream, source_outputs)
+    if not stream or not source_outputs then
+        return nil
+    end
+
+    for _, source_output in ipairs(source_outputs) do
+        if stream.client_id and source_output.client_id and stream.client_id == source_output.client_id then
+            return source_output
+        end
+    end
+
+    local stream_keys = {
+        normalize_match_value(stream.app_name),
+        normalize_match_value(stream.media_name),
+        normalize_match_value(stream.binary),
+    }
+
+    for _, source_output in ipairs(source_outputs) do
+        local source_keys = {
+            normalize_match_value(source_output.app_name),
+            normalize_match_value(source_output.media_name),
+            normalize_match_value(source_output.binary),
+        }
+
+        for _, stream_key in ipairs(stream_keys) do
+            if stream_key ~= "" then
+                for _, source_key in ipairs(source_keys) do
+                    if source_key ~= "" and stream_key == source_key then
+                        return source_output
+                    end
+                end
+            end
+        end
+    end
+
+    return nil
+end
+
 local function decorate_stream_card(card, selected)
     if not selected then
         return card
@@ -191,7 +282,7 @@ local function build_transport_row(instance, player, player_info)
     return container
 end
 
-local function build_stream_card(instance, stream, default_sink_name, selected)
+local function build_stream_card(instance, stream, source_output, default_sink_name, selected)
     local media = require("lxaudio.media")
 
     local matched_player = stream._matched_player or media.player_for_stream(stream)
@@ -340,6 +431,38 @@ local function build_stream_card(instance, stream, default_sink_name, selected)
             bottom = 0,
             widget = wibox.container.margin,
         })
+
+        if source_output and source_output.volume then
+            local mic_label = source_output.muted and "Mic: muted" or ("Mic: " .. tostring(source_output.volume) .. "%")
+            local mic_line = wibox.widget {
+                {
+                    make_info_line(mic_label, {
+                        left = 0,
+                        right = 8,
+                        top = 0,
+                        bottom = 0,
+                    }),
+                    forced_width = 90,
+                    strategy = "max",
+                    widget = wibox.container.constraint,
+                },
+                {
+                    make_source_output_volume_control(instance, source_output),
+                    widget = wibox.container.background,
+                },
+                spacing = 8,
+                layout = wibox.layout.flex.horizontal,
+            }
+
+            info_layout:add(wibox.widget {
+                mic_line,
+                left = 20,
+                right = 0,
+                top = 0,
+                bottom = 0,
+                widget = wibox.container.margin,
+            })
+        end
     end
 
     if stream.sink_name and default_sink_name and stream.sink_name ~= default_sink_name then
@@ -386,6 +509,7 @@ local function build_widget(instance)
     local media = require("lxaudio.media")
 
     local streams = audio.list_sink_inputs() or {}
+    local source_outputs = audio.list_source_outputs() or {}
     local sinks = audio.list_sinks() or {}
     local streams_with_player = {}
     local streams_without_player = {}
@@ -447,9 +571,11 @@ local function build_widget(instance)
 
             for _, stream in ipairs(streams_with_player) do
                 popup_items[#popup_items + 1] = stream
+                local source_output = find_matching_source_output(stream, source_outputs)
                 list:add(build_stream_card(
                     instance,
                     stream,
+                    source_output,
                     default_sink_name,
                     #popup_items == instance.media_popup_selected_index
                 ))
@@ -467,9 +593,11 @@ local function build_widget(instance)
 
             for _, stream in ipairs(streams_without_player) do
                 popup_items[#popup_items + 1] = stream
+                local source_output = find_matching_source_output(stream, source_outputs)
                 list:add(build_stream_card(
                     instance,
                     stream,
+                    source_output,
                     default_sink_name,
                     #popup_items == instance.media_popup_selected_index
                 ))

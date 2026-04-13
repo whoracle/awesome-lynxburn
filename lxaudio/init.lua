@@ -428,9 +428,9 @@ function M:_handle_media_popup_keygrabber(_, modifiers, key, event)
     elseif key == "Right" then
         self:change_selected_media_stream_volume(self.opts.step or 0.05)
     elseif key == "Home" then
-        self:toggle_selected_media_stream_mute()
-    elseif key == "End" then
         self:set_selected_media_stream_volume(100)
+    elseif key == "End" then
+        self:toggle_selected_media_stream_mute()
     elseif key == "XF86AudioPrev" then
         self:transport_selected_media_player("previous")
     elseif key == "XF86AudioPlay" then
