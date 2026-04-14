@@ -123,3 +123,40 @@ Avoid:
   - direct popup bindings can still remain for fast access
 - This should only be explored after the shared popup manager exists; otherwise
   the interaction model will be too fragmented.
+
+## Open Source Config UX
+
+- For open sourcing, customization should become more discoverable than the
+  current split between hardcoded defaults and multiple override files.
+- Preferred direction:
+  - introduce one central declarative defaults file, likely `config/defaults.lua`
+  - introduce one obvious user-local override file, likely `config/user.lua`
+  - keep both files table-only and readable, not code-heavy
+  - load and deep-merge them through one shared config loader
+- Goal:
+  - common customization should not require understanding module internals
+  - users should have one obvious place to start and one obvious place to
+    override
+  - advanced logic should remain in Lua modules, not in the user-facing config
+- Good candidates for the central config surface:
+  - theme selection
+  - fonts, colors, icons, spacing
+  - widget enable/disable flags
+  - popup widths and timing
+  - program paths/binaries
+  - mod keys and workspace names
+  - monitor metadata
+  - keybinding data overrides
+  - module options such as audio/display/powerprofile behavior
+- Things that should remain in executable Lua rather than the declarative layer:
+  - derived command construction
+  - environment-sensitive fallback logic
+  - callbacks, runtime behavior, and event handling
+- Preferred migration path:
+  - add the central config layer first
+  - have existing modules consume the normalized merged config tree
+  - keep scattered `config.override.*` compatibility only temporarily
+  - later retire the old override pattern once the central config surface is
+    complete
+- YAML is not required for this goal; plain Lua tables are preferred because
+  they stay dependency-free while still being readable and easy to merge.
