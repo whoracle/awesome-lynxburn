@@ -173,6 +173,7 @@ local theme = {
 
     lxbluetooth_icon = "",
     lxnetwork_icon = "",
+    lxnetwork_widget_vpn_fg = palette.critical,
     lxpowerprofiles_icon_ac = "",
     lxpowerprofiles_icon_battery = "",
     lxpowerprofiles_profile_fg_powersave = roles.text_muted,

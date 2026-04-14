@@ -209,6 +209,7 @@ theme.lxdisplay_osd_screen_margin = 60
 
 theme.lxbluetooth_icon = ""
 theme.lxnetwork_icon = ""
+theme.lxnetwork_widget_vpn_fg = "#d97777"
 theme.lxpowerprofiles_icon_ac = ""
 theme.lxpowerprofiles_icon_battery = ""
 theme.lxpowerprofiles_profile_fg_powersave = "#9b8f86"

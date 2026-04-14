@@ -137,6 +137,18 @@ local function parse_active_connection(stdout)
     return current
 end
 
+local function has_active_vpn(stdout)
+    for _, line in ipairs(util.split_lines(stdout)) do
+        local fields = split_nmcli_fields(line)
+        local kind = fields[2]
+        if kind == "vpn" then
+            return true
+        end
+    end
+
+    return false
+end
+
 local function sort_networks(a, b)
     if a.known ~= b.known then
         return a.known
@@ -347,6 +359,7 @@ function M:_refresh_connection_state(callback)
             "nmcli -t -e yes -f NAME,TYPE connection show --active 2>/dev/null",
             function(active_stdout)
                 local active = parse_active_connection(active_stdout)
+                local vpn_active = has_active_vpn(active_stdout)
 
                 awful.spawn.easy_async_with_shell(
                     "nmcli -t -e yes -f NAME,TYPE connection show 2>/dev/null",
@@ -355,6 +368,7 @@ function M:_refresh_connection_state(callback)
 
                         self.state.enabled = enabled
                         self.state.current_ssid = active.ssid
+                        self.state.vpn_active = vpn_active
 
                         if callback then
                             callback(known)
@@ -382,6 +396,10 @@ function M:_refresh_widget()
     local fg = self.state.enabled
         and self:_theme_value("lxnetwork_widget_fg", beautiful.fg_normal or "#ffffff")
         or self:_theme_value("lxnetwork_widget_disabled_fg", beautiful.fg_minimize or "#888888")
+
+    if self.state.enabled and self.state.vpn_active then
+        fg = self:_theme_value("lxnetwork_widget_vpn_fg", beautiful.fg_urgent or "#d97777")
+    end
 
     self._refs.icon.markup = string.format(
         "<span foreground='%s'>%s</span>",
@@ -979,6 +997,7 @@ function M.new(opts)
         current_ssid = nil,
         networks = {},
         scan_in_progress = false,
+        vpn_active = false,
     }
     self._popup_selected_index = 1
     self._refs = {}
