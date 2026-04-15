@@ -554,6 +554,24 @@ function M:_connect_network(network)
     self:_show_password_prompt(network)
 end
 
+function M:set_wifi_enabled(enabled)
+    local desired = enabled and "on" or "off"
+
+    awful.spawn.easy_async_with_shell("nmcli radio wifi " .. desired .. " >/dev/null 2>&1", function()
+        if not enabled then
+            self.state.networks = {}
+            self.state.current_ssid = nil
+            self.state.scan_in_progress = false
+        end
+
+        self:refresh()
+    end)
+end
+
+function M:toggle_wifi_enabled()
+    self:set_wifi_enabled(not self.state.enabled)
+end
+
 function M:_refresh_popup()
     if not self._popup_refs then
         return
@@ -566,7 +584,13 @@ function M:_refresh_popup()
     )
     refs.current_value_container:reset()
 
-    if self.state.scan_in_progress then
+    if not self.state.enabled then
+        refs.current_value.markup = string.format(
+            "<span foreground='%s'>wifi disabled</span>",
+            gears.string.xml_escape(self:_theme_value("lxnetwork_widget_disabled_fg", beautiful.fg_minimize or "#888888"))
+        )
+        refs.current_value_container:add(refs.current_value)
+    elseif self.state.scan_in_progress then
         refs.current_value.markup = string.format(
             "<span foreground='%s'>scanning...</span>",
             gears.string.xml_escape(self:_theme_value("lxnetwork_widget_fg", beautiful.fg_normal or "#ffffff"))
@@ -593,6 +617,11 @@ function M:_refresh_popup()
         {
             on_enter = function()
                 self:scan()
+            end,
+        },
+        {
+            on_enter = function()
+                self:toggle_wifi_enabled()
             end,
         },
     }
@@ -668,6 +697,15 @@ function M:_build_popup()
                 self:scan()
             end, {
                 selected = self._popup_selected_index == 1,
+                inner_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
+                hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
+                outer_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
+                selected_bg = self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+            }),
+            popup_common.make_selectable_click_row(self.state.enabled and "Disable WiFi" or "Enable WiFi", function()
+                self:toggle_wifi_enabled()
+            end, {
+                selected = self._popup_selected_index == 2,
                 inner_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
                 hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
                 outer_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
@@ -1004,6 +1042,7 @@ function M.new(opts)
 
     local icon = wibox.widget({
         markup = "",
+        font = self:_theme_value("lxnetwork_icon_font", beautiful.font),
         align = "center",
         valign = "center",
         widget = wibox.widget.textbox,
@@ -1014,20 +1053,29 @@ function M.new(opts)
         {
             {
                 {
-                    icon,
-                    halign = "center",
-                    valign = "center",
-                    widget = wibox.container.place,
+                    {
+                        icon,
+                        halign = "center",
+                        valign = "center",
+                        widget = wibox.container.place,
+                    },
+                    forced_width = self:_theme_value("lxnetwork_icon_width", 28),
+                    strategy = "exact",
+                    widget = wibox.container.constraint,
                 },
-                forced_width = self:_theme_value("lxnetwork_icon_width", 24),
-                strategy = "exact",
-                widget = wibox.container.constraint,
+                layout = wibox.layout.fixed.horizontal,
             },
-            layout = wibox.layout.fixed.horizontal,
+            left = 8,
+            right = 8,
+            widget = wibox.container.margin,
         },
-        left = 8,
-        right = 8,
-        widget = wibox.container.margin,
+        widget = wibox.container.background,
+    })
+
+    popup_common.attach_button_feedback(self.widget, {
+        idle_bg = nil,
+        hover_bg = self:_theme_value("lxnetwork_bg_hover", beautiful.bg_focus or "#444444"),
+        press_bg = self:_theme_value("lxnetwork_bg_press", self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#666666")),
     })
 
     self.widget:buttons(gears.table.join(

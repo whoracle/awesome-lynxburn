@@ -37,17 +37,33 @@ function util.resolve_screen(anchor)
     return awful.screen.focused()
 end
 
-function util.attach_hover_background(widget, normal_bg, hover_bg)
+function util.attach_hover_background(widget, normal_bg, hover_bg, press_bg)
     if not widget or not hover_bg or hover_bg == normal_bg then
         return
     end
 
+    local pointer_inside = false
+    local pressed = false
+
     widget:connect_signal("mouse::enter", function()
-        widget.bg = hover_bg
+        pointer_inside = true
+        widget.bg = pressed and (press_bg or hover_bg) or hover_bg
     end)
 
     widget:connect_signal("mouse::leave", function()
+        pointer_inside = false
+        pressed = false
         widget.bg = normal_bg
+    end)
+
+    widget:connect_signal("button::press", function()
+        pressed = true
+        widget.bg = press_bg or hover_bg
+    end)
+
+    widget:connect_signal("button::release", function()
+        pressed = false
+        widget.bg = pointer_inside and hover_bg or normal_bg
     end)
 end
 

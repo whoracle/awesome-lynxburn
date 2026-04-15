@@ -101,6 +101,29 @@ Avoid:
   network popup visuals are stabilized.
 - Future `lxcommon` should also own popup coordination so only one `lx*` popup
   can be open at a time.
+- Future `lxcommon` should also own a unified top-level widget/container for
+  active `lx*` modules instead of each module being placed independently in the
+  wibar.
+- Rationale:
+  - lets the user override module order in one place
+  - uses screen real estate better on smaller displays
+  - makes spacing/alignment behavior consistent across modules
+  - avoids repeated per-module wrapping decisions in theme code
+- Preferred shape:
+  - each active module registers a compact widget handle during init
+  - `lxcommon` composes those handles into one shared top-level widget
+  - ordering should be user-overridable without editing each module
+  - modules should still own their internal state and popup behavior; `lxcommon`
+    only owns composition/order/layout
+- Compact detail behavior such as volume/brightness bars should eventually be
+  handled in that shared top-level widget layer as well.
+- Preferred direction:
+  - compact widgets default to the smallest useful persistent state
+  - richer detail such as bars is revealed only when there is clear user intent
+  - this should not be implemented as ad-hoc per-module hover hacks ahead of
+    `lxcommon`
+  - click-to-set behavior especially needs stable geometry and should be solved
+    together with the unified top-level widget design
 - Preferred shape:
   - each active module registers its popup handle(s) during init
   - each handle exposes at least a stable `close()` callback and ideally an

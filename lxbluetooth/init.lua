@@ -36,10 +36,12 @@ end
 
 local function parse_devices(stdout)
     local devices = {}
+    local seen = {}
 
     for _, line in ipairs(util.split_lines(stdout)) do
         local address, name = line:match("^Device%s+(%S+)%s+(.+)$")
-        if address then
+        if address and not seen[address] then
+            seen[address] = true
             devices[#devices + 1] = {
                 address = address,
                 name = name,
@@ -48,6 +50,10 @@ local function parse_devices(stdout)
     end
 
     return devices
+end
+
+local function looks_like_mac_address(value)
+    return tostring(value or ""):match("^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$")
 end
 
 local function parse_info(stdout)
@@ -620,15 +626,19 @@ function M:refresh()
                     "bluetoothctl info " .. util.shell_escape(device.address) .. " 2>/dev/null",
                     function(info_stdout)
                         local info = parse_info(info_stdout)
-                        resolved[#resolved + 1] = {
-                            address = device.address,
-                            name = info.alias or device.name,
-                            connected = info.connected,
-                            paired = info.paired,
-                            trusted = info.trusted,
-                            blocked = info.blocked,
-                            battery = info.battery,
-                        }
+                        local display_name = info.alias or device.name
+
+                        if info.paired and not looks_like_mac_address(display_name) then
+                            resolved[#resolved + 1] = {
+                                address = device.address,
+                                name = display_name,
+                                connected = info.connected,
+                                paired = info.paired,
+                                trusted = info.trusted,
+                                blocked = info.blocked,
+                                battery = info.battery,
+                            }
+                        end
 
                         remaining = remaining - 1
                         if remaining == 0 then
@@ -667,6 +677,7 @@ function M.new(opts)
 
     local icon = wibox.widget({
         markup = "",
+        font = self:_theme_value("lxbluetooth_icon_font", beautiful.font),
         align = "center",
         valign = "center",
         widget = wibox.widget.textbox,
@@ -677,20 +688,29 @@ function M.new(opts)
         {
             {
                 {
-                    icon,
-                    halign = "center",
-                    valign = "center",
-                    widget = wibox.container.place,
+                    {
+                        icon,
+                        halign = "center",
+                        valign = "center",
+                        widget = wibox.container.place,
+                    },
+                    forced_width = self:_theme_value("lxbluetooth_icon_width", 18),
+                    strategy = "exact",
+                    widget = wibox.container.constraint,
                 },
-                forced_width = self:_theme_value("lxbluetooth_icon_width", 18),
-                strategy = "exact",
-                widget = wibox.container.constraint,
+                layout = wibox.layout.fixed.horizontal,
             },
-            layout = wibox.layout.fixed.horizontal,
+            left = 8,
+            right = 8,
+            widget = wibox.container.margin,
         },
-        left = 8,
-        right = 8,
-        widget = wibox.container.margin,
+        widget = wibox.container.background,
+    })
+
+    popup_common.attach_button_feedback(self.widget, {
+        idle_bg = nil,
+        hover_bg = self:_theme_value("lxbluetooth_bg_hover", beautiful.bg_focus or "#444444"),
+        press_bg = self:_theme_value("lxbluetooth_bg_press", self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#666666")),
     })
 
     self.widget:buttons(gears.table.join(

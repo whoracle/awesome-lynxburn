@@ -123,6 +123,8 @@ function M.build(instance)
         fg = instance.state.muted
             and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
             or (beautiful.lxaudio_widget_fg or beautiful.fg_normal or "#ffffff"),
+        align = "center",
+        valign = "center",
         widget = wibox.widget.textbox,
     }
 
@@ -144,6 +146,8 @@ function M.build(instance)
             and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
             or (beautiful.lxaudio_widget_mic_fg or beautiful.fg_urgent or "#ff6666"),
         visible = mic_visible,
+        align = "center",
+        valign = "center",
         widget = wibox.widget.textbox,
     }
 
@@ -166,7 +170,17 @@ function M.build(instance)
     instance._refs.mic_bar = mic_bar
 
     local output_cluster = wibox.widget {
-        icon,
+        {
+            {
+                icon,
+                halign = "center",
+                valign = "center",
+                widget = wibox.container.place,
+            },
+            forced_width = beautiful.lxaudio_icon_width or 24,
+            strategy = "exact",
+            widget = wibox.container.constraint,
+        },
         {
             bar,
             valign = "center",
@@ -177,7 +191,17 @@ function M.build(instance)
     }
 
     local mic_cluster = wibox.widget {
-        mic,
+        {
+            {
+                mic,
+                halign = "center",
+                valign = "center",
+                widget = wibox.container.place,
+            },
+            forced_width = beautiful.lxaudio_icon_width or 24,
+            strategy = "exact",
+            widget = wibox.container.constraint,
+        },
         {
             mic_bar,
             valign = "center",
@@ -201,17 +225,27 @@ function M.build(instance)
         right = 8,
         widget = wibox.container.margin,
     }
+    local shell = wibox.widget({
+        row,
+        widget = wibox.container.background,
+    })
 
-    instance._anchor = row
+    require("lxaudio.popup_common").attach_button_feedback(shell, {
+        idle_bg = nil,
+        hover_bg = beautiful.lxaudio_bg_hover or beautiful.bg_focus or "#444444",
+        press_bg = beautiful.lxaudio_button_hover or beautiful.bg_focus or "#666666",
+    })
+
+    instance._anchor = shell
     instance._resolve_anchor_geo = function()
         return resolve_anchor(instance)
     end
 
-    row:connect_signal("mouse::enter", function(_, hit)
+    shell:connect_signal("mouse::enter", function(_, hit)
         capture_anchor(instance, hit)
     end)
 
-    row:buttons(gears.table.join(
+    shell:buttons(gears.table.join(
         awful.button({}, 1, function()
             instance:toggle_media_popup(current_anchor(instance))
         end),
@@ -244,7 +278,7 @@ function M.build(instance)
         end)
     ))
 
-    return row
+    return shell
 end
 
 return M

@@ -26,6 +26,13 @@ function widget.new(instance)
         widget = wibox.container.background,
     })
 
+    require("lxnotify.util").attach_hover_background(
+        container,
+        nil,
+        beautiful.lxnotify_bg_hover or beautiful.bg_focus or "#444444",
+        beautiful.lxnotify_button_hover or beautiful.bg_focus or "#666666"
+    )
+
     container:buttons(gears.table.join(
         awful.button({}, 1, function()
             instance:toggle_notification_popup()

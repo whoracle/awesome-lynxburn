@@ -197,6 +197,38 @@ local function theme_flag(value, default)
     return true
 end
 
+local function attach_button_feedback(widget, idle_bg, hover_bg, press_bg)
+    if not widget then
+        return
+    end
+
+    local pointer_inside = false
+    local pressed = false
+
+    widget.bg = idle_bg
+
+    widget:connect_signal("mouse::enter", function()
+        pointer_inside = true
+        widget.bg = pressed and press_bg or hover_bg
+    end)
+
+    widget:connect_signal("mouse::leave", function()
+        pointer_inside = false
+        pressed = false
+        widget.bg = idle_bg
+    end)
+
+    widget:connect_signal("button::press", function()
+        pressed = true
+        widget.bg = press_bg
+    end)
+
+    widget:connect_signal("button::release", function()
+        pressed = false
+        widget.bg = pointer_inside and hover_bg or idle_bg
+    end)
+end
+
 function M:_show_brightness_osd(percent)
     if self._osd.hide_timer then
         self._osd.hide_timer:stop()
@@ -565,6 +597,19 @@ function M:brightness_refresh(options)
     end)
 end
 
+function M:_schedule_brightness_refresh(delay)
+    if self._brightness_refresh_timer then
+        self._brightness_refresh_timer:stop()
+        self._brightness_refresh_timer = nil
+    end
+
+    self._brightness_refresh_timer = gears.timer.start_new(delay or 0.15, function()
+        self._brightness_refresh_timer = nil
+        self:brightness_refresh({ show_osd = false })
+        return false
+    end)
+end
+
 function M:_set_brightness(value, options)
     options = options or {}
 
@@ -575,17 +620,28 @@ function M:_set_brightness(value, options)
     )
     local command = string.format(self._commands.set, target)
 
+    self:_update_widget(target)
+    if options.show_osd then
+        self:_show_brightness_osd(target)
+    end
+
     awful.spawn.easy_async_with_shell(command, function()
-        self:brightness_refresh({ show_osd = options.show_osd })
+        self:_schedule_brightness_refresh(0.15)
     end)
 end
 
 function M:_step_brightness(delta, options)
     options = options or {}
 
-    self:_refresh_from_command(function(current)
-        self:_set_brightness(current + delta, options)
-    end)
+    local current = self._brightness_value
+    if current == nil then
+        self:_refresh_from_command(function(refreshed)
+            self:_set_brightness(refreshed + delta, options)
+        end)
+        return
+    end
+
+    self:_set_brightness(current + delta, options)
 end
 
 function M:brightness_up(_, options)
@@ -620,10 +676,23 @@ function M:_build_widget()
     self._icon_text = wibox.widget({
         text = beautiful.lxdisplay_icon or beautiful.lxdisplay_icon_brightness or "󰃟",
         font = beautiful.lxdisplay_icon_font or beautiful.font,
+        align = "center",
+        valign = "center",
         widget = wibox.widget.textbox,
     })
+    local icon_slot = wibox.widget({
+        {
+            self._icon_text,
+            halign = "center",
+            valign = "center",
+            widget = wibox.container.place,
+        },
+        forced_width = beautiful.lxdisplay_icon_width or 22,
+        strategy = "exact",
+        widget = wibox.container.constraint,
+    })
     self._icon_role = wibox.widget({
-        self._icon_text,
+        icon_slot,
         fg = beautiful.lxdisplay_widget_fg or beautiful.fg_normal or "#ffffff",
         widget = wibox.container.background,
     })
@@ -671,10 +740,20 @@ function M:_build_widget()
         right = 8,
         widget = wibox.container.margin,
     })
-    self:_attach_mouse_controls(row)
+    local shell = wibox.widget({
+        row,
+        widget = wibox.container.background,
+    })
+    attach_button_feedback(
+        shell,
+        nil,
+        beautiful.lxdisplay_bg_hover or beautiful.bg_focus or "#444444",
+        beautiful.lxdisplay_bg_press or beautiful.lxaudio_button_hover or beautiful.bg_focus or "#666666"
+    )
+    self:_attach_mouse_controls(shell)
 
-    self._row = row
-    self.widget:set_widget(row)
+    self._row = shell
+    self.widget:set_widget(shell)
 end
 
 function M:_build_osd()

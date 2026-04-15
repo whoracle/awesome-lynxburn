@@ -52,6 +52,43 @@ function M.make_info_line(text, opts)
     return row
 end
 
+function M.attach_button_feedback(widget, opts)
+    opts = opts or {}
+
+    if not widget then
+        return
+    end
+
+    local idle_bg = opts.idle_bg
+    local hover_bg = opts.hover_bg
+    local press_bg = opts.press_bg or hover_bg
+    local pointer_inside = false
+    local pressed = false
+
+    widget.bg = idle_bg
+
+    widget:connect_signal("mouse::enter", function()
+        pointer_inside = true
+        widget.bg = pressed and press_bg or hover_bg
+    end)
+
+    widget:connect_signal("mouse::leave", function()
+        pointer_inside = false
+        pressed = false
+        widget.bg = idle_bg
+    end)
+
+    widget:connect_signal("button::press", function()
+        pressed = true
+        widget.bg = press_bg
+    end)
+
+    widget:connect_signal("button::release", function()
+        pressed = false
+        widget.bg = pointer_inside and hover_bg or idle_bg
+    end)
+end
+
 -- Shared clickable row/container primitive that supports left click, middle
 -- click, and scroll actions.
 function M.make_click_container(child, onclick, opts)
@@ -76,18 +113,11 @@ function M.make_click_container(child, onclick, opts)
     end
 
     local buttons = {}
-    local hover_bg = opts.hover_bg
-    local idle_bg = opts.idle_bg
-
-    bg.bg = idle_bg
-
-    bg:connect_signal("mouse::enter", function()
-        bg.bg = hover_bg
-    end)
-
-    bg:connect_signal("mouse::leave", function()
-        bg.bg = idle_bg
-    end)
+    M.attach_button_feedback(bg, {
+        idle_bg = opts.idle_bg,
+        hover_bg = opts.hover_bg,
+        press_bg = opts.press_bg,
+    })
 
     if onclick then
         buttons[#buttons + 1] = awful.button({}, 1, onclick)

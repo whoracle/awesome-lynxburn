@@ -259,13 +259,13 @@ function instance_methods:_widget_text()
         fg = util.theme_value("lxnotify_widget_suspended_fg", beautiful.fg_urgent or beautiful.fg_normal or "#ffffff")
     elseif self.unread_count > 0 then
         icon = util.theme_value("lxnotify_icon_notifications", "new")
-        fg = util.theme_value("lxnotify_widget_fg", beautiful.fg_normal or "#ffffff")
+        fg = util.theme_value("lxnotify_urgency_critical_fg", beautiful.fg_urgent or "#d97777")
     else
         icon = util.theme_value("lxnotify_icon_idle", "idle")
         fg = util.theme_value("lxnotify_widget_fg", beautiful.fg_normal or "#ffffff")
     end
 
-    return string.format("<span foreground='%s'>%s %d</span>", fg, icon, self.unread_count)
+    return string.format("<span foreground='%s'>%s</span>", fg, icon)
 end
 
 ---Refresh the compact wibar widget and, if present, the popup contents.
@@ -338,6 +338,33 @@ function instance_methods:dismiss_notification(notification_id)
         if not still_present then
             reset_popup_view(self)
         end
+    end
+
+    self:refresh()
+end
+
+---Dismiss every stored notification belonging to one burst group.
+---@param group_key string
+function instance_methods:dismiss_group(group_key)
+    if not group_key or group_key == "" then
+        return
+    end
+
+    local kept = {}
+
+    for _, entry in ipairs(self.notifications) do
+        if format.group_key(entry) == group_key then
+            actions.destroy(entry.notification)
+        else
+            kept[#kept + 1] = entry
+        end
+    end
+
+    self.notifications = kept
+    self.unread_count = #self.notifications
+
+    if self.active_group_key == group_key then
+        reset_popup_view(self)
     end
 
     self:refresh()
@@ -860,11 +887,13 @@ function instance_methods:refresh_popup()
         if item.kind == "group" then
             card = cards.build_group_card(self, item.group, {
                 extra_buttons = wheel_buttons,
+                selection_index = index,
                 selected = index == self.popup_selected_index,
             })
         else
             card = cards.build_notification_card(self, item.entry, {
                 extra_buttons = wheel_buttons,
+                selection_index = index,
                 selected = index == self.popup_selected_index,
             })
         end
@@ -877,7 +906,7 @@ function instance_methods:refresh_popup()
 
     if #popup_items > visible_items then
         self.popup_footer_text = string.format(
-            "Use Up/Down to browse %d-%d of %d, Right to dismiss/open, Enter to invoke, Left to go back/close",
+            "Use Up/Down to browse %d-%d of %d, Right to dismiss, Enter to open/activate, Left to go back/close",
             self.popup_scroll_offset,
             last_index,
             #popup_items

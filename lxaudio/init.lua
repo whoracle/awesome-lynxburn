@@ -194,6 +194,66 @@ function M:_with_audio(callback)
     end
 end
 
+function M:_apply_widget_state()
+    if not self._refs then
+        return
+    end
+
+    if self._refs.icon then
+        self._refs.icon.text = self.state.muted and self.opts.icon_muted or self.opts.icon_unmuted
+        self._refs.icon.fg = self.state.muted
+            and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxaudio_widget_fg or beautiful.fg_normal or "#ffffff")
+    end
+
+    if self._refs.bar then
+        self._refs.bar.value = math.max(0, math.min(1, self.state.volume))
+        self._refs.bar.color = self.state.muted
+            and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
+    end
+
+    if self._refs.mic then
+        self._refs.mic.text = self.state.mic_muted and self.opts.icon_mic_muted or self.opts.icon_mic_active
+        self._refs.mic.visible = self.opts.show_mic_activity and self.state.mic_active or false
+        self._refs.mic.fg = self.state.mic_muted
+            and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxaudio_widget_mic_fg or beautiful.fg_urgent or "#ff6666")
+    end
+
+    if self._refs.mic_cluster then
+        self._refs.mic_cluster.visible = self.opts.show_mic_activity and self.state.mic_active or false
+    end
+
+    if self._refs.mic_bar then
+        self._refs.mic_bar.value = math.max(0, math.min(1, self.state.mic_volume))
+        self._refs.mic_bar.visible = self.opts.show_mic_activity and self.state.mic_active or false
+        self._refs.mic_bar.color = self.state.mic_muted
+            and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxaudio_mic_bar_fg or beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
+    end
+end
+
+function M:_schedule_refresh(delay, opts)
+    opts = opts or {}
+
+    if self._post_action_refresh_timer then
+        self._post_action_refresh_timer:stop()
+        self._post_action_refresh_timer = nil
+    end
+
+    self._post_action_refresh_timer = gears.timer.start_new(delay or 0.12, function()
+        self._post_action_refresh_timer = nil
+        self:refresh()
+
+        if opts.refresh_media_popup and self._media_popup and self._media_popup.visible then
+            require("lxaudio.popup_media").rebuild(self)
+        end
+
+        return false
+    end)
+end
+
 -- Refresh the cached widget state and update the compact widget refs.
 function M:refresh()
     local ok, audio = pcall(require, "lxaudio.audio")
@@ -212,41 +272,7 @@ function M:refresh()
     self.state.mic_muted = state.mic_muted or false
     self.state.mic_active = state.mic_active or false
 
-    if self._refs then
-        if self._refs.icon then
-            self._refs.icon.text = self.state.muted and self.opts.icon_muted or self.opts.icon_unmuted
-            self._refs.icon.fg = self.state.muted
-                and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
-                or (beautiful.lxaudio_widget_fg or beautiful.fg_normal or "#ffffff")
-        end
-
-        if self._refs.bar then
-            self._refs.bar.value = math.max(0, math.min(1, self.state.volume))
-            self._refs.bar.color = self.state.muted
-                and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
-                or (beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
-        end
-
-        if self._refs.mic then
-            self._refs.mic.text = self.state.mic_muted and self.opts.icon_mic_muted or self.opts.icon_mic_active
-            self._refs.mic.visible = self.opts.show_mic_activity and self.state.mic_active or false
-            self._refs.mic.fg = self.state.mic_muted
-                and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
-                or (beautiful.lxaudio_widget_mic_fg or beautiful.fg_urgent or "#ff6666")
-        end
-
-        if self._refs.mic_cluster then
-            self._refs.mic_cluster.visible = self.opts.show_mic_activity and self.state.mic_active or false
-        end
-
-        if self._refs.mic_bar then
-            self._refs.mic_bar.value = math.max(0, math.min(1, self.state.mic_volume))
-            self._refs.mic_bar.visible = self.opts.show_mic_activity and self.state.mic_active or false
-            self._refs.mic_bar.color = self.state.mic_muted
-                and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
-                or (beautiful.lxaudio_mic_bar_fg or beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
-        end
-    end
+    self:_apply_widget_state()
 end
 
 function M:_show_output_osd()
@@ -268,30 +294,6 @@ function M:_show_mute_osd()
     else
         self._osd.show_text("Unmuted", self.opts.icon_unmuted, "Mute Indicator")
     end
-end
-
-function M:_defer_refresh_and_osd(show_osd, renderer)
-    gears.timer.start_new(0.1, function()
-        self:refresh()
-
-        if show_osd and renderer then
-            renderer(self)
-        end
-
-        return false
-    end)
-end
-
-function M:_defer_media_popup_refresh()
-    gears.timer.start_new(0.1, function()
-        self:refresh()
-
-        if self._media_popup and self._media_popup.visible then
-            require("lxaudio.popup_media").rebuild(self)
-        end
-
-        return false
-    end)
 end
 
 -- Rebuild all internal modules and refresh the widget in place.
@@ -587,10 +589,14 @@ function M:toggle_mute(opts)
             return
         end
 
+        self.state.muted = not self.state.muted
+        self:_apply_widget_state()
+        if opts.show_osd then
+            self:_show_mute_osd()
+        end
+
         audio.toggle_mute()
-        self:_defer_refresh_and_osd(opts.show_osd, function(instance)
-            instance:_show_mute_osd()
-        end)
+        self:_schedule_refresh(0.12, { refresh_media_popup = true })
     end)
 end
 
@@ -602,10 +608,14 @@ function M:change_volume(delta, opts)
             return
         end
 
+        self.state.volume = math.max(0, math.min(1, (self.state.volume or 0) + delta))
+        self:_apply_widget_state()
+        if opts.show_osd then
+            self:_show_output_osd()
+        end
+
         audio.change_volume(delta)
-        self:_defer_refresh_and_osd(opts.show_osd, function(instance)
-            instance:_show_output_osd()
-        end)
+        self:_schedule_refresh(0.12, { refresh_media_popup = true })
     end)
 end
 
@@ -616,8 +626,10 @@ function M:toggle_input_mute()
             return
         end
 
+        self.state.mic_muted = not self.state.mic_muted
+        self:_apply_widget_state()
         audio.toggle_input_mute()
-        self:refresh()
+        self:_schedule_refresh(0.12, { refresh_media_popup = true })
     end)
 end
 
@@ -628,8 +640,10 @@ function M:change_input_volume(delta)
             return
         end
 
+        self.state.mic_volume = math.max(0, math.min(1, (self.state.mic_volume or 0) + delta))
+        self:_apply_widget_state()
         audio.change_input_volume(delta)
-        self:refresh()
+        self:_schedule_refresh(0.12, { refresh_media_popup = true })
     end)
 end
 

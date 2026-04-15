@@ -370,6 +370,14 @@ function M:_refresh_widget()
     if self.state.power_source ~= "ac" and self.state.battery_status == "Discharging" then
         compact_text = self.state.time_label or ""
     end
+    if self.state.pinned then
+        local pin = self:_theme_value("lxpowerprofiles_icon_pinned", "")
+        if compact_text ~= "" then
+            compact_text = pin .. " " .. compact_text
+        else
+            compact_text = pin
+        end
+    end
 
     self._refs.label.markup = string.format(
         "<span foreground='%s'>%s</span>",
@@ -434,7 +442,12 @@ function M:_build_popup()
 
     for _, profile_name in ipairs(ALL_PROFILES) do
         local selected = self._popup_selected_index == (#self._popup_items + 1)
-        list:add(popup_common.make_selectable_click_row(profile_label(profile_name), function()
+        local label = profile_label(profile_name)
+        if self.state.pinned and self.state.profile == profile_name then
+            label = self:_theme_value("lxpowerprofiles_icon_pinned", "") .. " " .. label
+        end
+
+        list:add(popup_common.make_selectable_click_row(label, function()
             self:set_profile(profile_name)
         end, {
             selected = selected,
@@ -444,6 +457,7 @@ function M:_build_popup()
             selected_bg = self:_theme_value("lxpowerprofiles_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
         }))
         self._popup_items[#self._popup_items + 1] = {
+            profile = profile_name,
             on_enter = function()
                 self:set_profile(profile_name)
             end,
@@ -512,6 +526,21 @@ function M:activate_selected_popup_item()
     end
 end
 
+function M:pin_selected_profile()
+    self:_ensure_popup_selection()
+    local item = (self._popup_items or {})[self._popup_selected_index or 1]
+    if not (item and item.profile) then
+        return
+    end
+
+    if self.state.profile == item.profile then
+        self:set_pinned(true)
+        return
+    end
+
+    self:set_profile(item.profile, { pin = true })
+end
+
 function M:_handle_popup_keygrabber(_, modifiers, key, event)
     if event ~= "press" then
         return
@@ -531,6 +560,10 @@ function M:_handle_popup_keygrabber(_, modifiers, key, event)
         self:move_popup_selection(-1)
     elseif key == "Down" then
         self:move_popup_selection(1)
+    elseif key == "Right" then
+        self:pin_selected_profile()
+    elseif key == "Left" then
+        self:set_pinned(false)
     elseif key == "Return" or key == "KP_Enter" then
         self:activate_selected_popup_item()
     end
@@ -694,13 +727,30 @@ function M:toggle_popup(anchor, opts)
     end
 end
 
-function M:set_profile(profile)
+function M:set_profile(profile, opts)
+    opts = opts or {}
+
+    self.state.profile = profile
+    if opts.pin then
+        self.state.pinned = true
+    end
+    self:_refresh_widget()
+    if self._popup and self._popup.visible then
+        self._popup.widget = self:_build_popup()
+    else
+        self:_refresh_popup()
+    end
+
     awful.spawn.easy_async_with_shell(
         "powerprofilesctl set " .. util.shell_escape(profile) .. " >/dev/null 2>&1",
         function()
             local source = self:_power_source()
             if contains(source == "ac" and ON_AC_PAIR or ON_BATTERY_PAIR, profile) then
                 self._preferred_profiles[source] = profile
+            end
+
+            if opts.pin then
+                self.state.pinned = true
             end
 
             self:refresh()
@@ -710,6 +760,20 @@ end
 
 function M:toggle()
     self:set_profile(self:_toggle_target())
+end
+
+function M:set_pinned(pinned)
+    self.state.pinned = pinned and true or false
+    self:_refresh_widget()
+    if self._popup and self._popup.visible then
+        self._popup.widget = self:_build_popup()
+    else
+        self:_refresh_popup()
+    end
+end
+
+function M:toggle_pin()
+    self:set_pinned(not self.state.pinned)
 end
 
 function M:refresh()
@@ -740,6 +804,11 @@ function M:_start_timer()
             local current_source = self:_power_source()
 
             if previous_source and previous_source ~= current_source then
+                if self.state.pinned then
+                    self:refresh()
+                    return
+                end
+
                 self:set_profile(self:_remembered_profile(current_source))
                 return
             end
@@ -759,6 +828,7 @@ function M.new(opts)
         profile = "power-saver",
         dgpu_status = "unknown",
         dgpu_active = false,
+        pinned = false,
     }
     self._preferred_profiles = {
         battery = "power-saver",
@@ -768,25 +838,39 @@ function M.new(opts)
     self._refs = {}
 
     local icon = wibox.widget({ markup = "", widget = wibox.widget.textbox })
+    icon.align = "center"
+    icon.valign = "center"
+    icon.font = self:_theme_value("lxpowerprofiles_icon_font", beautiful.font)
     local label = wibox.widget({ markup = "", widget = wibox.widget.textbox })
+    label.align = "center"
+    label.valign = "center"
     self._refs.icon = icon
     self._refs.label = label
 
     self.widget = wibox.widget({
         {
             {
-                icon,
-                forced_width = self:_theme_value("lxpowerprofiles_icon_width", 18),
-                strategy = "exact",
-                widget = wibox.container.constraint,
+                {
+                    icon,
+                    forced_width = self:_theme_value("lxpowerprofiles_icon_width", 18),
+                    strategy = "exact",
+                    widget = wibox.container.constraint,
+                },
+                label,
+                spacing = 8,
+                layout = wibox.layout.fixed.horizontal,
             },
-            label,
-            spacing = 8,
-            layout = wibox.layout.fixed.horizontal,
+            left = 8,
+            right = 8,
+            widget = wibox.container.margin,
         },
-        left = 8,
-        right = 8,
-        widget = wibox.container.margin,
+        widget = wibox.container.background,
+    })
+
+    popup_common.attach_button_feedback(self.widget, {
+        idle_bg = nil,
+        hover_bg = self:_theme_value("lxpowerprofiles_bg_hover", beautiful.bg_focus or "#444444"),
+        press_bg = self:_theme_value("lxpowerprofiles_bg_press", self:_theme_value("lxpowerprofiles_button_hover", beautiful.bg_focus or "#666666")),
     })
 
     self.widget:buttons(gears.table.join(
