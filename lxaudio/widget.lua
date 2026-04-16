@@ -7,6 +7,12 @@ local mouse = mouse
 
 local M = {}
 
+local function sync_bar_visibility(instance)
+    if type(instance._sync_toplevel_bar_visibility) == "function" then
+        instance:_sync_toplevel_bar_visibility()
+    end
+end
+
 local function capture_anchor(instance, hit)
     if not (hit and hit.x and hit.y and hit.width and hit.height) then
         return
@@ -169,6 +175,12 @@ function M.build(instance)
     instance._refs.mic = mic
     instance._refs.mic_bar = mic_bar
 
+    local output_bar_slot = wibox.widget {
+        bar,
+        valign = "center",
+        widget = wibox.container.place,
+    }
+
     local output_cluster = wibox.widget {
         {
             {
@@ -177,17 +189,19 @@ function M.build(instance)
                 valign = "center",
                 widget = wibox.container.place,
             },
-            forced_width = beautiful.lxaudio_icon_width or 24,
+            forced_width = beautiful.lxaudio_icon_width or 20,
             strategy = "exact",
             widget = wibox.container.constraint,
         },
-        {
-            bar,
-            valign = "center",
-            widget = wibox.container.place,
-        },
+        output_bar_slot,
         spacing = 6,
         layout = wibox.layout.fixed.horizontal,
+    }
+
+    local mic_bar_slot = wibox.widget {
+        mic_bar,
+        valign = "center",
+        widget = wibox.container.place,
     }
 
     local mic_cluster = wibox.widget {
@@ -198,21 +212,19 @@ function M.build(instance)
                 valign = "center",
                 widget = wibox.container.place,
             },
-            forced_width = beautiful.lxaudio_icon_width or 24,
+            forced_width = beautiful.lxaudio_icon_width or 20,
             strategy = "exact",
             widget = wibox.container.constraint,
         },
-        {
-            mic_bar,
-            valign = "center",
-            widget = wibox.container.place,
-        },
+        mic_bar_slot,
         spacing = 6,
         visible = mic_visible,
         layout = wibox.layout.fixed.horizontal,
     }
 
     instance._refs.mic_cluster = mic_cluster
+    instance._refs.output_bar_slot = output_bar_slot
+    instance._refs.mic_bar_slot = mic_bar_slot
 
     local row = wibox.widget {
         {
@@ -221,14 +233,15 @@ function M.build(instance)
             spacing = 6,
             layout = wibox.layout.fixed.horizontal,
         },
-        left = 8,
-        right = 8,
+        left = 2,
+        right = 2,
         widget = wibox.container.margin,
     }
     local shell = wibox.widget({
         row,
         widget = wibox.container.background,
     })
+    instance._feedback_widget = shell
 
     require("lxaudio.popup_common").attach_button_feedback(shell, {
         idle_bg = nil,
@@ -243,6 +256,13 @@ function M.build(instance)
 
     shell:connect_signal("mouse::enter", function(_, hit)
         capture_anchor(instance, hit)
+        instance._widget_hovered = true
+        sync_bar_visibility(instance)
+    end)
+
+    shell:connect_signal("mouse::leave", function()
+        instance._widget_hovered = false
+        sync_bar_visibility(instance)
     end)
 
     shell:buttons(gears.table.join(
@@ -277,6 +297,8 @@ function M.build(instance)
             instance:input_volume_down()
         end)
     ))
+
+    sync_bar_visibility(instance)
 
     return shell
 end

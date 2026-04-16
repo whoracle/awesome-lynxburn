@@ -2,6 +2,7 @@ local awful = require("awful")
 local gears = require("gears")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
+local common = require("lxcommon")
 
 local M = {}
 M.__index = M
@@ -230,29 +231,19 @@ local function attach_button_feedback(widget, idle_bg, hover_bg, press_bg)
 end
 
 function M:_show_brightness_osd(percent)
-    if self._osd.hide_timer then
-        self._osd.hide_timer:stop()
-        self._osd.hide_timer = nil
-    end
-
     local value = clamp(percent, 0, 100)
-    self._osd.icon.text = beautiful.lxdisplay_icon_brightness
-        or beautiful.lxaudio_icon_brightness
-        or "󰃠"
-    self._osd.bar.value = value
-    self._osd.bar.color = beautiful.lxdisplay_osd_bar_fg
-        or beautiful.lxdisplay_bar_fg
-        or beautiful.lxaudio_bar_fg
-        or beautiful.fg_normal
-        or "#ffffff"
-    self._osd.popup.screen = awful.screen.focused()
-    self._osd.popup.visible = true
-
-    self._osd.hide_timer = gears.timer.start_new(self._osd.timeout, function()
-        self._osd.popup.visible = false
-        self._osd.hide_timer = nil
-        return false
-    end)
+    self._osd:show_progress({
+        value = value,
+        icon = beautiful.lxdisplay_icon_brightness
+            or beautiful.lxaudio_icon_brightness
+            or "󰃠",
+        app_name = "Brightness OSD",
+        color = beautiful.lxdisplay_osd_bar_fg
+            or beautiful.lxdisplay_bar_fg
+            or beautiful.lxaudio_bar_fg
+            or beautiful.fg_normal
+            or "#ffffff",
+    })
 end
 
 function M:_update_widget(percent)
@@ -278,6 +269,20 @@ function M:_update_widget(percent)
             or beautiful.fg_normal
             or "#ffffff"
     end
+
+    self:_sync_toplevel_bar_visibility()
+end
+
+function M:_has_visible_popup()
+    return false
+end
+
+function M:_sync_toplevel_bar_visibility()
+    if not self._bar_slot then
+        return
+    end
+
+    self._bar_slot.visible = (self._widget_hovered == true) or self:_has_visible_popup()
 end
 
 function M:_set_redshift_suspended(suspended)
@@ -687,7 +692,7 @@ function M:_build_widget()
             valign = "center",
             widget = wibox.container.place,
         },
-        forced_width = beautiful.lxdisplay_icon_width or 22,
+        forced_width = beautiful.lxdisplay_icon_width or 20,
         strategy = "exact",
         widget = wibox.container.constraint,
     })
@@ -721,12 +726,14 @@ function M:_build_widget()
             widget = wibox.widget.progressbar,
         })
 
+        self._bar_slot = wibox.widget({
+            self._bar,
+            valign = "center",
+            widget = wibox.container.place,
+        })
+
         table.insert(content, 2, {
-            {
-                self._bar,
-                valign = "center",
-                widget = wibox.container.place,
-            },
+            self._bar_slot,
             left = beautiful.lxdisplay_bar_spacing or 8,
             widget = wibox.container.margin,
         })
@@ -736,8 +743,8 @@ function M:_build_widget()
 
     local row = wibox.widget({
         content,
-        left = 8,
-        right = 8,
+        left = 2,
+        right = 2,
         widget = wibox.container.margin,
     })
     local shell = wibox.widget({
@@ -752,77 +759,37 @@ function M:_build_widget()
     )
     self:_attach_mouse_controls(shell)
 
+    shell:connect_signal("mouse::enter", function()
+        self._widget_hovered = true
+        self:_sync_toplevel_bar_visibility()
+    end)
+
+    shell:connect_signal("mouse::leave", function()
+        self._widget_hovered = false
+        self:_sync_toplevel_bar_visibility()
+    end)
+
     self._row = shell
     self.widget:set_widget(shell)
+    self:_sync_toplevel_bar_visibility()
 end
 
 function M:_build_osd()
-    local width = beautiful.lxdisplay_osd_width or 260
-    local height = beautiful.lxdisplay_osd_height or 18
-    local margin = beautiful.lxdisplay_osd_margin or 16
-
-    self._osd = {
+    self._osd = common.osd.new({
+        width = beautiful.lxdisplay_osd_width or 260,
+        height = beautiful.lxdisplay_osd_height or 18,
+        margin = beautiful.lxdisplay_osd_margin or 16,
         timeout = beautiful.lxdisplay_osd_timeout or 1,
-        hide_timer = nil,
-        icon = wibox.widget({
-            align = "center",
-            valign = "center",
-            forced_width = 32,
-            widget = wibox.widget.textbox,
-        }),
-        bar = wibox.widget({
-            max_value = 100,
-            value = 0,
-            forced_width = width,
-            forced_height = height,
-            shape = gears.shape.rounded_bar,
-            bar_shape = gears.shape.rounded_bar,
-            background_color = beautiful.lxdisplay_osd_bar_bg
-                or beautiful.lxdisplay_bar_bg
-                or beautiful.lxaudio_bar_bg
-                or beautiful.bg_minimize
-                or "#444444",
-            color = beautiful.lxdisplay_osd_bar_fg
-                or beautiful.lxdisplay_bar_fg
-                or beautiful.lxaudio_bar_fg
-                or beautiful.fg_normal
-                or "#ffffff",
-            widget = wibox.widget.progressbar,
-        }),
-    }
-
-    self._osd.popup = awful.popup({
-        ontop = true,
-        visible = false,
-        type = "notification",
-        placement = function(c)
-            awful.placement.bottom(c, {
-                honor_workarea = true,
-                margins = { bottom = beautiful.lxdisplay_osd_screen_margin or 60 },
-            })
-        end,
-        bg = beautiful.notification_bg or beautiful.bg_normal or "#111111",
-        border_width = beautiful.notification_border_width or beautiful.border_width or 1,
-        border_color = beautiful.notification_border_color or beautiful.border_focus or "#666666",
-        widget = {
-            {
-                {
-                    self._osd.icon,
-                    {
-                        self._osd.bar,
-                        widget = wibox.container.place,
-                    },
-                    spacing = 12,
-                    layout = wibox.layout.fixed.horizontal,
-                },
-                margins = margin,
-                widget = wibox.container.margin,
-            },
-            bg = beautiful.notification_bg or beautiful.bg_normal or "#111111",
-            fg = beautiful.notification_fg or beautiful.fg_normal or "#ffffff",
-            shape = gears.shape.rounded_rect,
-            widget = wibox.container.background,
-        },
+        bar_bg = beautiful.lxdisplay_osd_bar_bg
+            or beautiful.lxdisplay_bar_bg
+            or beautiful.lxaudio_bar_bg
+            or beautiful.bg_minimize
+            or "#444444",
+        bar_fg = beautiful.lxdisplay_osd_bar_fg
+            or beautiful.lxdisplay_bar_fg
+            or beautiful.lxaudio_bar_fg
+            or beautiful.fg_normal
+            or "#ffffff",
     })
 end
 

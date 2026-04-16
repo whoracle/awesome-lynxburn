@@ -10,6 +10,8 @@ Files you are expected to edit directly:
 
 - `rc.lua`
 - `config/*.lua`
+- `lxbar/`
+- `lxcommon/`
 - `themes/lynxburn2/theme.lua`
 - `themes/lynxburn2/widgets.lua`
 
@@ -18,9 +20,12 @@ Vendored / external code you generally should not edit here:
 - `lain/`
 - `freedesktop/`
 - `lxaudio/`
+- `lxbluetooth/`
+- `lxnetwork/`
 - `lxnotify/`
 - `lxrunner/`
 - `lxdisplay/`
+- `lxpowerprofiles/`
 
 The `lx*` directories are local modules with their own ownership boundary and
 are intended to become submodules later.
@@ -35,6 +40,14 @@ are intended to become submodules later.
 
 - `config/`
   Main maintainable configuration split by responsibility.
+
+- `lxcommon/`
+  Shared building blocks for the `lx*` family: widget registry, popup manager,
+  popup placement helpers, and shared OSD primitives.
+
+- `lxbar/`
+  Unified top-level widget that renders registered `lx*` compact widgets and
+  exposes shared popup actions such as popup cycling.
 
 - `themes/lynxburn2/theme.lua`
   Theme values: colors, fonts, icon paths, widget settings, popup sizing, and
@@ -79,16 +92,16 @@ are intended to become submodules later.
   Per-screen initialization, wallpaper handling, layout defaults, and DPI.
 
 - `services.lua`
-  Shared singleton instances for `lxaudio`, `lxnotify`, `lxrunner`, and
-  `lxdisplay`.
+  Shared singleton instances for the `lx*` modules plus registration into
+  `lxcommon.registry` and `lxcommon.popup_manager`.
 
 - `override/*.example.lua`
   Templates for local machine-specific overrides that should not be committed.
 
 - `osd.lua`
-  Generic text-only OSD helpers that are still owned by the main config. Volume
-  and brightness OSD ownership now lives in `lxaudio` and `lxdisplay`
-  respectively.
+  Small config-owned OSD helpers outside the `lx*` family. The shared progress
+  and text OSD primitives used by `lxaudio` and `lxdisplay` now live in
+  `lxcommon/osd.lua`.
 
 ## Startup Flow
 
@@ -98,9 +111,10 @@ The high-level startup order is:
 2. startup error handling is installed
 3. the selected theme is loaded with `beautiful.init(...)`
 4. long-lived service instances are created
-5. layouts, keybindings, mouse bindings, rules, signals, and screens are wired
-6. `autostart_once` commands are launched via `run_once`
-7. plain `autostart` commands are spawned every startup
+5. `lx*` widgets and popup handles are registered through `config/services.lua`
+6. layouts, keybindings, mouse bindings, rules, signals, and screens are wired
+7. `autostart_once` commands are launched via `run_once`
+8. plain `autostart` commands are spawned every startup
 
 This split is intentional:
 
@@ -108,6 +122,8 @@ This split is intentional:
 - wibar structure lives in `widgets.lua`
 - service/module ownership lives in `config/services.lua`
 - user-editable behavior lives in `config/*.lua`
+- shared `lx*` composition and popup coordination live in `lxcommon/` and
+  `lxbar/`
 
 ## Local Overrides
 
@@ -154,8 +170,10 @@ If you want to:
 
 - change colors, fonts, icon paths, widget sizing, or module-specific theme
   values: edit `theme.lua`
-- reorder widgets on the bar or change their wrapping/composition: edit
+- reorder the classic theme widgets or change their wrapping/composition: edit
   `widgets.lua`
+- change `lx*` module order/composition behavior: inspect `config/services.lua`,
+  `lxcommon/`, and `lxbar/`
 
 ## External Dependencies
 
@@ -216,20 +234,37 @@ secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account anthra
 ### `lxaudio`
 
 - owns the audio widget
-- owns volume and mute OSD
+- owns audio state and popup content
 - keyboard volume calls request OSD explicitly
+- uses shared OSD primitives from `lxcommon.osd`
 
 ### `lxdisplay`
 
 - owns the display widget
-- owns brightness OSD
+- owns brightness and Redshift state
 - scroll brightness changes do not show OSD by default
 - keyboard brightness changes do request OSD explicitly
 - owns Redshift control plumbing
+- uses shared OSD primitives from `lxcommon.osd`
 
 ### `lxnotify`
 
 - owns notification aggregation and popup behavior
+
+### `lxcommon`
+
+- owns shared `lx*` infrastructure rather than any one module's backend state
+- currently owns:
+  - registry for compact widgets
+  - popup handle registry / popup manager
+  - popup placement helpers
+  - shared OSD primitives
+
+### `lxbar`
+
+- owns shared top-level `lx*` composition in the wibar
+- renders registered module widgets in one container
+- exposes shared popup actions such as popup cycling in bar order
 
 ### `lxrunner`
 
@@ -244,7 +279,9 @@ If you want to change:
 - monitor mapping / workspace names / modifier keys: `config/settings.lua`
 - client placement rules: `config/rules.lua`
 - screen-specific DPI and default layouts: `config/screens.lua`
-- wibar order/layout: `themes/lynxburn2/widgets.lua`
+- classic wibar order/layout: `themes/lynxburn2/widgets.lua`
+- `lx*` bar composition / shared popup behavior: `config/services.lua`,
+  `lxbar/init.lua`, `lxcommon/*.lua`
 - colors, glyphs, popup sizes, per-widget theme settings: `themes/lynxburn2/theme.lua`
 
 ## Installation / Local Testing
@@ -270,6 +307,8 @@ workflow.
 
 - This repo was intentionally modularized only far enough to make maintenance
   reasonable. It is not trying to become a framework.
+- `lxcommon` and `lxbar` are the current shared architecture for the `lx*`
+  modules. They are intentionally small and should stay pragmatic.
 - The `config` aggregator exists so `rc.lua` can use `local config =
   require("config")` and then address modules as `config.keys`,
   `config.programs`, and so on.

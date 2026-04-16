@@ -3,6 +3,7 @@ local gears = require("gears")
 local beautiful = require("beautiful")
 local keygrabber = require("awful.keygrabber")
 local unpack = table.unpack or unpack
+local popup_placement = require("lxcommon.popup_placement")
 
 local M = {}
 M.__index = M
@@ -120,12 +121,24 @@ local function copy_button_list(buttons)
     return copied
 end
 
+local function audio_popup_visible(instance)
+    return (instance._media_popup and instance._media_popup.visible)
+        or (instance._devices_popup and instance._devices_popup.visible)
+        or false
+end
+
+local function sync_feedback_highlight(instance)
+    local widget = instance._feedback_widget
+    if widget and widget._lx_set_feedback_active then
+        widget:_lx_set_feedback_active(audio_popup_visible(instance))
+    end
+end
+
 -- Clear cached submodules so reloads pick up on-disk changes without
 -- replacing the stable outer widget container.
 function M:_clear_modules()
     package.loaded["lxaudio.widget"] = nil
     package.loaded["lxaudio.audio"] = nil
-    package.loaded["lxaudio.osd"] = nil
     package.loaded["lxaudio.media"] = nil
     package.loaded["lxaudio.popup_media"] = nil
     package.loaded["lxaudio.popup_devices"] = nil
@@ -137,8 +150,14 @@ function M:_load_osd()
         return
     end
 
-    local osd_mod = require("lxaudio.osd")
-    self._osd = osd_mod.new(self.opts)
+    self._osd = require("lxcommon.osd").new({
+        width = self.opts.osd_width,
+        height = self.opts.osd_height,
+        margin = self.opts.osd_margin,
+        timeout = self.opts.osd_timeout,
+        bar_bg = beautiful.bg_minimize or "#444444",
+        bar_fg = beautiful.fg_normal or "#ffffff",
+    })
 end
 
 -- Rebuild the compact widget while preserving the public `instance.widget`.
@@ -232,6 +251,26 @@ function M:_apply_widget_state()
             and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
             or (beautiful.lxaudio_mic_bar_fg or beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
     end
+
+    self:_sync_toplevel_bar_visibility()
+end
+
+function M:_sync_toplevel_bar_visibility()
+    if not self._refs then
+        return
+    end
+
+    local show_bars = self._widget_hovered or audio_popup_visible(self)
+
+    if self._refs.output_bar_slot then
+        self._refs.output_bar_slot.visible = show_bars
+    end
+
+    if self._refs.mic_bar_slot then
+        self._refs.mic_bar_slot.visible = show_bars and (self.opts.show_mic_activity and self.state.mic_active or false)
+    end
+
+    sync_feedback_highlight(self)
 end
 
 function M:_schedule_refresh(delay, opts)
@@ -281,7 +320,12 @@ function M:_show_output_osd()
     end
 
     local percent = math.floor((math.max(0, math.min(1, self.state.volume or 0)) * 100) + 0.5)
-    self._osd.show_volume(percent, self.state.muted and self.opts.icon_muted or self.opts.icon_unmuted, "Volume OSD")
+    self._osd:show_progress({
+        value = percent,
+        icon = self.state.muted and self.opts.icon_muted or self.opts.icon_unmuted,
+        app_name = "Volume OSD",
+        color = beautiful.fg_normal or "#ffffff",
+    })
 end
 
 function M:_show_mute_osd()
@@ -290,9 +334,17 @@ function M:_show_mute_osd()
     end
 
     if self.state.muted then
-        self._osd.show_text("Muted", self.opts.icon_muted, "Mute Indicator")
+        self._osd:show_text({
+            text = "Muted",
+            icon = self.opts.icon_muted,
+            app_name = "Mute Indicator",
+        })
     else
-        self._osd.show_text("Unmuted", self.opts.icon_unmuted, "Mute Indicator")
+        self._osd:show_text({
+            text = "Unmuted",
+            icon = self.opts.icon_unmuted,
+            app_name = "Mute Indicator",
+        })
     end
 end
 
@@ -460,6 +512,16 @@ function M:_handle_media_popup_keygrabber(_, modifiers, key, event)
         return
     end
 
+    if popup_toggle_key_matches(self._media_popup_prev_keychain, modifiers, key) and type(self._media_popup_on_cycle_prev) == "function" then
+        self._media_popup_on_cycle_prev()
+        return
+    end
+
+    if popup_toggle_key_matches(self._media_popup_next_keychain, modifiers, key) and type(self._media_popup_on_cycle_next) == "function" then
+        self._media_popup_on_cycle_next()
+        return
+    end
+
     if popup_toggle_key_matches(self._media_popup_toggle_key, modifiers, key) then
         self:close_popups()
         return
@@ -512,6 +574,10 @@ end
 function M:blur_media_popup_keyboard_navigation()
     self._media_popup_keyboard_navigation_active = false
     self._media_popup_toggle_key = nil
+    self._media_popup_prev_keychain = nil
+    self._media_popup_next_keychain = nil
+    self._media_popup_on_cycle_prev = nil
+    self._media_popup_on_cycle_next = nil
     self:_stop_media_popup_outside_click_dismiss()
 
     if self._media_popup_keygrabber and self._media_popup_keygrabber.grabber then
@@ -759,6 +825,10 @@ end
 -- Shared popup toggle flow used by the mouse-driven API.
 function M:_toggle_popup(kind, anchor_geo, opts)
     opts = opts or {}
+    if opts.placement == nil then
+        local theme_key = kind == "media" and "lxaudio_popup_placement_media" or "lxaudio_popup_placement_devices"
+        opts.placement = popup_placement.normalize(beautiful[theme_key], "center")
+    end
 
     if kind == "media" and self._devices_popup then
         self._devices_popup.visible = false
@@ -784,6 +854,10 @@ function M:_toggle_popup(kind, anchor_geo, opts)
             self:_stop_hover_close_timer()
             if kind == "media" then
                 self._media_popup_toggle_key = normalize_popup_toggle_key(opts.toggle_key)
+                self._media_popup_prev_keychain = normalize_popup_toggle_key(opts.prev_keychain)
+                self._media_popup_next_keychain = normalize_popup_toggle_key(opts.next_keychain)
+                self._media_popup_on_cycle_prev = opts.on_cycle_prev
+                self._media_popup_on_cycle_next = opts.on_cycle_next
                 self:focus_media_popup_keyboard_navigation()
             else
                 self:blur_media_popup_keyboard_navigation()
@@ -801,12 +875,18 @@ function M:_toggle_popup(kind, anchor_geo, opts)
         self:_stop_hover_close_timer()
     end
 
+    self:_sync_toplevel_bar_visibility()
+
     return shown
 end
 
 -- Shared popup show flow used by keyboard shortcuts and programmatic calls.
 function M:_show_popup(kind, anchor_geo, opts)
     opts = opts or {}
+    if opts.placement == nil then
+        local theme_key = kind == "media" and "lxaudio_popup_placement_media" or "lxaudio_popup_placement_devices"
+        opts.placement = popup_placement.normalize(beautiful[theme_key], "center")
+    end
 
     if kind == "media" and self._devices_popup then
         self._devices_popup.visible = false
@@ -829,6 +909,10 @@ function M:_show_popup(kind, anchor_geo, opts)
         self:_stop_hover_close_timer()
         if kind == "media" then
             self._media_popup_toggle_key = normalize_popup_toggle_key(opts.toggle_key)
+            self._media_popup_prev_keychain = normalize_popup_toggle_key(opts.prev_keychain)
+            self._media_popup_next_keychain = normalize_popup_toggle_key(opts.next_keychain)
+            self._media_popup_on_cycle_prev = opts.on_cycle_prev
+            self._media_popup_on_cycle_next = opts.on_cycle_next
             self:focus_media_popup_keyboard_navigation()
         else
             self:blur_media_popup_keyboard_navigation()
@@ -839,6 +923,8 @@ function M:_show_popup(kind, anchor_geo, opts)
         end
         self:_start_hover_close_timer(kind, is_geometry(anchor_geo) and anchor_geo or nil)
     end
+
+    self:_sync_toplevel_bar_visibility()
 end
 
 function M:_stop_hover_close_timer()
@@ -899,6 +985,7 @@ function M:_start_hover_close_timer(kind, anchor_geo)
             if outside_ticks >= max_outside_ticks then
                 popup.visible = false
                 self:_stop_hover_close_timer()
+                self:_sync_toplevel_bar_visibility()
             end
         end,
     })
@@ -917,6 +1004,9 @@ function M:close_popups()
     if self._devices_popup then
         self._devices_popup.visible = false
     end
+
+    self:_sync_toplevel_bar_visibility()
+    sync_feedback_highlight(self)
 end
 
 return M

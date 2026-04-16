@@ -7,6 +7,7 @@ local keygrabber = require("awful.keygrabber")
 local popup_common = require("lxaudio.popup_common")
 local util = require("lxaudio.util")
 local notify_util = require("lxnotify.util")
+local popup_placement = require("lxcommon.popup_placement")
 
 local M = {}
 M.__index = M
@@ -250,22 +251,20 @@ local function copy_button_list(buttons)
     return copied
 end
 
-local function apply_dock_geometry(instance, popup_widget, anchor)
-    local target_screen = notify_util.resolve_screen(anchor)
-    local workarea = target_screen.workarea
-    local width = math.min(instance:_theme_value("lxnetwork_popup_width", 380), workarea.width)
+local function sync_feedback_highlight(instance)
+    if instance.widget and instance.widget._lx_set_feedback_active then
+        instance.widget:_lx_set_feedback_active(instance._popup and instance._popup.visible or false)
+    end
+end
 
-    popup_widget.screen = target_screen
-    popup_widget.minimum_width = width
-    popup_widget.maximum_width = width
-    popup_widget.minimum_height = workarea.height
-    popup_widget.maximum_height = workarea.height
-    popup_widget:geometry({
-        x = workarea.x + workarea.width - width,
-        y = workarea.y,
-        width = width,
-        height = workarea.height,
-    })
+local function apply_popup_geometry(instance, popup_widget, anchor)
+    local target_screen = notify_util.resolve_screen(anchor)
+    popup_placement.apply(
+        popup_widget,
+        target_screen,
+        instance:_theme_value("lxnetwork_popup_placement", "right"),
+        { width = math.min(instance:_theme_value("lxnetwork_popup_width", 380), target_screen.workarea.width) }
+    )
 end
 
 local function make_signal_bar(instance, signal)
@@ -779,6 +778,16 @@ function M:_handle_popup_keygrabber(_, modifiers, key, event)
         return
     end
 
+    if popup_toggle_key_matches(self._popup_prev_keychain, modifiers, key) and type(self._popup_on_cycle_prev) == "function" then
+        self._popup_on_cycle_prev()
+        return
+    end
+
+    if popup_toggle_key_matches(self._popup_next_keychain, modifiers, key) and type(self._popup_on_cycle_next) == "function" then
+        self._popup_on_cycle_next()
+        return
+    end
+
     if popup_toggle_key_matches(self._popup_toggle_key, modifiers, key) or key == "Escape" then
         self:close_popup()
         return
@@ -826,6 +835,7 @@ function M:close_popup()
     if self._popup then
         self._popup.visible = false
     end
+    sync_feedback_highlight(self)
 end
 
 function M:_start_popup_outside_click_dismiss()
@@ -943,6 +953,10 @@ function M:toggle_popup(anchor, opts)
     end
 
     self._popup_toggle_key = normalize_popup_toggle_key(opts.toggle_key)
+    self._popup_prev_keychain = normalize_popup_toggle_key(opts.prev_keychain)
+    self._popup_next_keychain = normalize_popup_toggle_key(opts.next_keychain)
+    self._popup_on_cycle_prev = opts.on_cycle_prev
+    self._popup_on_cycle_next = opts.on_cycle_next
 
     if not self._popup then
         self._popup = awful.popup({
@@ -956,8 +970,9 @@ function M:toggle_popup(anchor, opts)
         self._popup.widget = self:_build_popup()
     end
 
-    apply_dock_geometry(self, self._popup, anchor)
+    apply_popup_geometry(self, self._popup, anchor)
     self._popup.visible = true
+    sync_feedback_highlight(self)
     self:_refresh_popup()
     self:_start_popup_outside_click_dismiss()
 
@@ -1059,14 +1074,14 @@ function M.new(opts)
                         valign = "center",
                         widget = wibox.container.place,
                     },
-                    forced_width = self:_theme_value("lxnetwork_icon_width", 28),
+                    forced_width = self:_theme_value("lxnetwork_icon_width", 26),
                     strategy = "exact",
                     widget = wibox.container.constraint,
                 },
                 layout = wibox.layout.fixed.horizontal,
             },
-            left = 8,
-            right = 8,
+            left = 1,
+            right = 1,
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,

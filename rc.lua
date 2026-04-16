@@ -22,6 +22,7 @@ local config = require("config")
 -- Long-lived shared services are created after the theme is loaded so their
 -- widgets read final `beautiful` values rather than partially initialized ones.
 local lxaudio = config.services.audio()
+local lxbar = nil
 local lxbluetooth = nil
 local lxdisplay = nil
 local lxnetwork = nil
@@ -39,6 +40,7 @@ local theme_path = string.format(
 beautiful.init(theme_path)
 
 lxrunner = config.services.runner()
+lxbar = config.services.bar()
 lxbluetooth = config.services.bluetooth()
 lxdisplay = config.services.display()
 lxnetwork = config.services.network()
@@ -61,6 +63,7 @@ local keymaps = config.keys.build({
     programs = config.programs,
     lain = lain,
     lxaudio = lxaudio,
+    lxbar = lxbar,
     lxbluetooth = lxbluetooth,
     lxdisplay = lxdisplay,
     lxnetwork = lxnetwork,

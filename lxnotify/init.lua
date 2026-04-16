@@ -143,6 +143,13 @@ local function copy_button_list(buttons)
     return copied
 end
 
+local function sync_feedback_highlight(instance)
+    local widget = instance._widget_refs and instance._widget_refs.root or nil
+    if widget and widget._lx_set_feedback_active then
+        widget:_lx_set_feedback_active(instance._popup and instance._popup.visible or false)
+    end
+end
+
 ---Group stored entries into the burst-group structure used by the popup.
 ---@param notifications table[]
 ---@return table, table[]
@@ -184,6 +191,13 @@ end
 
 function instance_methods:popup_edge()
     return util.normalize_edge(util.theme_value("lxnotify_popup_edge", "right"))
+end
+
+function instance_methods:popup_placement()
+    return require("lxcommon.popup_placement").normalize(
+        util.theme_value("lxnotify_popup_placement", nil),
+        self:popup_edge()
+    )
 end
 
 function instance_methods:popup_bg()
@@ -684,7 +698,17 @@ function instance_methods:_handle_popup_keygrabber(_, modifiers, key, event)
         return
     end
 
-    if popup_toggle_key_matches(self._popup_toggle_key, modifiers, key) then
+    if popup_toggle_key_matches(self._popup_prev_keychain, modifiers, key) and type(self._popup_on_cycle_prev) == "function" then
+        self._popup_on_cycle_prev()
+        return
+    end
+
+    if popup_toggle_key_matches(self._popup_next_keychain, modifiers, key) and type(self._popup_on_cycle_next) == "function" then
+        self._popup_on_cycle_next()
+        return
+    end
+
+    if popup_toggle_key_matches(self._popup_toggle_key, modifiers, key) or key == "Escape" then
         self:close_popups()
         return
     end
@@ -734,6 +758,10 @@ end
 
 function instance_methods:blur_popup_keyboard_navigation()
     self._popup_keyboard_navigation_active = false
+    self._popup_prev_keychain = nil
+    self._popup_next_keychain = nil
+    self._popup_on_cycle_prev = nil
+    self._popup_on_cycle_next = nil
     self:_stop_popup_outside_click_dismiss()
 
     if self._popup_keygrabber and self._popup_keygrabber.grabber then
@@ -800,6 +828,10 @@ end
 
 function instance_methods:_apply_popup_keyboard_opts(opts)
     self:set_popup_toggle_key(opts.toggle_key)
+    self._popup_prev_keychain = normalize_popup_toggle_key(opts.prev_keychain)
+    self._popup_next_keychain = normalize_popup_toggle_key(opts.next_keychain)
+    self._popup_on_cycle_prev = opts.on_cycle_prev
+    self._popup_on_cycle_next = opts.on_cycle_next
 
     if opts.hover_close == false then
         self:_stop_hover_close_timer()
@@ -994,6 +1026,7 @@ function instance_methods:_start_hover_close_timer()
             if outside_ticks >= max_outside_ticks then
                 popup.hide(self)
                 self:_stop_hover_close_timer()
+                sync_feedback_highlight(self)
             end
         end,
     })
@@ -1004,6 +1037,7 @@ function instance_methods:close_popups()
     self:_stop_hover_close_timer()
     self:blur_popup_keyboard_navigation()
     popup.hide(self)
+    sync_feedback_highlight(self)
 end
 
 ---Open the popup explicitly, optionally disabling hover-close for keyboard use.
@@ -1015,6 +1049,7 @@ function instance_methods:show_notification_popup(arg1, arg2)
 
     popup.show(self, current_target_screen_context())
     self:_apply_popup_keyboard_opts(opts)
+    sync_feedback_highlight(self)
 end
 
 ---Toggle the popup, with keyboard-friendly control over hover-close behavior.
@@ -1033,6 +1068,8 @@ function instance_methods:toggle_notification_popup(arg1, arg2)
         self:_stop_hover_close_timer()
         self:blur_popup_keyboard_navigation()
     end
+
+    sync_feedback_highlight(self)
 end
 
 ---Create a new lxnotify instance with widget, popup controller, and interception hooks.

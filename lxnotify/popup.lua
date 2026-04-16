@@ -3,6 +3,7 @@ local gears = require("gears")
 local wibox = require("wibox")
 
 local util = require("lxnotify.util")
+local popup_placement = require("lxcommon.popup_placement")
 
 local popup = {}
 
@@ -28,14 +29,12 @@ local function popup_geometry(instance, target_screen)
 end
 
 local function apply_geometry(instance, popup_widget, target_screen)
-    local geometry = popup_geometry(instance, target_screen)
-
-    popup_widget.screen = target_screen
-    popup_widget.minimum_width = geometry.width
-    popup_widget.maximum_width = geometry.width
-    popup_widget.minimum_height = geometry.height
-    popup_widget.maximum_height = geometry.height
-    popup_widget:geometry(geometry)
+    popup_placement.apply(
+        popup_widget,
+        target_screen,
+        instance:popup_placement(),
+        { width = math.min(instance:popup_width(), target_screen.workarea.width) }
+    )
 end
 
 local function build_header_button(label)

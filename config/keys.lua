@@ -156,6 +156,43 @@ local function build_lxaudio_popup_key_actions(global_specs)
     return popup_actions
 end
 
+local function same_modifiers(left, right)
+    if #left ~= #right then
+        return false
+    end
+
+    local seen = {}
+
+    for _, modifier in ipairs(left) do
+        seen[modifier] = (seen[modifier] or 0) + 1
+    end
+
+    for _, modifier in ipairs(right) do
+        if not seen[modifier] then
+            return false
+        end
+
+        seen[modifier] = seen[modifier] - 1
+        if seen[modifier] < 0 then
+            return false
+        end
+    end
+
+    return true
+end
+
+local function has_binding(specs, modifiers, key)
+    for _, spec in pairs(specs) do
+        if not spec.disabled
+            and spec.key == key
+            and same_modifiers(spec.modifiers or {}, modifiers or {}) then
+            return true
+        end
+    end
+
+    return false
+end
+
 ---Build root and client keymaps from the shared config context.
 ---
 ---This module intentionally owns only keybinding definitions and their local
@@ -169,6 +206,7 @@ function M.build(context)
     local programs = context.programs
     local lxnotify = context.lxnotify
     local lxaudio = context.lxaudio
+    local lxbar = context.lxbar
     local lxbluetooth = context.lxbluetooth
     local lxdisplay = context.lxdisplay
     local lxnetwork = context.lxnetwork
@@ -280,6 +318,18 @@ function M.build(context)
                 keyboard_navigation = true,
                 toggle_key = { modifiers = { settings.modkey }, key = "F12" },
             })
+        end
+    end
+
+    local function cycle_lxbar_popups_forward()
+        if lxbar then
+            lxbar:cycle_popups(1, { keyboard_navigation = true })
+        end
+    end
+
+    local function cycle_lxbar_popups_backward()
+        if lxbar then
+            lxbar:cycle_popups(-1, { keyboard_navigation = true })
         end
     end
 
@@ -459,6 +509,8 @@ function M.build(context)
         show_bluetooth_popup = show_bluetooth_popup,
         show_network_popup = show_network_popup,
         show_powerprofiles_popup = show_powerprofiles_popup,
+        cycle_lxbar_popups_forward = cycle_lxbar_popups_forward,
+        cycle_lxbar_popups_backward = cycle_lxbar_popups_backward,
         show_calendar = show_calendar,
         toggle_lxrunner = toggle_lxrunner,
         open_launcher = open_launcher,
@@ -657,6 +709,32 @@ function M.build(context)
 
     if type(key_overrides.client) == "table" then
         helpers.deep_merge(client_specs, key_overrides.client)
+    end
+
+    if not has_binding(global_specs, { settings.modkey, settings.altkey, settings.ctrlkey }, "Left")
+        and not has_binding(client_specs, { settings.modkey, settings.altkey, settings.ctrlkey }, "Left") then
+        global_spec_order[#global_spec_order + 1] = "programs_cycle_lxbar_popups_backward"
+        global_specs.programs_cycle_lxbar_popups_backward =
+            key_spec(
+                { settings.modkey, settings.altkey, settings.ctrlkey },
+                "Left",
+                "cycle_lxbar_popups_backward",
+                "cycle lxbar popups backward",
+                grp_names[4]
+            )
+    end
+
+    if not has_binding(global_specs, { settings.modkey, settings.altkey, settings.ctrlkey }, "Right")
+        and not has_binding(client_specs, { settings.modkey, settings.altkey, settings.ctrlkey }, "Right") then
+        global_spec_order[#global_spec_order + 1] = "programs_cycle_lxbar_popups_forward"
+        global_specs.programs_cycle_lxbar_popups_forward =
+            key_spec(
+                { settings.modkey, settings.altkey, settings.ctrlkey },
+                "Right",
+                "cycle_lxbar_popups_forward",
+                "cycle lxbar popups forward",
+                grp_names[4]
+            )
     end
 
     if lxaudio and lxaudio.set_popup_key_actions then

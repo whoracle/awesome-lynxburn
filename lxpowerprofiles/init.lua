@@ -6,6 +6,7 @@ local keygrabber = require("awful.keygrabber")
 
 local popup_common = require("lxaudio.popup_common")
 local util = require("lxaudio.util")
+local popup_placement = require("lxcommon.popup_placement")
 
 local M = {}
 M.__index = M
@@ -212,6 +213,12 @@ local function copy_button_list(buttons)
     end
 
     return copied
+end
+
+local function sync_feedback_highlight(instance)
+    if instance.widget and instance.widget._lx_set_feedback_active then
+        instance.widget:_lx_set_feedback_active(instance._popup and instance._popup.visible or false)
+    end
 end
 
 function M:_theme_value(key, fallback)
@@ -551,6 +558,16 @@ function M:_handle_popup_keygrabber(_, modifiers, key, event)
         return
     end
 
+    if popup_toggle_key_matches(self._popup_prev_keychain, modifiers, key) and type(self._popup_on_cycle_prev) == "function" then
+        self._popup_on_cycle_prev()
+        return
+    end
+
+    if popup_toggle_key_matches(self._popup_next_keychain, modifiers, key) and type(self._popup_on_cycle_next) == "function" then
+        self._popup_on_cycle_next()
+        return
+    end
+
     if popup_toggle_key_matches(self._popup_toggle_key, modifiers, key) or key == "Escape" then
         self:close_popup()
         return
@@ -601,6 +618,7 @@ function M:close_popup()
     if self._popup then
         self._popup.visible = false
     end
+    sync_feedback_highlight(self)
 end
 
 function M:_start_popup_outside_click_dismiss()
@@ -701,6 +719,10 @@ end
 
 function M:toggle_popup(anchor, opts)
     opts = normalize_popup_opts(anchor, opts)
+    if opts.placement == nil then
+        opts.placement = popup_placement.normalize(self:_theme_value("lxpowerprofiles_popup_placement", "center"), "center")
+    end
+    opts.width = opts.width or self:_theme_value("lxpowerprofiles_popup_width", 360)
 
     if self._popup and self._popup.visible then
         self:close_popup()
@@ -708,6 +730,10 @@ function M:toggle_popup(anchor, opts)
     end
 
     self._popup_toggle_key = normalize_popup_toggle_key(opts.toggle_key)
+    self._popup_prev_keychain = normalize_popup_toggle_key(opts.prev_keychain)
+    self._popup_next_keychain = normalize_popup_toggle_key(opts.next_keychain)
+    self._popup_on_cycle_prev = opts.on_cycle_prev
+    self._popup_on_cycle_next = opts.on_cycle_next
 
     local visible = popup_common.toggle_popup(self, "_popup", "_popup_anchor", anchor, function()
         return self:_build_popup()
@@ -716,6 +742,7 @@ function M:toggle_popup(anchor, opts)
     if visible then
         self:_refresh_popup()
     end
+    sync_feedback_highlight(self)
     self:_start_popup_outside_click_dismiss()
 
     if opts.keyboard_navigation then
@@ -852,7 +879,7 @@ function M.new(opts)
             {
                 {
                     icon,
-                    forced_width = self:_theme_value("lxpowerprofiles_icon_width", 18),
+                    forced_width = self:_theme_value("lxpowerprofiles_icon_width", 16),
                     strategy = "exact",
                     widget = wibox.container.constraint,
                 },
@@ -860,8 +887,8 @@ function M.new(opts)
                 spacing = 8,
                 layout = wibox.layout.fixed.horizontal,
             },
-            left = 8,
-            right = 8,
+            left = 2,
+            right = 2,
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,

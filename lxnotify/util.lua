@@ -44,27 +44,43 @@ function util.attach_hover_background(widget, normal_bg, hover_bg, press_bg)
 
     local pointer_inside = false
     local pressed = false
+    local active = false
+
+    local function sync_bg()
+        if pressed then
+            widget.bg = press_bg or hover_bg
+        elseif pointer_inside or active then
+            widget.bg = hover_bg
+        else
+            widget.bg = normal_bg
+        end
+    end
 
     widget:connect_signal("mouse::enter", function()
         pointer_inside = true
-        widget.bg = pressed and (press_bg or hover_bg) or hover_bg
+        sync_bg()
     end)
 
     widget:connect_signal("mouse::leave", function()
         pointer_inside = false
         pressed = false
-        widget.bg = normal_bg
+        sync_bg()
     end)
 
     widget:connect_signal("button::press", function()
         pressed = true
-        widget.bg = press_bg or hover_bg
+        sync_bg()
     end)
 
     widget:connect_signal("button::release", function()
         pressed = false
-        widget.bg = pointer_inside and hover_bg or normal_bg
+        sync_bg()
     end)
+
+    widget._lx_set_feedback_active = function(_, value)
+        active = value and true or false
+        sync_bg()
+    end
 end
 
 return util

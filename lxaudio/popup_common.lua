@@ -1,6 +1,7 @@
 local awful = require("awful")
 local gears = require("gears")
 local wibox = require("wibox")
+local popup_placement = require("lxcommon.popup_placement")
 
 local M = {}
 
@@ -64,29 +65,45 @@ function M.attach_button_feedback(widget, opts)
     local press_bg = opts.press_bg or hover_bg
     local pointer_inside = false
     local pressed = false
+    local active = false
+
+    local function sync_bg()
+        if pressed then
+            widget.bg = press_bg
+        elseif pointer_inside or active then
+            widget.bg = hover_bg
+        else
+            widget.bg = idle_bg
+        end
+    end
 
     widget.bg = idle_bg
 
     widget:connect_signal("mouse::enter", function()
         pointer_inside = true
-        widget.bg = pressed and press_bg or hover_bg
+        sync_bg()
     end)
 
     widget:connect_signal("mouse::leave", function()
         pointer_inside = false
         pressed = false
-        widget.bg = idle_bg
+        sync_bg()
     end)
 
     widget:connect_signal("button::press", function()
         pressed = true
-        widget.bg = press_bg
+        sync_bg()
     end)
 
     widget:connect_signal("button::release", function()
         pressed = false
-        widget.bg = pointer_inside and hover_bg or idle_bg
+        sync_bg()
     end)
+
+    widget._lx_set_feedback_active = function(_, value)
+        active = value and true or false
+        sync_bg()
+    end
 end
 
 -- Shared clickable row/container primitive that supports left click, middle
@@ -213,6 +230,16 @@ function M.show_popup(instance, popup_key, geo_key, geo, builder, opts)
 
     popup.visible = true
 
+    if opts.placement then
+        popup_placement.apply(
+            popup,
+            opts.screen or awful.screen.focused(),
+            opts.placement,
+            { width = opts.width or popup.minimum_width or popup.maximum_width or 420 }
+        )
+        return
+    end
+
     local anchor_mode = opts.anchor or "widget"
     if anchor_mode == "widget" then
         local anchor = geo or instance[geo_key] or instance._last_anchor_geo
@@ -225,11 +252,12 @@ function M.show_popup(instance, popup_key, geo_key, geo, builder, opts)
         end
     end
 
-    popup.screen = opts.screen or awful.screen.focused()
-    awful.placement.centered(popup, {
-        honor_workarea = true,
-        honor_padding = true,
-    })
+    popup_placement.apply(
+        popup,
+        opts.screen or awful.screen.focused(),
+        "center",
+        { width = opts.width or popup.minimum_width or popup.maximum_width or 420 }
+    )
 end
 
 -- Toggle a popup and report whether it ended up visible.
