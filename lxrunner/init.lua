@@ -534,16 +534,38 @@ function M:_save_history()
     handle:close()
 end
 
+function M:_history_label(entry)
+    if not entry then
+        return ""
+    end
+
+    local source = entry.launch_source or entry.source
+
+    if source == "alias" then
+        return trim(entry.alias_name or entry.name or entry.command)
+    end
+
+    if source == "desktop" then
+        return trim(entry.display or entry.name or entry.command)
+    end
+
+    if source == "path" then
+        return trim(entry.name or entry.command)
+    end
+
+    return trim(entry.name or entry.command)
+end
+
 function M:_record_history(entry)
     if not entry or not entry.command or entry.command == "" then
         return
     end
 
     local updated = {
-        name = entry.name or entry.command,
+        name = self:_history_label(entry),
         command = entry.command,
         source = "history",
-        launch_source = entry.source,
+        launch_source = entry.launch_source or entry.source,
         last_used = os.time(),
     }
 
