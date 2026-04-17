@@ -313,10 +313,16 @@ function instance_methods:toggle_interception_pause()
     self:refresh()
 end
 
+function instance_methods:should_destroy_on_dismiss()
+    return not self.suspended
+end
+
 ---Dismiss all stored notifications and reset any active detail view.
 function instance_methods:dismiss_all()
-    for _, entry in ipairs(self.notifications) do
-        actions.destroy(entry.notification)
+    if self:should_destroy_on_dismiss() then
+        for _, entry in ipairs(self.notifications) do
+            actions.destroy(entry.notification)
+        end
     end
 
     self.notifications = {}
@@ -367,7 +373,9 @@ function instance_methods:dismiss_group(group_key)
 
     for _, entry in ipairs(self.notifications) do
         if format.group_key(entry) == group_key then
-            actions.destroy(entry.notification)
+            if self:should_destroy_on_dismiss() then
+                actions.destroy(entry.notification)
+            end
         else
             kept[#kept + 1] = entry
         end

@@ -41,6 +41,7 @@ function widget.new(instance)
             instance:toggle_daemon_pause()
         end),
         awful.button({}, 3, function()
+            instance:close_popups()
             instance:dismiss_all()
         end)
     ))
