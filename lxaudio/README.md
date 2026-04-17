@@ -292,8 +292,8 @@ beautiful.lxaudio_bg_hover = "#3a2f2b"
 beautiful.lxaudio_button_bg = "#2c2320"
 beautiful.lxaudio_button_hover = "#5b3d28"
 
-beautiful.lxaudio_popup_width_media = 460
-beautiful.lxaudio_popup_width_devices = 420
+beautiful.lxaudio_popup_width_media = 360
+beautiful.lxaudio_popup_width_devices = 360
 
 beautiful.lxaudio_artwork_width = 420
 beautiful.lxaudio_artwork_max_height = 680
@@ -323,11 +323,11 @@ Fallbacks:
 
 ## File Overview
 
-- [init.lua](/home/anthrax/tmp/lxaudio/init.lua): instance lifecycle, timers, refresh logic, popup management
-- [widget.lua](/home/anthrax/tmp/lxaudio/widget.lua): compact bar widget and mouse bindings
-- [audio.lua](/home/anthrax/tmp/lxaudio/audio.lua): sink/source/stream inspection and control via `pactl` and `wpctl`
-- [media.lua](/home/anthrax/tmp/lxaudio/media.lua): MPRIS player lookup, metadata, artwork, and transport control via `playerctl`
-- [popup_media.lua](/home/anthrax/tmp/lxaudio/popup_media.lua): playback streams popup
-- [popup_devices.lua](/home/anthrax/tmp/lxaudio/popup_devices.lua): device selection popup
-- [popup_common.lua](/home/anthrax/tmp/lxaudio/popup_common.lua): shared popup UI helpers
-- [util.lua](/home/anthrax/tmp/lxaudio/util.lua): shared shell and text helpers
+- [init.lua](/home/anthrax/.config/awesome/lxaudio/init.lua): instance lifecycle, timers, refresh logic, popup management
+- [widget.lua](/home/anthrax/.config/awesome/lxaudio/widget.lua): compact bar widget and mouse bindings
+- [audio.lua](/home/anthrax/.config/awesome/lxaudio/audio.lua): sink/source/stream inspection and control via `pactl` and `wpctl`
+- [media.lua](/home/anthrax/.config/awesome/lxaudio/media.lua): MPRIS player lookup, metadata, artwork, and transport control via `playerctl`
+- [popup_media.lua](/home/anthrax/.config/awesome/lxaudio/popup_media.lua): playback streams popup
+- [popup_devices.lua](/home/anthrax/.config/awesome/lxaudio/popup_devices.lua): device selection popup
+- [popup_common.lua](/home/anthrax/.config/awesome/lxaudio/popup_common.lua): shared popup UI helpers
+- [util.lua](/home/anthrax/.config/awesome/lxaudio/util.lua): shared shell and text helpers
