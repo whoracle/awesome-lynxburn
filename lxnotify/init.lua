@@ -265,21 +265,16 @@ function instance_methods:popup_visible_items()
 end
 
 function instance_methods:_widget_text()
-    local icon
+    local icon = self.suspended
+        and util.theme_value("lxnotify_icon_suspended", "off")
+        or util.theme_value("lxnotify_icon_idle", "idle")
     local fg
 
-    if self.suspended or self.interception_paused then
-        icon = util.theme_value("lxnotify_icon_suspended", "off")
-        if self.unread_count > 0 then
-            fg = util.theme_value("lxnotify_urgency_critical_fg", beautiful.fg_urgent or "#d97777")
-        else
-            fg = util.theme_value("lxnotify_widget_suspended_fg", beautiful.fg_urgent or beautiful.fg_normal or "#ffffff")
-        end
-    elseif self.unread_count > 0 then
-        icon = util.theme_value("lxnotify_icon_notifications", "new")
+    if self.unread_count > 0 then
         fg = util.theme_value("lxnotify_urgency_critical_fg", beautiful.fg_urgent or "#d97777")
+    elseif self.interception_paused then
+        fg = util.theme_value("lxnotify_widget_suspended_fg", beautiful.fg_minimize or beautiful.fg_normal or "#888888")
     else
-        icon = util.theme_value("lxnotify_icon_idle", "idle")
         fg = util.theme_value("lxnotify_widget_fg", beautiful.fg_normal or "#ffffff")
     end
 
@@ -654,16 +649,46 @@ end
 
 function instance_methods:activate_selected_popup_right()
     local item = self:selected_popup_item()
-    if item and type(item.on_space) == "function" then
+    if not item then
+        return
+    end
+
+    if item.kind == "group" then
+        self:enter_group_detail(item.group.key)
+        return
+    end
+
+    if item.entry and item.entry.id then
+        self:dismiss_notification(item.entry.id)
+        return
+    end
+
+    if type(item.on_space) == "function" then
         item.on_space()
     end
 end
 
 function instance_methods:activate_selected_popup_enter()
     local item = self:selected_popup_item()
-    if item and type(item.on_enter) == "function" then
+    if not item then
+        return
+    end
+
+    if item.kind == "group" then
+        self:enter_group_detail(item.group.key)
+        return
+    end
+
+    if item.entry and item.entry.notification then
+        if actions.invoke(item.entry.notification) then
+            self:dismiss_notification(item.entry.id)
+        end
+        return
+    end
+
+    if type(item.on_enter) == "function" then
         item.on_enter()
-    elseif item and type(item.on_space) == "function" then
+    elseif type(item.on_space) == "function" then
         item.on_space()
     end
 end
