@@ -9,6 +9,24 @@
 - it owns the brightness OSD
 - it provides mouse-driven brightness and redshift controls
 
+## Current Status
+
+`lxdisplay` is no longer just a proposal. The current local implementation
+already ships with:
+
+- compact top-level widget
+- optional inline brightness bar
+- brightness OSD via shared `lxcommon.osd`
+- brightness scroll controls
+- Redshift day/night temperature handling
+- Redshift suspend/resume behavior
+
+One important current UI behavior difference from the early spec:
+
+- the inline brightness bar is now only shown on hover
+- it is also designed to stay visible while a display popup would be open, but
+  `lxdisplay` does not currently expose a popup
+
 The initial scope is intentionally narrow. It does not need to become a full display manager.
 
 ## Initial Scope
