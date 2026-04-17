@@ -124,6 +124,8 @@ This split is intentional:
 - user-editable behavior lives in `config/*.lua`
 - shared `lx*` composition and popup coordination live in `lxcommon/` and
   `lxbar/`
+- default `lxbar` order currently comes from per-module registration priorities
+  in `config/services.lua`
 
 ## Local Overrides
 
@@ -136,6 +138,7 @@ Supported override files:
 - `config/override/programs.lua`
 - `config/override/theme.lua`
 - `config/override/screens.lua`
+- `config/override/rules.lua`
 - `config/override/keys.lua`
 - `config/override/lxrunner_aliases.lua`
 
@@ -153,6 +156,7 @@ What each override is for:
 - `programs.lua`: terminal/browser/launcher commands, autostart, Redshift
 - `theme.lua`: colors, wallpaper, theme-local module sizing and styling
 - `screens.lua`: per-monitor default layout and DPI
+- `rules.lua`: local application placement or behavior rule overrides
 - `keys.lua`: override named key specs or disable bindings
 - `lxrunner_aliases.lua`: override or add lxrunner aliases by alias name
 
@@ -250,6 +254,7 @@ secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account anthra
 ### `lxnotify`
 
 - owns notification aggregation and popup behavior
+- owns the compact bell-state contract and notification action/dismiss behavior
 
 ### `lxcommon`
 
@@ -265,10 +270,19 @@ secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account anthra
 - owns shared top-level `lx*` composition in the wibar
 - renders registered module widgets in one container
 - exposes shared popup actions such as popup cycling in bar order
+- current default widget order is:
+  - bluetooth
+  - network
+  - powerprofiles
+  - audio
+  - display
+  - notify
 
 ### `lxrunner`
 
 - owns the program launcher, alias handling, history, and runner UI
+- history is persisted in `~/.lxrunner_history`
+- history stores the canonical launched match label rather than the typed prefix
 
 ## Common Edit Locations
 
@@ -283,6 +297,8 @@ If you want to change:
 - `lx*` bar composition / shared popup behavior: `config/services.lua`,
   `lxbar/init.lua`, `lxcommon/*.lua`
 - colors, glyphs, popup sizes, per-widget theme settings: `themes/lynxburn2/theme.lua`
+- `lxrunner` aliases and history behavior: `lxrunner/` plus
+  `config/override/lxrunner_aliases.lua`
 
 ## Installation / Local Testing
 
@@ -314,3 +330,5 @@ workflow.
   `config.programs`, and so on.
 - Some legacy commands and optional tools remain in `programs.lua` even if they
   are not always enabled in autostart.
+- The current docs intentionally describe the repo-owned `lx*` behavior, not the
+  vendored upstream `lain` subtree.
