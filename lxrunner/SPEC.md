@@ -83,6 +83,8 @@ Requirements:
 - show those entries below the input when the input is empty
 - selecting a history item launches it again
 - aliases and normal commands should both be eligible for history
+- history should store the resolved launched match label, not the typed search
+  prefix
 
 Open question for implementation:
 
@@ -94,7 +96,7 @@ History storage requirements:
 - default file path: `~/.lxrunner_history`
 - history size limit should be configurable
 - each history entry should include:
-  - launched name
+  - launched name / canonical matched label
   - launch command
   - last used timestamp
 
@@ -331,7 +333,7 @@ Requirements:
 
 Recommended content:
 
-- launched entry name
+- launched entry name / canonical match label
 - resolved command string
 - last used timestamp
 
@@ -340,6 +342,9 @@ Recommended behavior:
 - keep entries in recency order
 - trim to the configured size limit on write
 - if an entry is launched again, update its timestamp and move it to the top rather than duplicating it unnecessarily
+- for aliases, store the alias name rather than the partial query used to reach it
+- for desktop entries, store the matched application/display name rather than
+  the typed prefix
 
 ## Error Handling
 
