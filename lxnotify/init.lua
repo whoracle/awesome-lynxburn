@@ -270,7 +270,11 @@ function instance_methods:_widget_text()
 
     if self.suspended or self.interception_paused then
         icon = util.theme_value("lxnotify_icon_suspended", "off")
-        fg = util.theme_value("lxnotify_widget_suspended_fg", beautiful.fg_urgent or beautiful.fg_normal or "#ffffff")
+        if self.unread_count > 0 then
+            fg = util.theme_value("lxnotify_urgency_critical_fg", beautiful.fg_urgent or "#d97777")
+        else
+            fg = util.theme_value("lxnotify_widget_suspended_fg", beautiful.fg_urgent or beautiful.fg_normal or "#ffffff")
+        end
     elseif self.unread_count > 0 then
         icon = util.theme_value("lxnotify_icon_notifications", "new")
         fg = util.theme_value("lxnotify_urgency_critical_fg", beautiful.fg_urgent or "#d97777")
