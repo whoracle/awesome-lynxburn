@@ -5,7 +5,7 @@ local string = string
 
 local function theme_path(name)
     return string.format(
-        "%s/.config/awesome/themes/%s/theme2.lua",
+        "%s/.config/awesome/themes/%s/theme.lua",
         os.getenv("HOME"),
         name
     )

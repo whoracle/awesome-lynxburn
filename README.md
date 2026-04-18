@@ -189,7 +189,7 @@ the routine user-facing knobs, for example:
 
 Theme-authoring details such as titlebar asset paths, copycats-style icon file
 paths, and other theme-internal composition data should usually stay in
-`themes/lynxburn2/theme2.lua` unless you are actually reshaping the theme.
+`themes/lynxburn2/theme.lua` unless you are actually reshaping the theme.
 
 ## External Dependencies
 
