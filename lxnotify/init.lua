@@ -711,25 +711,14 @@ function instance_methods:_handle_popup_keygrabber(_, modifiers, key, event)
 end
 
 function instance_methods:focus_popup_keyboard_navigation()
-    if not self._popup_keygrabber then
-        self._popup_keygrabber = keygrabber({
-            stop_callback = function()
-                self._popup_keyboard_navigation_active = false
-            end,
-            keypressed_callback = function(grabber, modifiers, key, event)
-                self:_handle_popup_keygrabber(grabber, modifiers, key, event)
-            end,
-        })
-    end
-
-    self._popup_keyboard_navigation_active = true
-
-    if self._popup_keygrabber.grabber then
-        return
-    end
-
-    self._popup_keygrabber:start()
-    self:_start_popup_outside_click_dismiss()
+    popup_control.focus_popup_keygrabber(self, {
+        handler = function(grabber, modifiers, key, event)
+            self:_handle_popup_keygrabber(grabber, modifiers, key, event)
+        end,
+        on_start = function()
+            self:_start_popup_outside_click_dismiss()
+        end,
+    })
 end
 
 function instance_methods:set_popup_toggle_key(toggle_key)
@@ -745,10 +734,7 @@ function instance_methods:blur_popup_keyboard_navigation()
     self._popup_on_cycle_prev = nil
     self._popup_on_cycle_next = nil
     self:_stop_popup_outside_click_dismiss()
-
-    if self._popup_keygrabber and self._popup_keygrabber.grabber then
-        self._popup_keygrabber:stop()
-    end
+    popup_control.blur_popup_keygrabber(self)
 end
 
 function instance_methods:_start_popup_outside_click_dismiss()

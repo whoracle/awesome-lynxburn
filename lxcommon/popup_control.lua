@@ -1,5 +1,6 @@
 local awful = require("awful")
 local gears = require("gears")
+local keygrabber = require("awful.keygrabber")
 
 local M = {}
 
@@ -279,6 +280,62 @@ function M.dispatch_popup_keypress(opts)
     end
 
     return false
+end
+
+function M.ensure_popup_keygrabber(instance, opts)
+    opts = opts or {}
+    local grabber_key = opts.grabber_key or "_popup_keygrabber"
+    local active_key = opts.active_key or "_popup_keyboard_navigation_active"
+    local handler = opts.handler
+
+    if not instance[grabber_key] then
+        instance[grabber_key] = keygrabber({
+            stop_callback = function()
+                instance[active_key] = false
+                if type(opts.on_stop) == "function" then
+                    opts.on_stop()
+                end
+            end,
+            keypressed_callback = function(grabber, modifiers, key, event)
+                handler(grabber, modifiers, key, event)
+            end,
+        })
+    end
+
+    return instance[grabber_key]
+end
+
+function M.focus_popup_keygrabber(instance, opts)
+    opts = opts or {}
+    local grabber_key = opts.grabber_key or "_popup_keygrabber"
+    local active_key = opts.active_key or "_popup_keyboard_navigation_active"
+    local grabber = M.ensure_popup_keygrabber(instance, opts)
+
+    instance[active_key] = true
+
+    if grabber.grabber then
+        return grabber
+    end
+
+    grabber:start()
+    if type(opts.on_start) == "function" then
+        opts.on_start()
+    end
+
+    return grabber
+end
+
+function M.blur_popup_keygrabber(instance, opts)
+    opts = opts or {}
+    local grabber_key = opts.grabber_key or "_popup_keygrabber"
+    local active_key = opts.active_key or "_popup_keyboard_navigation_active"
+
+    instance[active_key] = false
+
+    local grabber = instance[grabber_key]
+    if grabber and grabber.grabber then
+        grabber:stop()
+    end
 end
 
 return M

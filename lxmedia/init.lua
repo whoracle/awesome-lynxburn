@@ -481,25 +481,16 @@ function M:_handle_media_popup_keygrabber(_, modifiers, key, event)
 end
 
 function M:focus_media_popup_keyboard_navigation()
-    if not self._media_popup_keygrabber then
-        self._media_popup_keygrabber = keygrabber({
-            stop_callback = function()
-                self._media_popup_keyboard_navigation_active = false
-            end,
-            keypressed_callback = function(grabber, modifiers, key, event)
-                self:_handle_media_popup_keygrabber(grabber, modifiers, key, event)
-            end,
-        })
-    end
-
-    self._media_popup_keyboard_navigation_active = true
-
-    if self._media_popup_keygrabber.grabber then
-        return
-    end
-
-    self._media_popup_keygrabber:start()
-    self:_start_media_popup_outside_click_dismiss()
+    popup_control.focus_popup_keygrabber(self, {
+        grabber_key = "_media_popup_keygrabber",
+        active_key = "_media_popup_keyboard_navigation_active",
+        handler = function(grabber, modifiers, key, event)
+            self:_handle_media_popup_keygrabber(grabber, modifiers, key, event)
+        end,
+        on_start = function()
+            self:_start_media_popup_outside_click_dismiss()
+        end,
+    })
 end
 
 function M:blur_media_popup_keyboard_navigation()
@@ -510,10 +501,10 @@ function M:blur_media_popup_keyboard_navigation()
     self._media_popup_on_cycle_prev = nil
     self._media_popup_on_cycle_next = nil
     self:_stop_media_popup_outside_click_dismiss()
-
-    if self._media_popup_keygrabber and self._media_popup_keygrabber.grabber then
-        self._media_popup_keygrabber:stop()
-    end
+    popup_control.blur_popup_keygrabber(self, {
+        grabber_key = "_media_popup_keygrabber",
+        active_key = "_media_popup_keyboard_navigation_active",
+    })
 end
 
 function M:blur_devices_popup_keyboard_navigation()

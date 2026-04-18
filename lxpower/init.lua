@@ -528,28 +528,15 @@ function M:_handle_popup_keygrabber(_, modifiers, key, event)
 end
 
 function M:focus_popup_keyboard_navigation()
-    if not self._popup_keygrabber then
-        self._popup_keygrabber = keygrabber({
-            stop_callback = function()
-                self._popup_keyboard_navigation_active = false
-            end,
-            keypressed_callback = function(grabber, modifiers, key, event)
-                self:_handle_popup_keygrabber(grabber, modifiers, key, event)
-            end,
-        })
-    end
-
-    self._popup_keyboard_navigation_active = true
-    if not self._popup_keygrabber.grabber then
-        self._popup_keygrabber:start()
-    end
+    popup_control.focus_popup_keygrabber(self, {
+        handler = function(grabber, modifiers, key, event)
+            self:_handle_popup_keygrabber(grabber, modifiers, key, event)
+        end,
+    })
 end
 
 function M:blur_popup_keyboard_navigation()
-    self._popup_keyboard_navigation_active = false
-    if self._popup_keygrabber and self._popup_keygrabber.grabber then
-        self._popup_keygrabber:stop()
-    end
+    popup_control.blur_popup_keygrabber(self)
 end
 
 function M:close_popup()
