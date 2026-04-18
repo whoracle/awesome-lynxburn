@@ -6,84 +6,6 @@ local home = os.getenv("HOME")
 local imageeditor = "gimp"
 local imageviewer = "sxiv"
 
-M.widgets = {
-    order = {
-        "network",
-        "audio",
-        "notify",
-    },
-    modules = {
-        audio = {
-            show_mic_activity = true,
-            refresh_interval = 5,
-            width = 50,
-            step = 0.05,
-            enable_osd = true,
-            osd_width = 260,
-            osd_height = 18,
-            osd_margin = 16,
-        },
-        bluetooth = {
-            enabled = false,
-            refresh_interval = 15,
-        },
-        display = {
-            refresh_interval = 15,
-            enable_osd = true,
-            osd_width = 260,
-            osd_height = 18,
-            osd_margin = 16,
-            brightness = {
-                get = "xbacklight -get",
-                set = "xbacklight -set %d",
-                step = 5,
-                min = 10,
-                off = "xset dpms force off",
-            },
-            redshift = {
-                command = "xrandr",
-                enabled = true,
-                autostart = true,
-                latitude = nil,
-                longitude = nil,
-                temperature_day = 6500,
-                temperature_night = 4500,
-                transition_steps = 16,
-                transition_interval = 0.05,
-                refresh_interval = 120,
-                schedule_transition_seconds = 3600,
-                day_start = "07:00",
-                night_start = "19:00",
-            },
-        },
-        network = {
-            enabled = true,
-            refresh_interval = 20,
-            -- cycle = false,
-        },
-        notify = {
-            notification_denylist = {
-                { app_name = "Volume OSD" },
-                { app_name = "Mute Indicator" },
-                { app_name = "Brightness OSD" },
-                { app_name = "Notification Indicator" },
-                { app_name = "Calendar" },
-            },
-            notification_title_max_length = 72,
-            notification_body_max_length = 140,
-            notification_source_max_length = 28,
-            notification_time_format = "%H:%M",
-            popup_visible_items = 7,
-            interception_paused = false,
-            debug_notifications = false,
-        },
-        powerprofiles = {
-            enabled = false,
-            refresh_interval = 20,
-        },
-    },
-}
-
 M.theme = {
     name = "lynxburn2",
 }
@@ -190,13 +112,97 @@ M.commands = {
 }
 
 M.lxmodules = {
-    lxrunner = {
-        options = {
-            width = 520,
-            row_count = 10,
-            history_limit = 10,
-            prompt = "Run",
+    lxbar = {
+        order = {
+            "network",
+            "audio",
+            "notify",
         },
+        modules = {
+            audio = {},
+            bluetooth = {
+                enabled = false,
+            },
+            display = {},
+            network = {
+                enabled = true,
+                -- cycle = false,
+            },
+            notify = {},
+            powerprofiles = {
+                enabled = false,
+            },
+        },
+    },
+    lxaudio = {
+        show_mic_activity = true,
+        refresh_interval = 5,
+        width = 50,
+        step = 0.05,
+        enable_osd = true,
+        osd_width = 260,
+        osd_height = 18,
+        osd_margin = 16,
+    },
+    lxbluetooth = {
+        refresh_interval = 15,
+    },
+    lxdisplay = {
+        refresh_interval = 15,
+        enable_osd = true,
+        osd_width = 260,
+        osd_height = 18,
+        osd_margin = 16,
+        brightness = {
+            get = "xbacklight -get",
+            set = "xbacklight -set %d",
+            step = 5,
+            min = 10,
+            off = "xset dpms force off",
+        },
+        redshift = {
+            command = "xrandr",
+            enabled = true,
+            autostart = true,
+            latitude = nil,
+            longitude = nil,
+            temperature_day = 6500,
+            temperature_night = 4500,
+            transition_steps = 16,
+            transition_interval = 0.05,
+            refresh_interval = 120,
+            schedule_transition_seconds = 3600,
+            day_start = "07:00",
+            night_start = "19:00",
+        },
+    },
+    lxnetwork = {
+        refresh_interval = 20,
+    },
+    lxnotify = {
+        notification_denylist = {
+            { app_name = "Volume OSD" },
+            { app_name = "Mute Indicator" },
+            { app_name = "Brightness OSD" },
+            { app_name = "Notification Indicator" },
+            { app_name = "Calendar" },
+        },
+        notification_title_max_length = 72,
+        notification_body_max_length = 140,
+        notification_source_max_length = 28,
+        notification_time_format = "%H:%M",
+        popup_visible_items = 7,
+        interception_paused = false,
+        debug_notifications = false,
+    },
+    lxpowerprofiles = {
+        refresh_interval = 20,
+    },
+    lxrunner = {
+        width = 520,
+        row_count = 10,
+        history_limit = 10,
+        prompt = "Run",
         aliases = {},
     },
 }

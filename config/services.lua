@@ -240,9 +240,9 @@ end
 ---@return table
 function M.runner()
     if not lxrunner_instance then
-        local lxmodules = config_data.lxmodules()
-        local runner_config = lxmodules.lxrunner or {}
-        lxrunner_instance = require("lxrunner").new(runner_config.options or {})
+        local runner_options = widget_config.options("runner")
+        runner_options.aliases = nil
+        lxrunner_instance = require("lxrunner").new(runner_options)
     end
 
     return lxrunner_instance

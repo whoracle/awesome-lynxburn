@@ -11,7 +11,6 @@ local cached_lxmodules
 local cached_rules
 local cached_settings
 local cached_theme
-local cached_widgets
 local cached_screens
 
 local function load_user_config()
@@ -72,12 +71,6 @@ local function merge_section(merged, key, value)
     })
 end
 
-local function merge_widget_overrides(merged)
-    local user_config = load_user_config()
-
-    merge_section(merged, "widgets", user_config.widgets)
-end
-
 local function merge_command_overrides(merged)
     local user_config = load_user_config()
 
@@ -136,21 +129,6 @@ local function load_commands()
     cached_commands = merged.commands or {}
     cached_commands.terminal = resolve_terminal(cached_commands.terminal)
     return cached_commands
-end
-
-local function load_widgets()
-    if cached_widgets then
-        return cached_widgets
-    end
-
-    local merged = helpers.deep_merge({}, {
-        widgets = defaults.widgets,
-    })
-
-    merge_widget_overrides(merged)
-
-    cached_widgets = merged.widgets or {}
-    return cached_widgets
 end
 
 function M.commands()
@@ -267,10 +245,6 @@ end
 
 function M.screens()
     return load_screens()
-end
-
-function M.widgets()
-    return load_widgets()
 end
 
 return M

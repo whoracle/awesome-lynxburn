@@ -38,53 +38,6 @@ return {
     --         -- layout = "centerwork",
     --     },
     -- },
-    -- widgets = {
-    --     order = {
-    --         "network",
-    --         "audio",
-    --         "notify",
-    --     },
-    --     modules = {
-    --         audio = {
-    --             refresh_interval = 2,
-    --             width = 60,
-    --             step = 0.02,
-    --         },
-    --         display = {
-    --             refresh_interval = 10,
-    --             brightness = {
-    --                 get = "brightnessctl g",
-    --                 set = "brightnessctl s %d%%",
-    --                 step = 5,
-    --                 min = 10,
-    --                 off = "xset dpms force off",
-    --             },
-    --             redshift = {
-    --                 enabled = true,
-    --                 latitude = 47.9990,
-    --                 longitude = 7.8421,
-    --             },
-    --         },
-    --         bluetooth = {
-    --             refresh_interval = 10,
-    --         },
-    --         network = {
-    --             enabled = true,
-    --             refresh_interval = 10,
-    --             -- cycle = false,
-    --         },
-    --         notify = {
-    --             notification_denylist = {
-    --                 { app_name = "Volume OSD" },
-    --             },
-    --             notification_time_format = "%H:%M",
-    --             popup_visible_items = 10,
-    --         },
-    --         powerprofiles = {
-    --             refresh_interval = 10,
-    --         },
-    --     },
-    -- },
     -- commands = {
     --     terminal = "alacritty",
     --     lain = {
@@ -98,16 +51,77 @@ return {
             "nextcloud",
         },
     },
-    widgets = {
-        modules = {
-            display = {
-                redshift = {
-                    enabled = true,
-                    autostart = true,
-                    latitude = 47.9990,
-                    longitude = 7.8421,
-                    temperature_day = 6500,
-                    temperature_night = 4500,
+    -- lxmodules = {
+    --     lxbar = {
+    --         order = {
+    --             "network",
+    --             "audio",
+    --             "notify",
+    --         },
+    --         modules = {
+    --             network = {
+    --                 enabled = true,
+    --                 -- cycle = false,
+    --             },
+    --         },
+    --     },
+    --     lxaudio = {
+    --         refresh_interval = 2,
+    --         width = 60,
+    --         step = 0.02,
+    --     },
+    --     lxdisplay = {
+    --         refresh_interval = 10,
+    --         brightness = {
+    --             get = "brightnessctl g",
+    --             set = "brightnessctl s %d%%",
+    --             step = 5,
+    --             min = 10,
+    --             off = "xset dpms force off",
+    --         },
+    --         redshift = {
+    --             enabled = true,
+    --             latitude = 47.9990,
+    --             longitude = 7.8421,
+    --         },
+    --     },
+    --     lxnotify = {
+    --         notification_denylist = {
+    --             { app_name = "Volume OSD" },
+    --         },
+    --         notification_time_format = "%H:%M",
+    --         popup_visible_items = 10,
+    --     },
+    --     lxrunner = {
+    --         width = 640,
+    --         row_count = 12,
+    --         history_limit = 20,
+    --         aliases = {
+    --             {
+    --                 name = "browser",
+    --                 type = "template",
+    --                 glyph = "󰖟",
+    --                 command = "firefox %s",
+    --             },
+    --         },
+    --     },
+    -- },
+    lxmodules = {
+        lxdisplay = {
+            redshift = {
+                latitude = 47.9990,
+                longitude = 7.8421,
+            },
+        },
+        lxrunner = {
+            aliases = {
+                {
+                    name = "yayoff",
+                    type = "shell",
+                    -- icon = "/absolute/path/to/icon.svg",
+                    -- glyph = "󰐥",
+                    -- glyph_font = "Symbols Nerd Font 12",
+                    command = [[urxvt -fg gray -tr -sh 50 -e sh -lc 'yay -Syu --noconfirm; status=$?; if [ $status -ne 0 ]; then echo; echo "yay failed with exit code $status"; echo "Shutdown was not triggered."; printf "Press Enter to close..."; read -r _; exit $status; fi; exec sudo shutdown -hP now']],
                 },
             },
         },
@@ -141,23 +155,4 @@ return {
             },
         }
     end,
-    lxmodules = {
-        lxrunner = {
-            -- options = {
-            --     width = 640,
-            --     row_count = 12,
-            --     history_limit = 20,
-            -- },
-            aliases = {
-                {
-                    name = "yayoff",
-                    type = "shell",
-                    -- icon = "/absolute/path/to/icon.svg",
-                    -- glyph = "󰐥",
-                    -- glyph_font = "Symbols Nerd Font 12",
-                    command = [[urxvt -fg gray -tr -sh 50 -e sh -lc 'yay -Syu --noconfirm; status=$?; if [ $status -ne 0 ]; then echo; echo "yay failed with exit code $status"; echo "Shutdown was not triggered."; printf "Press Enter to close..."; read -r _; exit $status; fi; exec sudo shutdown -hP now']],
-                },
-            },
-        },
-    },
 }
