@@ -2,6 +2,28 @@ local M = {}
 
 local entries = {}
 
+local function configured_widget_order()
+    local ok, settings = pcall(require, "config.settings")
+    if not ok or type(settings) ~= "table" then
+        return {}
+    end
+
+    local widgets = settings.widgets
+    if type(widgets) ~= "table" or type(widgets.order) ~= "table" then
+        return {}
+    end
+
+    local order = {}
+
+    for index, id in ipairs(widgets.order) do
+        if type(id) == "string" and id ~= "" and order[id] == nil then
+            order[id] = index
+        end
+    end
+
+    return order
+end
+
 local function normalize_entry(entry)
     return {
         id = assert(entry.id, "lxcommon registry entry requires id"),
@@ -28,6 +50,7 @@ end
 
 function M.list()
     local ordered = {}
+    local configured_order = configured_widget_order()
 
     for _, entry in pairs(entries) do
         local enabled = true
@@ -43,6 +66,23 @@ function M.list()
     end
 
     table.sort(ordered, function(a, b)
+        local configured_a = configured_order[a.id]
+        local configured_b = configured_order[b.id]
+
+        if configured_a ~= nil or configured_b ~= nil then
+            if configured_a == nil then
+                return false
+            end
+
+            if configured_b == nil then
+                return true
+            end
+
+            if configured_a ~= configured_b then
+                return configured_a < configured_b
+            end
+        end
+
         if a.default_order ~= b.default_order then
             return a.default_order < b.default_order
         end

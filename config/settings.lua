@@ -21,6 +21,11 @@ local settings = {
         right = 2,
     },
     widgets = {
+        order = {
+            "network",
+            "audio",
+            "notify",
+        },
         bluetooth = false,
         network = true,
         powerprofiles = false,

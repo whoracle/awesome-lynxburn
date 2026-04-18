@@ -2,6 +2,13 @@ return {
     theme_name = "lynxburn2",
     modkey = "Mod4",
     widgets = {
+        order = {
+            "bluetooth",
+            "network",
+            "powerprofiles",
+            "audio",
+            "notify",
+        },
         bluetooth = true,
         network = true,
         powerprofiles = true,
