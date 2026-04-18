@@ -1,27 +1,18 @@
 local M = {}
 
 local entries = {}
+local configured_order = {}
 
-local function configured_widget_order()
-    local ok, settings = pcall(require, "config.settings")
-    if not ok or type(settings) ~= "table" then
-        return {}
-    end
+local function normalize_order(order)
+    local normalized = {}
 
-    local widgets = settings.widgets
-    if type(widgets) ~= "table" or type(widgets.order) ~= "table" then
-        return {}
-    end
-
-    local order = {}
-
-    for index, id in ipairs(widgets.order) do
-        if type(id) == "string" and id ~= "" and order[id] == nil then
-            order[id] = index
+    for index, id in ipairs(order or {}) do
+        if type(id) == "string" and id ~= "" and normalized[id] == nil then
+            normalized[id] = index
         end
     end
 
-    return order
+    return normalized
 end
 
 local function normalize_entry(entry)
@@ -48,9 +39,12 @@ function M.get(id)
     return entries[id]
 end
 
+function M.set_order(order)
+    configured_order = normalize_order(order)
+end
+
 function M.list()
     local ordered = {}
-    local configured_order = configured_widget_order()
 
     for _, entry in pairs(entries) do
         local enabled = true
@@ -95,6 +89,7 @@ end
 
 function M.clear()
     entries = {}
+    configured_order = {}
 end
 
 return M

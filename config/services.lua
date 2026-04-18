@@ -59,6 +59,11 @@ local function merge_popup_opts(defaults, overrides)
     return merged
 end
 
+local function configure_widget_registry(settings)
+    local widgets = settings.widgets or {}
+    require("lxcommon.registry").set_order(widgets.order or {})
+end
+
 local function widget_module_settings(settings, id)
     local widgets = settings.widgets or {}
     local modules = widgets.modules or {}
@@ -177,6 +182,7 @@ end
 
 function M.bar()
     if not lxbar_instance then
+        configure_widget_registry(require("config.settings"))
         lxbar_instance = require("lxbar").new()
     end
 
