@@ -11,4 +11,17 @@ function M.name()
     return "lynxburn2"
 end
 
+function M.overrides()
+    local theme = config_data.theme()
+    local overrides = {}
+
+    for key, value in pairs(theme) do
+        if key ~= "name" then
+            overrides[key] = value
+        end
+    end
+
+    return overrides
+end
+
 return M

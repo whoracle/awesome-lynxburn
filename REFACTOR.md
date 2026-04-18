@@ -17,14 +17,9 @@ work for, but should be revisited in the final refactor pass.
   Later option: reduce it to a very thin runtime adapter or retire it once
   direct consumers can read the central config surfaces they actually need.
 
-- `config.override.theme.lua` versus central theme selection
-  Current role: `config.theme` / central config owns top-level theme selection,
-  while `config.override.theme.lua` still owns runtime theme value overrides.
-  Later option: decide whether the final user-facing config keeps those as two
-  layers or exposes a clearer unified theme config model.
-
 - `config/override/` compatibility examples and docs
-  Current role: mostly historical scaffolding now that top-level `./config.lua`
-  is the intended user config entrypoint for centralized sections.
-  Later option: remove or rewrite the directory once the remaining theme/screen
-  compatibility story is settled.
+  Current role: historical scaffolding now that top-level `./config.lua` is the
+  intended user config entrypoint and runtime no longer reads split override
+  files.
+  Later option: remove or rewrite the directory once the example/documentation
+  story is settled.

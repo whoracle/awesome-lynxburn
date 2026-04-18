@@ -9,6 +9,18 @@ return {
     -- },
     -- theme = {
     --     name = "lynxburn2",
+    --     wallpaper = os.getenv("HOME") .. "/Pictures/wallpaper.png",
+    --     lxrunner_width = 640,
+    -- },
+    -- screens = {
+    --     left = {
+    --         layout = "fair.horizontal",
+    --         dpi = 96,
+    --     },
+    --     right = {
+    --         layout = "floating",
+    --         dpi = 110,
+    --     },
     -- },
     -- widgets = {
     --     order = {

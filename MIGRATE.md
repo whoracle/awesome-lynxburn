@@ -1,15 +1,18 @@
 # Remaining Migration Notes
 
-All observed live split overrides now have a central top-level `./config.lua`
-home in the repo.
+The repo runtime no longer depends on split `config/override/*.lua` files.
 
-The only remaining migration work is on the live desktop config itself:
+For a live config migration, move any remaining data from non-example files in
+`~/.config/awesome/config/override/` into top-level `~/.config/awesome/config.lua`
+under the matching section:
 
-1. copy the live `config/override/rules.lua` content into top-level
-   `~/.config/awesome/config.lua` under `rules = function(context) ... end`
-2. reload Awesome and verify the Chrome placement rule still works
-3. delete the migrated non-example files in
-   `~/.config/awesome/config/override/`
+1. `settings.lua` -> `settings = { ... }`
+2. `programs.lua` -> `commands = { ... }`
+3. `theme.lua` -> `theme = { ... }`
+4. `screens.lua` -> `screens = { ... }`
+5. `keys.lua` -> `keys = { ... }`
+6. `rules.lua` -> `rules = function(context) ... end`
+7. `lxrunner_aliases.lua` -> `runner = { aliases = { ... } }`
 
-At this point, `MIGRATE.md` can be deleted once the live machine has completed
-that final move.
+Once the live machine has copied over anything it still needs, the remaining
+non-example files in `config/override/` can be deleted there as well.

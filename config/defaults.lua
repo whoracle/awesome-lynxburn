@@ -29,6 +29,20 @@ M.theme = {
     name = "lynxburn2",
 }
 
+M.screens = {
+    left = {
+        layout = "centerwork.horizontal",
+        dpi = 96,
+    },
+    center = {
+        layout = "centerwork",
+        dpi = 110,
+    },
+    right = {
+        dpi = 110,
+    },
+}
+
 M.settings = {
     modkey = "Mod4",
     altkey = "Mod1",

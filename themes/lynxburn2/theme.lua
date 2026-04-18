@@ -10,6 +10,7 @@ local os = os
 local awful = require("awful")
 local dpi = require("beautiful.xresources").apply_dpi
 local helpers = require("config.helpers")
+local config_theme = require("config.theme")
 
 local orange = "#d88166"
 local red = "#123456"
@@ -258,7 +259,7 @@ theme.lxrunner_row_selected_fg = white
 theme.lxrunner_row_padding = 10
 theme.lxrunner_cursor = "_"
 
-local theme_overrides = helpers.load_optional_module("config.override.theme", {})
+local theme_overrides = config_theme.overrides()
 local custom_at_screen_connect = theme_overrides.at_screen_connect
 
 theme_overrides.at_screen_connect = nil

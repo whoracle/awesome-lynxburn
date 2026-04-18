@@ -10,6 +10,7 @@ local cached_runner
 local cached_settings
 local cached_theme
 local cached_widgets
+local cached_screens
 
 local function load_user_config()
     return helpers.load_optional_module("config", {})
@@ -53,6 +54,12 @@ local function merge_theme_overrides(merged)
     local user_config = load_user_config()
 
     merge_section(merged, "theme", user_config.theme)
+end
+
+local function merge_screen_overrides(merged)
+    local user_config = load_user_config()
+
+    merge_section(merged, "screens", user_config.screens)
 end
 
 local function merge_settings_overrides(merged)
@@ -190,6 +197,25 @@ end
 
 function M.theme()
     return load_theme()
+end
+
+local function load_screens()
+    if cached_screens then
+        return cached_screens
+    end
+
+    local merged = helpers.deep_merge({}, {
+        screens = defaults.screens,
+    })
+
+    merge_screen_overrides(merged)
+
+    cached_screens = merged.screens or {}
+    return cached_screens
+end
+
+function M.screens()
+    return load_screens()
 end
 
 function M.widgets()
