@@ -26,11 +26,17 @@ local settings = {
             "audio",
             "notify",
         },
-        bluetooth = false,
-        network = true,
-        powerprofiles = false,
-        popup_cycle = {
-            -- network = false,
+        modules = {
+            bluetooth = {
+                enabled = false,
+            },
+            network = {
+                enabled = true,
+                -- cycle = false,
+            },
+            powerprofiles = {
+                enabled = false,
+            },
         },
     },
 }

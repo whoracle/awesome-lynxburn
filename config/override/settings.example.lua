@@ -9,11 +9,17 @@ return {
             "audio",
             "notify",
         },
-        bluetooth = true,
-        network = true,
-        powerprofiles = true,
-        popup_cycle = {
-            -- network = false,
+        modules = {
+            bluetooth = {
+                enabled = true,
+            },
+            network = {
+                enabled = true,
+                -- cycle = false,
+            },
+            powerprofiles = {
+                enabled = true,
+            },
         },
     },
     monitors = {

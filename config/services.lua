@@ -59,15 +59,42 @@ local function merge_popup_opts(defaults, overrides)
     return merged
 end
 
+local function widget_module_settings(settings, id)
+    local widgets = settings.widgets or {}
+    local modules = widgets.modules or {}
+    local module_settings = modules[id]
+
+    if type(module_settings) ~= "table" then
+        return {}
+    end
+
+    return module_settings
+end
+
+local function widget_enabled(settings, id, default)
+    local module_settings = widget_module_settings(settings, id)
+
+    if module_settings.enabled ~= nil then
+        return module_settings.enabled ~= false
+    end
+
+    return default ~= false
+end
+
+local function widget_cycle_enabled(settings, id, default)
+    local module_settings = widget_module_settings(settings, id)
+
+    if module_settings.cycle ~= nil then
+        return module_settings.cycle ~= false
+    end
+
+    return default ~= false
+end
+
 local function register_lx_widget(id, widget, default_order, opts)
     opts = opts or {}
     local settings = require("config.settings")
-    local widgets = settings.widgets or {}
-    local include_in_popup_cycle = opts.include_in_popup_cycle
-
-    if widgets.popup_cycle and widgets.popup_cycle[id] ~= nil then
-        include_in_popup_cycle = widgets.popup_cycle[id] ~= false
-    end
+    local include_in_popup_cycle = widget_cycle_enabled(settings, id, opts.include_in_popup_cycle)
 
     require("lxcommon.registry").register({
         id = id,
@@ -159,7 +186,7 @@ end
 
 function M.bluetooth()
     local settings = require("config.settings")
-    if settings.widgets and settings.widgets.bluetooth == false then
+    if not widget_enabled(settings, "bluetooth", true) then
         return nil
     end
 
@@ -230,7 +257,7 @@ end
 
 function M.network()
     local settings = require("config.settings")
-    if settings.widgets and settings.widgets.network == false then
+    if not widget_enabled(settings, "network", true) then
         return nil
     end
 
@@ -265,7 +292,7 @@ end
 
 function M.powerprofiles()
     local settings = require("config.settings")
-    if settings.widgets and settings.widgets.powerprofiles == false then
+    if not widget_enabled(settings, "powerprofiles", true) then
         return nil
     end
 
