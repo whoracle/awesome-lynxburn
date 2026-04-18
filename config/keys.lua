@@ -45,6 +45,58 @@ local function key_spec(modifiers, key, on_press, description, group, extra)
     return spec
 end
 
+local function resolve_modifier_alias(settings, modifier)
+    if modifier == "modkey" then
+        return settings.modkey
+    end
+
+    if modifier == "altkey" then
+        return settings.altkey
+    end
+
+    if modifier == "ctrlkey" then
+        return settings.ctrlkey
+    end
+
+    if modifier == "shiftkey" then
+        return settings.shiftkey
+    end
+
+    return modifier
+end
+
+local function normalize_key_spec(settings, spec)
+    if type(spec) ~= "table" then
+        return spec
+    end
+
+    local normalized = {}
+
+    for key, value in pairs(spec) do
+        normalized[key] = value
+    end
+
+    if type(spec.modifiers) == "table" then
+        normalized.modifiers = {}
+
+        for index, modifier in ipairs(spec.modifiers) do
+            normalized.modifiers[index] = resolve_modifier_alias(settings, modifier)
+        end
+    end
+
+    return normalized
+end
+
+local function normalize_key_specs(settings, specs)
+    local normalized = {}
+
+    for name, spec in pairs(specs or {}) do
+        normalized[name] = normalize_key_spec(settings, spec)
+    end
+
+    return normalized
+end
+
 local function sorted_extra_names(specs, ordered_names)
     local seen = {}
 
@@ -215,17 +267,7 @@ function M.build(context)
     local lxpowerprofiles = context.lxpowerprofiles
     local osd = context.osd
     local lain = context.lain
-    local key_overrides = config_data.keys()
-
-    local grp_names = {
-        "01. window",
-        "02. desktop",
-        "03. layout",
-        "04. programs",
-        "05. media",
-        "08. awesomewm",
-        "09. system",
-    }
+    local key_config = config_data.keys()
 
     register_extra_hotkeys()
 
@@ -546,134 +588,18 @@ function M.build(context)
         maximize_client = maximize_client,
     }
 
-    local global_spec_order = {
-        "window_jump_to_urgent_client",
-        "window_restore_minimized_program",
-        "window_focus_next_by_index",
-        "window_focus_previous_by_index",
-        "window_swap_with_left_client",
-        "window_swap_with_right_client",
-        "window_swap_with_upper_client",
-        "window_swap_with_lower_client",
-        "window_focus_down",
-        "window_focus_up",
-        "window_focus_left",
-        "window_focus_right",
-        "desktop_view_previous",
-        "desktop_view_next",
-        "desktop_go_back",
-        "layout_select_next_layout",
-        "layout_select_prev_layout",
-        "layout_increment_useless_gaps",
-        "layout_decrement_useless_gaps",
-        "programs_show_media_popup",
-        "programs_show_notification_popup",
-        "programs_show_bluetooth_popup",
-        "programs_show_network_popup",
-        "programs_show_powerprofiles_popup",
-        "programs_show_calendar",
-        "programs_lxrunner",
-        "programs_launcher",
-        "programs_terminal",
-        "programs_file_browser",
-        "programs_screenshot_region",
-        "programs_screenshot_desktop",
-        "programs_screenshot_window",
-        "programs_start_awesome_on_tv",
-        "programs_lock_screen_alt_ctrl_l",
-        "programs_lock_screen_mod_alt_f12",
-        "media_toggle_play_pause",
-        "media_next_media_item",
-        "media_prev_media_item",
-        "media_volume_up",
-        "media_volume_down",
-        "media_toggle_mute",
-        "media_brightness_up",
-        "media_brightness_down",
-        "media_display_off",
-        "awesome_show_help",
-        "awesome_reload_alt_ctrl_r",
-        "awesome_reload_mod_ctrl_r",
-        "awesome_quit",
-        "system_toggle_notifications",
-        "system_lock_screen",
-    }
+    local global_spec_order = {}
+    local client_spec_order = {}
+    local global_specs = normalize_key_specs(settings, key_config.global)
+    local client_specs = normalize_key_specs(settings, key_config.client)
 
-    local global_specs = {
-        programs_quake_terminal = key_spec({ settings.modkey }, "dead_circumflex", "toggle_quake", "quake terminal", grp_names[4]),
-        window_jump_to_urgent_client = key_spec({ settings.modkey }, "u", "jump_to_urgent_client", "jump to urgent client", grp_names[1]),
-        window_restore_minimized_program = key_spec({ settings.modkey, settings.ctrlkey }, "n", "restore_minimized", "restore minimized program", grp_names[1]),
-        window_focus_next_by_index = key_spec({ settings.modkey }, "Tab", "cycle_focus", "focus next by index", grp_names[1]),
-        window_focus_previous_by_index = key_spec({ settings.modkey, settings.shiftkey }, "Tab", "cycle_focus", "focus previous by index", grp_names[1]),
-        window_swap_with_left_client = key_spec({ settings.modkey, settings.ctrlkey }, "Right", "swap_right", "swap with left client", grp_names[1]),
-        window_swap_with_right_client = key_spec({ settings.modkey, settings.ctrlkey }, "Left", "swap_left", "swap with right client", grp_names[1]),
-        window_swap_with_upper_client = key_spec({ settings.modkey, settings.ctrlkey }, "Up", "swap_up", "swap with upper client", grp_names[1]),
-        window_swap_with_lower_client = key_spec({ settings.modkey, settings.ctrlkey }, "Down", "swap_down", "swap with lower client", grp_names[1]),
-        window_focus_down = key_spec({ settings.modkey }, "Down", "focus_down", "focus down", grp_names[1]),
-        window_focus_up = key_spec({ settings.modkey }, "Up", "focus_up", "focus up", grp_names[1]),
-        window_focus_left = key_spec({ settings.modkey }, "Left", "focus_left", "focus left", grp_names[1]),
-        window_focus_right = key_spec({ settings.modkey }, "Right", "focus_right", "focus right", grp_names[1]),
-        desktop_view_previous = key_spec({ settings.altkey, settings.ctrlkey }, "Left", "view_previous_tag", "view previous", grp_names[2]),
-        desktop_view_next = key_spec({ settings.altkey, settings.ctrlkey }, "Right", "view_next_tag", "view next", grp_names[2]),
-        desktop_go_back = key_spec({ settings.modkey, settings.altkey }, "Escape", "restore_tag_history", "go back", grp_names[2]),
-        layout_select_next_layout = key_spec({ settings.modkey }, "space", "next_layout", "select next layout", grp_names[3]),
-        layout_select_prev_layout = key_spec({ settings.modkey, settings.shiftkey }, "space", "prev_layout", "select prev layout", grp_names[3]),
-        layout_increment_useless_gaps = key_spec({ settings.modkey, settings.ctrlkey }, "+", "grow_gaps", "increment useless gaps", grp_names[3]),
-        layout_decrement_useless_gaps = key_spec({ settings.modkey, settings.ctrlkey }, "-", "shrink_gaps", "decrement useless gaps", grp_names[3]),
-        programs_show_media_popup = key_spec({ settings.modkey }, "Prior", "show_media_popup", "show media popup", grp_names[4]),
-        programs_show_notification_popup = key_spec({ settings.modkey }, "Next", "show_notification_popup", "show notification popup", grp_names[4]),
-        programs_show_bluetooth_popup = key_spec({ settings.modkey }, "F10", "show_bluetooth_popup", "show bluetooth popup", grp_names[4]),
-        programs_show_network_popup = key_spec({ settings.modkey }, "F11", "show_network_popup", "show network popup", grp_names[4]),
-        programs_show_powerprofiles_popup = key_spec({ settings.modkey }, "F12", "show_powerprofiles_popup", "show power profiles popup", grp_names[4]),
-        programs_show_calendar = key_spec({ settings.modkey }, "c", "show_calendar", "show calendar", grp_names[4]),
-        programs_lxrunner = key_spec({ settings.altkey }, "F2", "toggle_lxrunner", "lxrunner", grp_names[4]),
-        programs_launcher = key_spec({ settings.altkey }, "F3", "open_launcher", "launcher", grp_names[4]),
-        programs_terminal = key_spec({ settings.modkey }, "q", "open_terminal", "terminal", grp_names[4]),
-        programs_file_browser = key_spec({ settings.modkey }, "e", "open_file_browser", "file browser", grp_names[4]),
-        programs_screenshot_region = key_spec({ settings.modkey }, "p", "screenshot_region", "screenshot of region", grp_names[4]),
-        programs_screenshot_desktop = key_spec({ settings.altkey, settings.ctrlkey }, "p", "screenshot_desktop", "screenshot of desktop", grp_names[4]),
-        programs_screenshot_window = key_spec({ settings.modkey, settings.ctrlkey }, "p", "screenshot_window", "screenshot of window", grp_names[4]),
-        programs_start_awesome_on_tv = key_spec({ settings.modkey, settings.altkey }, "t", "start_awesome_on_tv", "start awesome on TV", grp_names[4]),
-        programs_lock_screen_alt_ctrl_l = key_spec({ settings.altkey, settings.ctrlkey }, "l", "lock_screen", "lock screen", grp_names[4]),
-        programs_lock_screen_mod_alt_f12 = key_spec({ settings.modkey, settings.altkey }, "F12", "lock_screen", "lock screen", grp_names[4]),
-        media_toggle_play_pause = key_spec({}, "XF86AudioPlay", "media_play_pause", "toggle play/pause", grp_names[5]),
-        media_next_media_item = key_spec({}, "XF86AudioNext", "media_next", "next media item", grp_names[5]),
-        media_prev_media_item = key_spec({}, "XF86AudioPrev", "media_prev", "prev media item", grp_names[5]),
-        media_volume_up = key_spec({}, "XF86AudioRaiseVolume", "volume_up", "volume up", grp_names[5]),
-        media_volume_down = key_spec({}, "XF86AudioLowerVolume", "volume_down", "volume down", grp_names[5]),
-        media_toggle_mute = key_spec({}, "XF86AudioMute", "toggle_mute", "toggle mute", grp_names[5]),
-        media_brightness_up = key_spec({}, "XF86MonBrightnessUp", "brightness_up", "brightness up", grp_names[5]),
-        media_brightness_down = key_spec({}, "XF86MonBrightnessDown", "brightness_down", "brightness down", grp_names[5]),
-        media_display_off = key_spec({}, "XF86Display", "brightness_off", "display off", grp_names[5]),
-        awesome_show_help = key_spec({ settings.modkey }, "s", "show_help", "show help", grp_names[6]),
-        awesome_reload_alt_ctrl_r = key_spec({ settings.altkey, settings.ctrlkey }, "r", "awesome_reload", "reload awesome", grp_names[6]),
-        awesome_reload_mod_ctrl_r = key_spec({ settings.modkey, settings.ctrlkey }, "r", "awesome_restart", "reload awesome", grp_names[6]),
-        awesome_quit = key_spec({ settings.modkey, settings.shiftkey }, "q", "awesome_quit", "quit awesome", grp_names[6]),
-        system_toggle_notifications = key_spec({ settings.modkey, settings.altkey, settings.ctrlkey }, "End", "toggle_notifications", "toggle notifications", grp_names[7]),
-        system_lock_screen = key_spec({ settings.modkey, settings.altkey, settings.ctrlkey }, "Delete", "lock_screen", "lock screen", grp_names[7]),
-    }
+    for _, name in ipairs(key_config.global_order or {}) do
+        global_spec_order[#global_spec_order + 1] = name
+    end
 
-    local client_spec_order = {
-        "client_close",
-        "client_toggle_floating",
-        "client_move_to_screen",
-        "client_move_to_left_screen",
-        "client_move_to_right_screen",
-        "client_toggle_titlebar",
-        "client_minimize",
-        "client_maximize",
-    }
-
-    local client_specs = {
-        client_close = key_spec({ settings.modkey, settings.shiftkey }, "c", "kill_client", "close", grp_names[1]),
-        client_toggle_floating = key_spec({ settings.modkey, settings.ctrlkey }, "space", "toggle_floating", "toggle floating", grp_names[1]),
-        client_move_to_screen = key_spec({ settings.modkey }, "o", "move_to_screen", "move to screen", grp_names[1]),
-        client_move_to_left_screen = key_spec({ settings.modkey, settings.altkey }, "Left", "move_to_left_screen", "move to left screen", grp_names[1]),
-        client_move_to_right_screen = key_spec({ settings.modkey, settings.altkey }, "Right", "move_to_right_screen", "move to right screen", grp_names[1]),
-        client_toggle_titlebar = key_spec({ settings.modkey, settings.ctrlkey }, "t", "toggle_titlebar", "toggle titlebar", grp_names[1]),
-        client_minimize = key_spec({ settings.modkey }, "n", "minimize_client", "minimize", grp_names[1]),
-        client_maximize = key_spec({ settings.modkey }, "m", "maximize_client", "maximize", grp_names[1]),
-    }
+    for _, name in ipairs(key_config.client_order or {}) do
+        client_spec_order[#client_spec_order + 1] = name
+    end
 
     for i = 1, 9 do
         local descr_view
@@ -698,18 +624,10 @@ function M.build(context)
         global_spec_order[#global_spec_order + 1] = "desktop_move_focused_to_tag_" .. i
         global_spec_order[#global_spec_order + 1] = "desktop_toggle_focused_on_tag_" .. i
 
-        global_specs["desktop_view_tag_" .. i] = key_spec({ settings.modkey }, "#" .. i + 9, "view_tag_" .. i, descr_view, grp_names[2])
-        global_specs["desktop_toggle_tag_" .. i] = key_spec({ settings.modkey, settings.ctrlkey }, "#" .. i + 9, "toggle_tag_view_" .. i, descr_toggle, grp_names[2])
-        global_specs["desktop_move_focused_to_tag_" .. i] = key_spec({ settings.modkey, settings.shiftkey }, "#" .. i + 9, "move_focused_to_tag_" .. i, descr_move, grp_names[2])
-        global_specs["desktop_toggle_focused_on_tag_" .. i] = key_spec({ settings.modkey, settings.ctrlkey, settings.shiftkey }, "#" .. i + 9, "toggle_focused_on_tag_" .. i, descr_toggle_focus, grp_names[2])
-    end
-
-    if type(key_overrides.global) == "table" then
-        helpers.deep_merge(global_specs, key_overrides.global)
-    end
-
-    if type(key_overrides.client) == "table" then
-        helpers.deep_merge(client_specs, key_overrides.client)
+        global_specs["desktop_view_tag_" .. i] = key_spec({ settings.modkey }, "#" .. i + 9, "view_tag_" .. i, descr_view, "02. desktop")
+        global_specs["desktop_toggle_tag_" .. i] = key_spec({ settings.modkey, settings.ctrlkey }, "#" .. i + 9, "toggle_tag_view_" .. i, descr_toggle, "02. desktop")
+        global_specs["desktop_move_focused_to_tag_" .. i] = key_spec({ settings.modkey, settings.shiftkey }, "#" .. i + 9, "move_focused_to_tag_" .. i, descr_move, "02. desktop")
+        global_specs["desktop_toggle_focused_on_tag_" .. i] = key_spec({ settings.modkey, settings.ctrlkey, settings.shiftkey }, "#" .. i + 9, "toggle_focused_on_tag_" .. i, descr_toggle_focus, "02. desktop")
     end
 
     if not has_binding(global_specs, { settings.modkey, settings.altkey, settings.ctrlkey }, "Left")
@@ -721,7 +639,7 @@ function M.build(context)
                 "Left",
                 "cycle_lxbar_popups_backward",
                 "cycle lxbar popups backward",
-                grp_names[4]
+                "04. programs"
             )
     end
 
@@ -734,7 +652,7 @@ function M.build(context)
                 "Right",
                 "cycle_lxbar_popups_forward",
                 "cycle lxbar popups forward",
-                grp_names[4]
+                "04. programs"
             )
     end
 

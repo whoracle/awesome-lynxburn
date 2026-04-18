@@ -1,5 +1,6 @@
 local os = os
 local M = {}
+local default_keys = require("config.default_keys")
 
 local home = os.getenv("HOME")
 local imageeditor = "gimp"
@@ -107,5 +108,7 @@ M.commands = {
         -- "nm-applet --sm-disable",
     },
 }
+
+M.keys = default_keys
 
 return M

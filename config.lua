@@ -53,6 +53,12 @@ return {
         },
     },
     keys = {
+        -- global = {
+        --     programs_terminal = {
+        --         modifiers = { "modkey" },
+        --         key = "Return",
+        --     },
+        -- },
         global = {
             media_volume_up = {
                 on_press = "volume_down",

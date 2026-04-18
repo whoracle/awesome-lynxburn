@@ -115,7 +115,9 @@ local function load_keys()
         return cached_keys
     end
 
-    local merged = {}
+    local merged = helpers.deep_merge({}, {
+        keys = defaults.keys,
+    })
 
     merge_key_overrides(merged)
 
