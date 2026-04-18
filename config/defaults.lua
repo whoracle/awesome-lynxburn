@@ -25,6 +25,10 @@ M.widgets = {
     },
 }
 
+M.theme = {
+    name = "lynxburn2",
+}
+
 M.commands = {
     terminal = "urxvt -fg gray -tr -sh 50",
     browser = "vivaldi-stable",

@@ -9,6 +9,7 @@ return {
     config_data = require("config.config_data"),
     defaults = require("config.defaults"),
     helpers = require("config.helpers"),
+    theme = require("config.theme"),
     widgets = require("config.widgets"),
     layouts = require("config.layouts"),
     osd = require("config.osd"),

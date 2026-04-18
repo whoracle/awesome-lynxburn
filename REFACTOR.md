@@ -22,3 +22,9 @@ work for, but should be revisited in the final refactor pass.
   config migration.
   Later option: collapse overlapping user-facing override data into one clearer
   central override surface once enough sections have migrated.
+
+- `config.override.theme.lua` versus central theme selection
+  Current role: `config.theme` / central config owns top-level theme selection,
+  while `config.override.theme.lua` still owns runtime theme value overrides.
+  Later option: decide whether the final user-facing config keeps those as two
+  layers or exposes a clearer unified theme config model.
