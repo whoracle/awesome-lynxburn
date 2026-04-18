@@ -170,7 +170,7 @@ function cards.build_notification_card(instance, entry, opts)
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,
-        bg = opts.selected and instance:notification_selected_border_color() or instance:popup_bg(),
+        bg = opts.selected and instance:notification_selected_bg() or instance:popup_bg(),
         shape = gears.shape.rounded_rect,
     })
 
@@ -339,7 +339,7 @@ function cards.build_group_card(instance, group, opts)
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,
-        bg = opts.selected and instance:notification_selected_border_color() or instance:popup_bg(),
+        bg = opts.selected and instance:notification_selected_bg() or instance:popup_bg(),
         shape = gears.shape.rounded_rect,
     })
 

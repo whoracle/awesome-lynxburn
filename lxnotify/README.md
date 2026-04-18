@@ -110,7 +110,7 @@ The most important current keys are:
 - `beautiful.lxnotify_notification_card_bg`
 - `beautiful.lxnotify_bg_hover`
 - `beautiful.lxnotify_button_hover`
-- `beautiful.lxnotify_selected_border`
+- `beautiful.lxnotify_selected_bg`
 
 The popup width in the current theme is normalized to `360`.
 Placement is configured as `"center"` or `"side"`; the actual left/right side
