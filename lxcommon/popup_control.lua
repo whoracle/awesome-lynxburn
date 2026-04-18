@@ -108,6 +108,8 @@ local function inside_any_geometry(x, y, geometry_providers)
 end
 
 function M.stop_outside_click_dismiss(instance, opts)
+    opts = opts or {}
+
     local binding_key = opts.binding_key or "_popup_outside_click_binding"
     local buttons_key = opts.saved_root_buttons_key or "_popup_saved_root_buttons"
     local handler_key = opts.handler_key or "_popup_outside_click_handler"
