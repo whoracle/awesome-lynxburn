@@ -20,16 +20,22 @@ local function load_override_config()
     return helpers.load_optional_module("config.override.config", {})
 end
 
+local function merge_section(merged, key, value)
+    if type(value) ~= "table" or next(value) == nil then
+        return
+    end
+
+    helpers.deep_merge(merged, {
+        [key] = value,
+    })
+end
+
 local function merge_widget_overrides(merged)
     local override_settings = load_override_settings()
     local override_config = load_override_config()
 
-    helpers.deep_merge(merged, {
-        widgets = override_settings.widgets,
-    })
-    helpers.deep_merge(merged, {
-        widgets = override_config.widgets,
-    })
+    merge_section(merged, "widgets", override_settings.widgets)
+    merge_section(merged, "widgets", override_config.widgets)
 end
 
 local function merge_command_overrides(merged)
@@ -37,41 +43,47 @@ local function merge_command_overrides(merged)
     local override_programs = load_override_programs()
     local override_config = load_override_config()
 
-    helpers.deep_merge(merged, {
-        commands = override_settings.commands,
-    })
-    helpers.deep_merge(merged, {
-        commands = override_programs,
-    })
-    helpers.deep_merge(merged, {
-        commands = override_config.commands,
-    })
+    merge_section(merged, "commands", override_settings.commands)
+    merge_section(merged, "commands", override_programs)
+    merge_section(merged, "commands", override_config.commands)
 end
 
 local function merge_theme_overrides(merged)
     local override_settings = load_override_settings()
     local override_config = load_override_config()
 
-    helpers.deep_merge(merged, {
-        theme = {
-            name = override_settings.theme_name,
-        },
-    })
-    helpers.deep_merge(merged, {
-        theme = override_config.theme,
-    })
+    if override_settings.theme_name ~= nil then
+        helpers.deep_merge(merged, {
+            theme = {
+                name = override_settings.theme_name,
+            },
+        })
+    end
+
+    merge_section(merged, "theme", override_config.theme)
 end
 
 local function merge_settings_overrides(merged)
     local override_settings = load_override_settings()
     local override_config = load_override_config()
+    local settings_override = {}
 
-    helpers.deep_merge(merged, {
-        settings = override_settings,
-    })
-    helpers.deep_merge(merged, {
-        settings = override_config.settings,
-    })
+    for _, key in ipairs({
+        "modkey",
+        "altkey",
+        "ctrlkey",
+        "shiftkey",
+        "workspaces",
+        "volume_step",
+        "monitors",
+    }) do
+        if override_settings[key] ~= nil then
+            settings_override[key] = override_settings[key]
+        end
+    end
+
+    merge_section(merged, "settings", settings_override)
+    merge_section(merged, "settings", override_config.settings)
 end
 
 local function load_commands()
