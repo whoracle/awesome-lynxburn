@@ -5,6 +5,7 @@ local naughty = require("naughty")
 local keygrabber = require("awful.keygrabber")
 
 local popup_control = require("lxcommon.popup_control")
+local widget_feedback = require("lxcommon.widget_feedback")
 local actions = require("lxnotify.actions")
 local cards = require("lxnotify.cards")
 local debug = require("lxnotify.debug")
@@ -55,13 +56,6 @@ local function current_target_screen_context()
     end
 
     return { screen = awful.screen.focused() }
-end
-
-local function sync_feedback_highlight(instance)
-    local widget = instance._widget_refs and instance._widget_refs.root or nil
-    if widget and widget._lx_set_feedback_active then
-        widget:_lx_set_feedback_active(instance._popup and instance._popup.visible or false)
-    end
 end
 
 ---Group stored entries into the burst-group structure used by the popup.
@@ -961,7 +955,7 @@ function instance_methods:_start_hover_close_timer()
             if outside_ticks >= max_outside_ticks then
                 popup.hide(self)
                 self:_stop_hover_close_timer()
-                sync_feedback_highlight(self)
+                widget_feedback.sync(self, self._popup and self._popup.visible or false)
             end
         end,
     })
@@ -972,7 +966,7 @@ function instance_methods:close_popups()
     self:_stop_hover_close_timer()
     self:blur_popup_keyboard_navigation()
     popup.hide(self)
-    sync_feedback_highlight(self)
+    widget_feedback.sync(self, self._popup and self._popup.visible or false)
 end
 
 ---Open the popup explicitly, optionally disabling hover-close for keyboard use.
@@ -984,7 +978,7 @@ function instance_methods:show_notification_popup(arg1, arg2)
 
     popup.show(self, current_target_screen_context())
     self:_apply_popup_keyboard_opts(opts)
-    sync_feedback_highlight(self)
+    widget_feedback.sync(self, self._popup and self._popup.visible or false)
 end
 
 ---Toggle the popup, with keyboard-friendly control over hover-close behavior.
@@ -1004,7 +998,7 @@ function instance_methods:toggle_notification_popup(arg1, arg2)
         self:blur_popup_keyboard_navigation()
     end
 
-    sync_feedback_highlight(self)
+    widget_feedback.sync(self, self._popup and self._popup.visible or false)
 end
 
 ---Create a new lxnotify instance with widget, popup controller, and interception hooks.

@@ -5,6 +5,7 @@ local keygrabber = require("awful.keygrabber")
 local unpack = table.unpack or unpack
 local popup_control = require("lxcommon.popup_control")
 local popup_placement = require("lxcommon.popup_placement")
+local widget_feedback = require("lxcommon.widget_feedback")
 
 local M = {}
 M.__index = M
@@ -52,13 +53,6 @@ local function audio_popup_visible(instance)
     return (instance._media_popup and instance._media_popup.visible)
         or (instance._devices_popup and instance._devices_popup.visible)
         or false
-end
-
-local function sync_feedback_highlight(instance)
-    local widget = instance._feedback_widget
-    if widget and widget._lx_set_feedback_active then
-        widget:_lx_set_feedback_active(audio_popup_visible(instance))
-    end
 end
 
 -- Clear cached submodules so reloads pick up on-disk changes without
@@ -197,7 +191,9 @@ function M:_sync_toplevel_bar_visibility()
         self._refs.mic_bar_slot.visible = show_bars and (self.opts.show_mic_activity and self.state.mic_active or false)
     end
 
-    sync_feedback_highlight(self)
+    widget_feedback.sync(self, function()
+        return audio_popup_visible(self)
+    end)
 end
 
 function M:_schedule_refresh(delay, opts)
@@ -887,7 +883,9 @@ function M:close_popups()
     end
 
     self:_sync_toplevel_bar_visibility()
-    sync_feedback_highlight(self)
+    widget_feedback.sync(self, function()
+        return audio_popup_visible(self)
+    end)
 end
 
 return M

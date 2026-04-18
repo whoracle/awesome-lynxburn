@@ -6,6 +6,7 @@ local keygrabber = require("awful.keygrabber")
 
 local popup_control = require("lxcommon.popup_control")
 local popup_common = require("lxcommon.popup_ui")
+local widget_feedback = require("lxcommon.widget_feedback")
 local util = require("lxmedia.util")
 local notify_util = require("lxnotify.util")
 local popup_placement = require("lxcommon.popup_placement")
@@ -165,12 +166,6 @@ local function sort_networks(a, b)
     end
 
     return a.ssid < b.ssid
-end
-
-local function sync_feedback_highlight(instance)
-    if instance.widget and instance.widget._lx_set_feedback_active then
-        instance.widget:_lx_set_feedback_active(instance._popup and instance._popup.visible or false)
-    end
 end
 
 local function apply_popup_geometry(instance, popup_widget, anchor)
@@ -744,7 +739,7 @@ function M:close_popup()
     if self._popup then
         self._popup.visible = false
     end
-    sync_feedback_highlight(self)
+    widget_feedback.sync(self, self._popup and self._popup.visible or false)
 end
 
 function M:_start_popup_outside_click_dismiss()
@@ -823,7 +818,7 @@ function M:toggle_popup(anchor, opts)
 
     apply_popup_geometry(self, self._popup, anchor)
     self._popup.visible = true
-    sync_feedback_highlight(self)
+    widget_feedback.sync(self, self._popup and self._popup.visible or false)
     self:_refresh_popup()
     self:_start_popup_outside_click_dismiss()
 
