@@ -1,59 +1,15 @@
 # Remaining Migration Notes
 
-This file now tracks only the still-unresolved live migration work needed to
-fully move the desktop config away from split `config/override/*.lua` files.
+All observed live split overrides now have a central top-level `./config.lua`
+home in the repo.
 
-## Current Remaining Live Override
+The only remaining migration work is on the live desktop config itself:
 
-Observed unresolved live override in `/home/anthrax/.config/awesome/`:
+1. copy the live `config/override/rules.lua` content into top-level
+   `~/.config/awesome/config.lua` under `rules = function(context) ... end`
+2. reload Awesome and verify the Chrome placement rule still works
+3. delete the migrated non-example files in
+   `~/.config/awesome/config/override/`
 
-- `config/override/rules.lua`
-
-All other previously observed live override data now has a valid top-level
-`./config.lua` home and should be treated as migrated or ready for deletion
-once verified on the live machine.
-
-## Live `rules.lua` Content
-
-Current content:
-
-```lua
-return function(context)
-    return {
-        {
-            rule = { class = "Google-chrome" },
-            properties = {
-                screen = context.monitors.right,
-                tag = "primary",
-                maximized = false,
-            },
-        },
-    }
-end
-```
-
-## What Still Needs Decision
-
-There is not yet a final central `config.lua` surface for rules.
-
-Open design question:
-
-- should top-level `config.lua.rules` hold:
-  - a plain list of additional rule entries
-  - a function-style rule builder
-  - a lighter declarative rule format that `config/rules.lua` expands
-
-Current implementation still expects legacy rule overrides through
-`config.override.rules.lua`, including function returns that receive `context`.
-
-## Recommended Next Step
-
-1. Decide the final central user-facing shape for rule overrides.
-2. Implement that shape in the repo.
-3. Migrate the live `config/override/rules.lua` into top-level `config.lua`.
-4. Remove compatibility loading for `config.override.rules`.
-
-## Handoff Note
-
-For a fresh Codex session, this is the last known live override that still
-requires a migration design rather than a straightforward data move.
+At this point, `MIGRATE.md` can be deleted once the live machine has completed
+that final move.

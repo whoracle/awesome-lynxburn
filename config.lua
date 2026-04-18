@@ -52,6 +52,18 @@ return {
             },
         },
     },
+    rules = function(context)
+        return {
+            {
+                rule = { class = "Google-chrome" },
+                properties = {
+                    screen = context.monitors.right,
+                    tag = "primary",
+                    maximized = false,
+                },
+            },
+        }
+    end,
     runner = {
         aliases = {
             {

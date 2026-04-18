@@ -1,5 +1,5 @@
 local awful = require("awful")
-local helpers = require("config.helpers")
+local config_data = require("config.config_data")
 
 local M = {}
 
@@ -83,7 +83,7 @@ function M.build(context)
         },
     }
 
-    local override_rules = helpers.load_optional_module("config.override.rules", {})
+    local override_rules = config_data.rules()
 
     if type(override_rules) == "function" then
         override_rules = override_rules(context)

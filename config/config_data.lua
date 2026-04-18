@@ -5,22 +5,11 @@ local M = {}
 
 local cached_commands
 local cached_keys
+local cached_rules
 local cached_runner
 local cached_settings
 local cached_theme
 local cached_widgets
-
-local function load_override_settings()
-    return helpers.load_optional_module("config.override.settings", {})
-end
-
-local function load_override_programs()
-    return helpers.load_optional_module("config.override.programs", {})
-end
-
-local function load_legacy_override_config()
-    return helpers.load_optional_module("config.override.config", {})
-end
 
 local function load_user_config()
     return helpers.load_optional_module("config", {})
@@ -37,32 +26,20 @@ local function merge_section(merged, key, value)
 end
 
 local function merge_widget_overrides(merged)
-    local override_settings = load_override_settings()
-    local legacy_override_config = load_legacy_override_config()
     local user_config = load_user_config()
 
-    merge_section(merged, "widgets", override_settings.widgets)
-    merge_section(merged, "widgets", legacy_override_config.widgets)
     merge_section(merged, "widgets", user_config.widgets)
 end
 
 local function merge_command_overrides(merged)
-    local override_settings = load_override_settings()
-    local override_programs = load_override_programs()
-    local legacy_override_config = load_legacy_override_config()
     local user_config = load_user_config()
 
-    merge_section(merged, "commands", override_settings.commands)
-    merge_section(merged, "commands", override_programs)
-    merge_section(merged, "commands", legacy_override_config.commands)
     merge_section(merged, "commands", user_config.commands)
 end
 
 local function merge_key_overrides(merged)
-    local legacy_key_overrides = helpers.load_optional_module("config.override.keys", {})
     local user_config = load_user_config()
 
-    merge_section(merged, "keys", legacy_key_overrides)
     merge_section(merged, "keys", user_config.keys)
 end
 
@@ -73,45 +50,23 @@ local function merge_runner_overrides(merged)
 end
 
 local function merge_theme_overrides(merged)
-    local override_settings = load_override_settings()
-    local legacy_override_config = load_legacy_override_config()
     local user_config = load_user_config()
 
-    if override_settings.theme_name ~= nil then
-        helpers.deep_merge(merged, {
-            theme = {
-                name = override_settings.theme_name,
-            },
-        })
-    end
-
-    merge_section(merged, "theme", legacy_override_config.theme)
     merge_section(merged, "theme", user_config.theme)
 end
 
 local function merge_settings_overrides(merged)
-    local override_settings = load_override_settings()
-    local legacy_override_config = load_legacy_override_config()
     local user_config = load_user_config()
-    local settings_override = {}
-
-    for _, key in ipairs({
-        "modkey",
-        "altkey",
-        "ctrlkey",
-        "shiftkey",
-        "workspaces",
-        "volume_step",
-        "monitors",
-    }) do
-        if override_settings[key] ~= nil then
-            settings_override[key] = override_settings[key]
-        end
-    end
-
-    merge_section(merged, "settings", settings_override)
-    merge_section(merged, "settings", legacy_override_config.settings)
     merge_section(merged, "settings", user_config.settings)
+end
+
+local function merge_rule_overrides(merged)
+    local user_config = load_user_config()
+    local rules = user_config.rules
+
+    if type(rules) == "function" or type(rules) == "table" then
+        merged.rules = rules
+    end
 end
 
 local function load_commands()
@@ -163,6 +118,23 @@ end
 
 function M.keys()
     return load_keys()
+end
+
+local function load_rules()
+    if cached_rules ~= nil then
+        return cached_rules
+    end
+
+    local merged = {}
+
+    merge_rule_overrides(merged)
+
+    cached_rules = merged.rules
+    return cached_rules
+end
+
+function M.rules()
+    return load_rules()
 end
 
 local function load_runner()
