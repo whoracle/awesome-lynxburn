@@ -21,7 +21,6 @@ local DEFAULTS = {
     osd_width = 260,
     osd_height = 18,
     osd_margin = 16,
-    osd_timeout = 1,
 }
 
 local function merge_defaults(opts)
@@ -154,7 +153,7 @@ function M:_load_osd()
         width = self.opts.osd_width,
         height = self.opts.osd_height,
         margin = self.opts.osd_margin,
-        timeout = self.opts.osd_timeout,
+        timeout = beautiful.lxaudio_osd_timeout or 1,
         bar_bg = beautiful.bg_minimize or "#444444",
         bar_fg = beautiful.fg_normal or "#ffffff",
     })
@@ -937,8 +936,8 @@ function M:_start_hover_close_timer(kind, anchor_geo)
     self:_stop_hover_close_timer()
 
     local outside_ticks = 0
-    local poll_interval = self.opts.hover_close_poll_interval or 0.25
-    local hover_timeout = self.opts.hover_close_timeout or 1.5
+    local poll_interval = beautiful.lxaudio_hover_close_poll_interval or 0.25
+    local hover_timeout = beautiful.lxaudio_hover_close_timeout or 1.5
     local max_outside_ticks = math.max(1, math.floor((hover_timeout / poll_interval) + 0.5))
 
     self._hover_close_kind = kind

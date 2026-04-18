@@ -229,18 +229,10 @@ function instance_methods:button_hover_bg()
 end
 
 function instance_methods:hover_close_timeout()
-    if self.hover_close_timeout_seconds ~= nil then
-        return self.hover_close_timeout_seconds
-    end
-
     return util.theme_value("lxnotify_hover_close_timeout", 1.5)
 end
 
 function instance_methods:hover_close_poll_interval()
-    if self.hover_close_poll_interval_seconds ~= nil then
-        return self.hover_close_poll_interval_seconds
-    end
-
     return util.theme_value("lxnotify_hover_close_poll_interval", 0.25)
 end
 
@@ -1157,8 +1149,6 @@ function lxnotify.new(opts)
         _next_notification_id = 0,
         debug_notifications = opts.debug_notifications == true,
         notification_denylist = opts.notification_denylist or {},
-        hover_close_timeout_seconds = opts.hover_close_timeout,
-        hover_close_poll_interval_seconds = opts.hover_close_poll_interval,
         notification_title_limit = opts.notification_title_max_length,
         notification_body_limit = opts.notification_body_max_length,
         notification_source_limit = opts.notification_source_max_length,

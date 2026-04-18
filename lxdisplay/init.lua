@@ -784,7 +784,7 @@ function M:_build_osd()
         width = self._opts.osd_width or beautiful.lxdisplay_osd_width or 260,
         height = self._opts.osd_height or beautiful.lxdisplay_osd_height or 18,
         margin = self._opts.osd_margin or beautiful.lxdisplay_osd_margin or 16,
-        timeout = self._opts.osd_timeout or beautiful.lxdisplay_osd_timeout or 1,
+        timeout = beautiful.lxdisplay_osd_timeout or 1,
         bar_bg = beautiful.lxdisplay_osd_bar_bg
             or beautiful.lxdisplay_bar_bg
             or beautiful.lxaudio_bar_bg

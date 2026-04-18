@@ -22,9 +22,6 @@ M.widgets = {
             osd_width = 260,
             osd_height = 18,
             osd_margin = 16,
-            osd_timeout = 1,
-            hover_close_timeout = 1.5,
-            hover_close_poll_interval = 0.25,
         },
         bluetooth = {
             enabled = false,
@@ -36,7 +33,6 @@ M.widgets = {
             osd_width = 260,
             osd_height = 18,
             osd_margin = 16,
-            osd_timeout = 1,
             brightness = {
                 get = "xbacklight -get",
                 set = "xbacklight -set %d",
@@ -73,8 +69,6 @@ M.widgets = {
                 { app_name = "Notification Indicator" },
                 { app_name = "Calendar" },
             },
-            hover_close_timeout = 1.5,
-            hover_close_poll_interval = 0.25,
             notification_title_max_length = 72,
             notification_body_max_length = 140,
             notification_source_max_length = 28,
