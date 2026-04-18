@@ -2,6 +2,7 @@ return {
     {
         name = "senecvpn",
         type = "shell",
+        -- icon = "/absolute/path/to/vpn.svg",
         command = [[
             nmcli c show --active | grep senec
             if [ $? -eq 0 ]; then
@@ -17,6 +18,7 @@ return {
     {
         name = "browser",
         type = "template",
+        -- icon = "/absolute/path/to/browser.svg",
         command = "/usr/bin/vivaldi-home %s",
         env = {},
     },

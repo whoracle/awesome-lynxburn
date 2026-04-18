@@ -128,6 +128,7 @@ return {
                 {
                     name = "yayoff",
                     type = "shell",
+                    -- icon = "/absolute/path/to/icon.svg",
                     command = [[urxvt -fg gray -tr -sh 50 -e sh -lc 'yay -Syu --noconfirm; status=$?; if [ $status -ne 0 ]; then echo; echo "yay failed with exit code $status"; echo "Shutdown was not triggered."; printf "Press Enter to close..."; read -r _; exit $status; fi; exec sudo shutdown -hP now']],
                 },
             },

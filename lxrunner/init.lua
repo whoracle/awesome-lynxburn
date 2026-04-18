@@ -196,6 +196,20 @@ local function upsert_alias(target, alias)
     table.insert(target, alias)
 end
 
+local function alias_icon(instance, alias_name)
+    if not instance or type(alias_name) ~= "string" or alias_name == "" then
+        return nil
+    end
+
+    for _, alias in ipairs(instance._aliases or {}) do
+        if alias.name == alias_name and type(alias.icon) == "string" and alias.icon ~= "" then
+            return alias.icon
+        end
+    end
+
+    return nil
+end
+
 local function build_row(text, selected, icon)
     local fg = selected
         and (beautiful.lxrunner_row_selected_fg or beautiful.fg_focus or "#ffffff")
@@ -432,7 +446,7 @@ function M:_icon_for_entry(entry)
     end
 
     if source == "alias" then
-        return self._icons.alias
+        return entry.icon or alias_icon(self, entry.alias_name or entry.name) or self._icons.alias
     end
 
     if source == "desktop" then
@@ -491,6 +505,7 @@ function M:_load_aliases()
                 type = alias.type or "shell",
                 command = alias.command,
                 env = alias.env,
+                icon = alias.icon,
                 description = alias.description,
                 source = "alias",
             })
@@ -512,6 +527,7 @@ function M:_load_aliases()
                     type = alias.type or "shell",
                     command = alias.command,
                     env = alias.env,
+                    icon = alias.icon,
                     description = alias.description,
                     source = "alias",
                 })
@@ -769,6 +785,7 @@ function M:_filter_matches()
                 command = resolved_command,
                 source = "alias",
                 alias_name = alias.name,
+                icon = alias.icon,
             })
             ranked[#ranked].rank = ranked[#ranked].rank - self:_history_rank_bonus(ranked[#ranked])
         end
