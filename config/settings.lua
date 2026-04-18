@@ -3,6 +3,12 @@ local config_data = require("config.config_data")
 local theme_config = require("config.theme")
 
 local static_settings = config_data.settings()
+local static_tags = config_data.tags()
+local tag_names = {}
+
+for _, tag_name in ipairs(static_tags.order or {}) do
+    tag_names[#tag_names + 1] = tag_name
+end
 
 ---Static user-facing settings that are referenced across the config.
 ---
@@ -16,7 +22,7 @@ local settings = {
     shiftkey = static_settings.shiftkey,
     editor = os.getenv("EDITOR") or "vim",
     home = os.getenv("HOME"),
-    workspaces = static_settings.workspaces,
+    tags = tag_names,
     volume_step = static_settings.volume_step,
     monitors = static_settings.monitors,
     widgets = config_data.widgets(),

@@ -8,6 +8,7 @@ local awful = require("awful")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local services = require("config.services")
+local tags = require("config.tags")
 
 local my_table = awful.util.table or gears.table
 local markup = lain.util.markup
@@ -380,7 +381,7 @@ function M.build(theme)
         end
         gears.wallpaper.maximized(wallpaper, s, true)
 
-        awful.tag(awful.util.tagnames, s, awful.layout.layouts)
+        tags.create_for_screen(s)
 
         beautiful.bg_systray = theme.tasklist_bg_focus
         beautiful.systray_icon_spacing = theme.widget_padding_left

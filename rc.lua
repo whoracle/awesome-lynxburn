@@ -52,7 +52,6 @@ local osd_handlers = config.osd.new(beautiful, {
 
 config.layouts.setup({
     terminal = config.programs.terminal,
-    workspaces = config.settings.workspaces,
 })
 
 local quake = config.layouts.create_quake(config.programs.terminal)
@@ -90,6 +89,7 @@ awful.rules.rules = config.rules.build({
     clientkeys = keymaps.clientkeys,
     clientbuttons = mousemaps.clientbuttons,
     monitors = config.settings.monitors,
+    tags = config.settings.tags,
 })
 
 config.signals.setup({

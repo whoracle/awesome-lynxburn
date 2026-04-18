@@ -11,6 +11,7 @@ local cached_settings
 local cached_theme
 local cached_widgets
 local cached_screens
+local cached_tags
 
 local function load_user_config()
     return helpers.load_optional_module("config", {})
@@ -60,6 +61,12 @@ local function merge_screen_overrides(merged)
     local user_config = load_user_config()
 
     merge_section(merged, "screens", user_config.screens)
+end
+
+local function merge_tag_overrides(merged)
+    local user_config = load_user_config()
+
+    merge_section(merged, "tags", user_config.tags)
 end
 
 local function merge_settings_overrides(merged)
@@ -218,6 +225,25 @@ end
 
 function M.screens()
     return load_screens()
+end
+
+local function load_tags()
+    if cached_tags then
+        return cached_tags
+    end
+
+    local merged = helpers.deep_merge({}, {
+        tags = defaults.tags,
+    })
+
+    merge_tag_overrides(merged)
+
+    cached_tags = merged.tags or {}
+    return cached_tags
+end
+
+function M.tags()
+    return load_tags()
 end
 
 function M.widgets()

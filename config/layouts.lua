@@ -1,10 +1,11 @@
 local awful = require("awful")
 local lain = require("lain")
+local tags = require("config.tags")
 
 local M = {}
 
 ---Configure the available Awesome/lain layouts and global terminal/tag names.
----@param settings {terminal:string,workspaces:string[]}
+---@param settings {terminal:string}
 function M.setup(settings)
     lain.layout.termfair.nmaster = 3
     lain.layout.termfair.ncol = 1
@@ -17,14 +18,7 @@ function M.setup(settings)
     lain.layout.cascade.tile.ncol = 2
 
     awful.util.terminal = settings.terminal
-    awful.util.tagnames = settings.workspaces
-    awful.layout.layouts = {
-        awful.layout.suit.fair,
-        lain.layout.centerwork,
-        lain.layout.centerwork.horizontal,
-        awful.layout.suit.fair.horizontal,
-        awful.layout.suit.floating,
-    }
+    awful.layout.append_default_layouts(tags.default_layouts())
 end
 
 ---Create the drop-down Quake terminal wrapper.

@@ -1,8 +1,8 @@
 local awful = require("awful")
 local gears = require("gears")
 local beautiful = require("beautiful")
-local lain = require("lain")
 local config_data = require("config.config_data")
+local tags = require("config.tags")
 
 local M = {}
 
@@ -16,26 +16,6 @@ local function normalize_profile(profile)
     end
 
     return profile
-end
-
-local function resolve_layout(layout_name)
-    if layout_name == nil then
-        return nil
-    end
-
-    local layouts = {
-        ["centerwork"] = lain.layout.centerwork,
-        ["centerwork.horizontal"] = lain.layout.centerwork.horizontal,
-        ["fair"] = awful.layout.suit.fair,
-        ["fairv"] = awful.layout.suit.fair,
-        ["fair.horizontal"] = awful.layout.suit.fair.horizontal,
-        ["fairh"] = awful.layout.suit.fair.horizontal,
-        ["vertical"] = awful.layout.suit.fair,
-        ["horizontal"] = awful.layout.suit.fair.horizontal,
-        ["floating"] = awful.layout.suit.floating,
-    }
-
-    return layouts[layout_name]
 end
 
 ---Configure wallpaper handling and per-screen defaults.
@@ -67,7 +47,7 @@ function M.setup(settings)
             local profile = screen_profiles[screen_name]
 
             if profile and s.index == monitor_index then
-                local layout = resolve_layout(profile.layout)
+                local layout = tags.resolve_layout(profile.layout)
 
                 if layout then
                     s.selected_tag.layout = layout

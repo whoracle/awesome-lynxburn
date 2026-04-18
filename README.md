@@ -62,7 +62,7 @@ are intended to become submodules later.
   Aggregates the config modules behind `require("config")`.
 
 - `settings.lua`
-  Static user preferences such as mod keys, monitor mapping, workspace names,
+  Static user preferences such as mod keys, monitor mapping, tag names,
   and theme selection.
 
 - `programs.lua`
@@ -152,7 +152,7 @@ Override precedence is always:
 
 What each override is for:
 
-- `settings.lua`: modifier keys, monitor indices, workspace names, theme name
+- `settings.lua`: modifier keys, monitor indices, tag names, theme name
 - `programs.lua`: terminal/browser/launcher commands, autostart, Redshift
 - `theme.lua`: colors, wallpaper, theme-local module sizing and styling
 - `screens.lua`: per-monitor default layout and DPI
@@ -290,7 +290,7 @@ If you want to change:
 
 - keybindings: `config/keys.lua`
 - app commands and tool paths: `config/programs.lua`
-- monitor mapping / workspace names / modifier keys: `config/settings.lua`
+- monitor mapping / tag names / modifier keys: `config/settings.lua`
 - client placement rules: `config/rules.lua`
 - screen-specific DPI and default layouts: `config/screens.lua`
 - classic wibar order/layout: `themes/lynxburn2/widgets.lua`

@@ -7,13 +7,14 @@ local M = {}
 ---
 ---Per-application placement, floating/maximized defaults, and monitor/tag
 ---assignments belong here.
----@param context {beautiful:table,clientkeys:any,clientbuttons:any,monitors:table}
+---@param context {beautiful:table,clientkeys:any,clientbuttons:any,monitors:table,tags:string[]}
 ---@return table[]
 function M.build(context)
     local beautiful = context.beautiful
     local clientkeys = context.clientkeys
     local clientbuttons = context.clientbuttons
     local monitors = context.monitors
+    local tags = context.tags
     local rules = {
         {
             rule = {},
@@ -36,11 +37,11 @@ function M.build(context)
         },
         {
             rule = { class = "Vivaldi" },
-            properties = { screen = monitors.center, tag = awful.util.tagnames[1], maximized = false },
+            properties = { screen = monitors.center, tag = tags[1], maximized = false },
         },
         {
             rule = { class = "Sublime_text" },
-            properties = { screen = monitors.center, tag = awful.util.tagnames[1] },
+            properties = { screen = monitors.center, tag = tags[1] },
         },
         {
             rule_any = { class = { "vlc" } },

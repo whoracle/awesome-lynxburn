@@ -44,12 +44,26 @@ M.screens = {
     },
 }
 
+M.tags = {
+    order = { "primary", "secondary", "tertiary" },
+    definitions = {
+        primary = {
+            layout = "fair",
+        },
+        secondary = {
+            layout = "centerwork",
+        },
+        tertiary = {
+            layout = "centerwork.horizontal",
+        },
+    },
+}
+
 M.settings = {
     modkey = "Mod4",
     altkey = "Mod1",
     ctrlkey = "Control",
     shiftkey = "Shift",
-    workspaces = { "primary", "secondary", "tertiary" },
     volume_step = 5,
     monitors = {
         left = 3,
@@ -103,10 +117,7 @@ M.commands = {
         off = "xset dpms force off",
     },
     autostart_once = {},
-    autostart = {
-        -- "nextcloud",
-        -- "nm-applet --sm-disable",
-    },
+    autostart = {},
 }
 
 M.keys = default_keys

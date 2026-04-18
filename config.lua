@@ -22,6 +22,14 @@ return {
     --         dpi = 110,
     --     },
     -- },
+    -- tags = {
+    --     order = { "primary", "secondary", "tertiary" },
+    --     definitions = {
+    --         primary = { layout = "fair" },
+    --         secondary = { layout = "centerwork" },
+    --         tertiary = { layout = "floating" },
+    --     },
+    -- },
     -- widgets = {
     --     order = {
     --         "network",
