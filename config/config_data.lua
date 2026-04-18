@@ -4,6 +4,7 @@ local defaults = require("config.defaults")
 local M = {}
 
 local cached_commands
+local cached_settings
 local cached_theme
 local cached_widgets
 
@@ -61,6 +62,18 @@ local function merge_theme_overrides(merged)
     })
 end
 
+local function merge_settings_overrides(merged)
+    local override_settings = load_override_settings()
+    local override_config = load_override_config()
+
+    helpers.deep_merge(merged, {
+        settings = override_settings,
+    })
+    helpers.deep_merge(merged, {
+        settings = override_config.settings,
+    })
+end
+
 local function load_commands()
     if cached_commands then
         return cached_commands
@@ -93,6 +106,25 @@ end
 
 function M.commands()
     return load_commands()
+end
+
+local function load_settings()
+    if cached_settings then
+        return cached_settings
+    end
+
+    local merged = helpers.deep_merge({}, {
+        settings = defaults.settings,
+    })
+
+    merge_settings_overrides(merged)
+
+    cached_settings = merged.settings or {}
+    return cached_settings
+end
+
+function M.settings()
+    return load_settings()
 end
 
 local function load_theme()

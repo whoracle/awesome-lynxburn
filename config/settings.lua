@@ -1,7 +1,8 @@
 local os = os
-local helpers = require("config.helpers")
 local config_data = require("config.config_data")
 local theme_config = require("config.theme")
+
+local static_settings = config_data.settings()
 
 ---Static user-facing settings that are referenced across the config.
 ---
@@ -9,23 +10,16 @@ local theme_config = require("config.theme")
 ---them across multiple modules.
 local settings = {
     theme_name = theme_config.name(),
-    modkey = "Mod4",
-    altkey = "Mod1",
-    ctrlkey = "Control",
-    shiftkey = "Shift",
+    modkey = static_settings.modkey,
+    altkey = static_settings.altkey,
+    ctrlkey = static_settings.ctrlkey,
+    shiftkey = static_settings.shiftkey,
     editor = os.getenv("EDITOR") or "vim",
     home = os.getenv("HOME"),
-    workspaces = { "primary", "secondary", "tertiary" },
-    volume_step = 5,
-    monitors = {
-        left = 3,
-        center = 1,
-        right = 2,
-    },
+    workspaces = static_settings.workspaces,
+    volume_step = static_settings.volume_step,
+    monitors = static_settings.monitors,
     widgets = config_data.widgets(),
 }
 
-return helpers.deep_merge(
-    settings,
-    helpers.load_optional_module("config.override.settings", {})
-)
+return settings

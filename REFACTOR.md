@@ -12,10 +12,10 @@ work for, but should be revisited in the final refactor pass.
   layer and keep only a thinner runtime adapter if it still earns its keep.
 
 - `config/settings.lua`
-  Current role: mixed compatibility surface that still exposes `settings.widgets`
-  from the new central loader while other settings remain locally defined here.
-  Later option: reduce it to non-centralized runtime settings or fold more of
-  it into the central config loader once additional sections migrate.
+  Current role: compatibility surface over central settings/widget/theme data,
+  plus runtime-derived values like `home` and `editor`.
+  Later option: reduce it to a very thin runtime adapter or retire it once
+  direct consumers can read the central config surfaces they actually need.
 
 - `config.override.settings.lua` and `config.override.programs.lua`
   Current role: backward-compatible local override paths during the central

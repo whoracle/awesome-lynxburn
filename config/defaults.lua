@@ -29,6 +29,20 @@ M.theme = {
     name = "lynxburn2",
 }
 
+M.settings = {
+    modkey = "Mod4",
+    altkey = "Mod1",
+    ctrlkey = "Control",
+    shiftkey = "Shift",
+    workspaces = { "primary", "secondary", "tertiary" },
+    volume_step = 5,
+    monitors = {
+        left = 3,
+        center = 1,
+        right = 2,
+    },
+}
+
 M.commands = {
     terminal = "urxvt -fg gray -tr -sh 50",
     browser = "vivaldi-stable",
