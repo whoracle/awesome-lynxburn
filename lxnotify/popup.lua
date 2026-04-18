@@ -16,18 +16,6 @@ local HEADER_LABELS = {
     resume_interception = "Resume Capture",
 }
 
-local function popup_geometry(instance, target_screen)
-    local workarea = target_screen.workarea
-    local width = math.min(instance:popup_width(), workarea.width)
-
-    return {
-        x = instance:popup_edge() == "left" and workarea.x or (workarea.x + workarea.width - width),
-        y = workarea.y,
-        width = width,
-        height = workarea.height,
-    }
-end
-
 local function apply_geometry(instance, popup_widget, target_screen)
     popup_placement.apply(
         popup_widget,

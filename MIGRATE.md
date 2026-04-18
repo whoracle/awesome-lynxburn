@@ -18,6 +18,7 @@ Current target sections are:
 Module- and bar-related config should now live under `lxmodules`, for example:
 
 - `lxmodules.lxbar.order`
+- `lxmodules.lxbar.popup_side`
 - `lxmodules.lxbar.modules.network.cycle`
 - `lxmodules.lxdisplay.redshift`
 - `lxmodules.lxrunner.aliases`
@@ -48,7 +49,11 @@ Notebook migration checklist for the current session's config-shape changes:
 7. Module presence in `lxbar` is now controlled by `lxmodules.lxbar.order`:
    - remove any legacy `widgets.modules.<name>.enabled` settings
    - if a module should not appear in the bar, leave it out of `lxmodules.lxbar.order`
-8. After copying the migrated data, delete obsolete non-example files in
+8. Popup side placement is now centralized at bar level:
+   - set `lxmodules.lxbar.popup_side = "left"` or `"right"`
+   - use per-module/theme popup placement values of `"center"` or `"side"`
+   - remove legacy per-popup `"left"`/`"right"` placement values and any `lxnotify_popup_edge` override
+9. After copying the migrated data, delete obsolete non-example files in
    `~/.config/awesome/config/override/`.
 
 Once the live machine has copied over anything it still needs, the remaining

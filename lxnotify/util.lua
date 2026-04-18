@@ -12,14 +12,6 @@ function util.theme_value(theme_key, fallback)
     return fallback
 end
 
-function util.normalize_edge(edge)
-    if edge == "left" or edge == "right" then
-        return edge
-    end
-
-    return "right"
-end
-
 function util.resolve_screen(anchor)
     if type(anchor) == "table" then
         if anchor.screen then

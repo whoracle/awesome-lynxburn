@@ -113,6 +113,7 @@ M.commands = {
 
 M.lxmodules = {
     lxbar = {
+        popup_side = "right",
         order = {
             "network",
             "media",

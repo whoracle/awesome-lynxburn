@@ -1,13 +1,26 @@
 local awful = require("awful")
+local lxmodules = require("config.lxmodules")
 
 local M = {}
 
 function M.normalize(value, default)
-    if value == "left" or value == "right" or value == "center" then
+    if value == "side" or value == "center" then
         return value
     end
 
+    if value == "left" or value == "right" then
+        return "side"
+    end
+
     return default or "center"
+end
+
+function M.resolve_side(placement)
+    if M.normalize(placement, "center") ~= "side" then
+        return nil
+    end
+
+    return lxmodules.popup_side()
 end
 
 function M.apply(popup_widget, target_screen, placement, opts)
@@ -16,17 +29,18 @@ function M.apply(popup_widget, target_screen, placement, opts)
 
     local workarea = target_screen.workarea
     local width = math.min(opts.width or workarea.width, workarea.width)
+    local side = M.resolve_side(placement)
 
     popup_widget.screen = target_screen
 
-    if placement == "left" or placement == "right" then
+    if side then
         popup_widget.type = "dock"
         popup_widget.minimum_width = width
         popup_widget.maximum_width = width
         popup_widget.minimum_height = workarea.height
         popup_widget.maximum_height = workarea.height
         popup_widget:geometry({
-            x = placement == "left" and workarea.x or (workarea.x + workarea.width - width),
+            x = side == "left" and workarea.x or (workarea.x + workarea.width - width),
             y = workarea.y,
             width = width,
             height = workarea.height,

@@ -36,6 +36,16 @@ function M.order()
     return order
 end
 
+function M.popup_side()
+    local side = (lxmodules().lxbar or {}).popup_side
+
+    if side == "left" or side == "right" then
+        return side
+    end
+
+    return "right"
+end
+
 function M.enabled(id, default)
     local order = M.order()
 

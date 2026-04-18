@@ -173,7 +173,7 @@ local function apply_popup_geometry(instance, popup_widget, anchor)
     popup_placement.apply(
         popup_widget,
         target_screen,
-        instance:_theme_value("lxnetwork_popup_placement", "right"),
+        instance:_theme_value("lxnetwork_popup_placement", "side"),
         { width = math.min(instance:_theme_value("lxnetwork_popup_width", 380), target_screen.workarea.width) }
     )
 end

@@ -97,14 +97,10 @@ function instance_methods:popup_width()
     return util.theme_value("lxnotify_popup_width", 360)
 end
 
-function instance_methods:popup_edge()
-    return util.normalize_edge(util.theme_value("lxnotify_popup_edge", "right"))
-end
-
 function instance_methods:popup_placement()
     return require("lxcommon.popup_placement").normalize(
-        util.theme_value("lxnotify_popup_placement", nil),
-        self:popup_edge()
+        util.theme_value("lxnotify_popup_placement", "side"),
+        "side"
     )
 end
 

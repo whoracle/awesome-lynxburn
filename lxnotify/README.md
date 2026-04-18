@@ -113,6 +113,8 @@ The most important current keys are:
 - `beautiful.lxnotify_selected_border`
 
 The popup width in the current theme is normalized to `360`.
+Placement is configured as `"center"` or `"side"`; the actual left/right side
+comes from `lxmodules.lxbar.popup_side`.
 
 ## Code Layout
 
