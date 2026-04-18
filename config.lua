@@ -13,21 +13,29 @@ return {
     --     lxrunner_width = 640,
     -- },
     -- screens = {
-    --     left = {
-    --         layout = "fair.horizontal",
-    --         dpi = 96,
-    --     },
-    --     right = {
-    --         layout = "floating",
-    --         dpi = 110,
-    --     },
-    -- },
-    -- tags = {
-    --     order = { "primary", "secondary", "tertiary" },
-    --     definitions = {
+    --     tag_order = { "primary", "secondary", "tertiary" },
+    --     tag_defaults = {
     --         primary = { layout = "fair" },
     --         secondary = { layout = "centerwork" },
-    --         tertiary = { layout = "floating" },
+    --         tertiary = { layout = "centerwork.horizontal" },
+    --     },
+    --     left = {
+    --         dpi = 96,
+    --         tags = {
+    --             primary = { layout = "fair.horizontal" },
+    --             secondary = { layout = "centerwork" },
+    --             tertiary = { layout = "floating" },
+    --         },
+    --     },
+    --     right = {
+    --         dpi = 110,
+    --         tags = {
+    --             primary = { layout = "floating" },
+    --         },
+    --     },
+    --     center = {
+    --         -- legacy compatibility shortcut:
+    --         -- layout = "centerwork",
     --     },
     -- },
     -- widgets = {

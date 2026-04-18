@@ -3,10 +3,10 @@ local config_data = require("config.config_data")
 local theme_config = require("config.theme")
 
 local static_settings = config_data.settings()
-local static_tags = config_data.tags()
+local static_screens = config_data.screens()
 local tag_names = {}
 
-for _, tag_name in ipairs(static_tags.order or {}) do
+for _, tag_name in ipairs(static_screens.tag_order or {}) do
     tag_names[#tag_names + 1] = tag_name
 end
 

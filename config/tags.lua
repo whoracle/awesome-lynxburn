@@ -5,10 +5,6 @@ local config_data = require("config.config_data")
 local M = {}
 
 local function resolve_layout(layout_name)
-    if layout_name == nil then
-        return nil
-    end
-
     local layouts = {
         ["centerwork"] = lain.layout.centerwork,
         ["centerwork.horizontal"] = lain.layout.centerwork.horizontal,
@@ -21,21 +17,45 @@ local function resolve_layout(layout_name)
         ["floating"] = awful.layout.suit.floating,
     }
 
-    return layouts[layout_name]
+    if layout_name == nil then
+        return nil
+    end
+
+    return layouts[layout_name] or awful.layout.suit.fair
 end
 
-local function build_specs()
-    local tag_config = config_data.tags()
-    local order = tag_config.order or {}
-    local definitions = tag_config.definitions or {}
+local function screen_name_for_index(screen_index)
+    local monitors = config_data.settings().monitors or {}
+
+    for screen_name, monitor_index in pairs(monitors) do
+        if monitor_index == screen_index then
+            return screen_name
+        end
+    end
+
+    return nil
+end
+
+local function build_specs(screen_name)
+    local screen_config = config_data.screens()
+    local order = screen_config.tag_order or {}
+    local defaults = screen_config.tag_defaults or {}
+    local profile = screen_name and screen_config[screen_name] or {}
+    local profile_tags = profile.tags or {}
     local specs = {}
 
     for _, tag_name in ipairs(order) do
-        local definition = definitions[tag_name] or {}
+        local definition = defaults[tag_name] or {}
+        local override = profile_tags[tag_name] or {}
+        local layout = override.layout or definition.layout
+
+        if layout == nil and type(profile.layout) == "string" then
+            layout = profile.layout
+        end
 
         specs[#specs + 1] = {
             name = tag_name,
-            layout = definition.layout,
+            layout = layout,
         }
     end
 
@@ -73,8 +93,9 @@ end
 function M.create_for_screen(screen)
     local names = {}
     local layouts = {}
+    local screen_name = screen_name_for_index(screen.index)
 
-    for _, spec in ipairs(build_specs()) do
+    for _, spec in ipairs(build_specs(screen_name)) do
         names[#names + 1] = spec.name
         layouts[#layouts + 1] = resolve_layout(spec.layout)
     end

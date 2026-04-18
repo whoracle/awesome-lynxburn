@@ -31,22 +31,8 @@ M.theme = {
 }
 
 M.screens = {
-    left = {
-        layout = "centerwork.horizontal",
-        dpi = 96,
-    },
-    center = {
-        layout = "centerwork",
-        dpi = 110,
-    },
-    right = {
-        dpi = 110,
-    },
-}
-
-M.tags = {
-    order = { "primary", "secondary", "tertiary" },
-    definitions = {
+    tag_order = { "primary", "secondary", "tertiary" },
+    tag_defaults = {
         primary = {
             layout = "fair",
         },
@@ -56,6 +42,25 @@ M.tags = {
         tertiary = {
             layout = "centerwork.horizontal",
         },
+    },
+    left = {
+        dpi = 96,
+        tags = {
+            primary = { layout = "centerwork.horizontal" },
+            secondary = { layout = "centerwork.horizontal" },
+            tertiary = { layout = "centerwork.horizontal" },
+        },
+    },
+    center = {
+        dpi = 110,
+        tags = {
+            primary = { layout = "centerwork" },
+            secondary = { layout = "centerwork" },
+            tertiary = { layout = "centerwork" },
+        },
+    },
+    right = {
+        dpi = 110,
     },
 }
 
