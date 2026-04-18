@@ -45,11 +45,34 @@ local function popup_cycle_opts()
     }
 end
 
-local function register_lx_widget(id, widget, default_order)
+local function merge_popup_opts(defaults, overrides)
+    local merged = {}
+
+    for key, value in pairs(defaults or {}) do
+        merged[key] = value
+    end
+
+    for key, value in pairs(overrides or {}) do
+        merged[key] = value
+    end
+
+    return merged
+end
+
+local function register_lx_widget(id, widget, default_order, opts)
+    opts = opts or {}
+    local settings = require("config.settings")
+    local include_in_popup_cycle = opts.include_in_popup_cycle
+
+    if settings.popup_cycle and settings.popup_cycle[id] ~= nil then
+        include_in_popup_cycle = settings.popup_cycle[id] ~= false
+    end
+
     require("lxcommon.registry").register({
         id = id,
         widget = widget,
         default_order = default_order,
+        include_in_popup_cycle = include_in_popup_cycle,
     })
 
     if lxbar_instance then
@@ -57,8 +80,8 @@ local function register_lx_widget(id, widget, default_order)
     end
 end
 
-local function register_popup_handle(module_id, popup_id, handle)
-    require("lxcommon.popup_manager").register(module_id, popup_id, handle)
+local function register_popup_handle(module_id, popup_id, handle, opts)
+    require("lxcommon.popup_manager").register(module_id, popup_id, handle, opts)
 end
 
 ---Shared singleton accessors for the long-lived helper modules.
@@ -75,9 +98,8 @@ function M.audio()
         register_lx_widget("audio", lxaudio_instance.widget, 40)
         register_popup_handle("audio", "default", {
             open = function(opts)
-                local popup_opts = popup_cycle_opts()
+                local popup_opts = merge_popup_opts(popup_cycle_opts(), opts)
                 popup_opts.hover_close = false
-                popup_opts.placement = opts and opts.placement or nil
                 lxaudio_instance:show_media_popup(nil, popup_opts)
             end,
             close = function()
@@ -86,12 +108,13 @@ function M.audio()
             is_visible = function()
                 return lxaudio_instance._media_popup and lxaudio_instance._media_popup.visible or false
             end,
+        }, {
+            click_role = "left",
         })
         register_popup_handle("audio", "devices", {
             open = function(opts)
-                local popup_opts = popup_cycle_opts()
+                local popup_opts = merge_popup_opts(popup_cycle_opts(), opts)
                 popup_opts.hover_close = false
-                popup_opts.placement = opts and opts.placement or nil
                 lxaudio_instance:show_devices_popup(nil, popup_opts)
             end,
             close = function()
@@ -100,6 +123,8 @@ function M.audio()
             is_visible = function()
                 return lxaudio_instance._devices_popup and lxaudio_instance._devices_popup.visible or false
             end,
+        }, {
+            click_role = "right",
         })
     end
 
@@ -125,8 +150,8 @@ function M.bluetooth()
         lxbluetooth_instance = require("lxbluetooth").new()
         register_lx_widget("bluetooth", lxbluetooth_instance.widget, 10)
         register_popup_handle("bluetooth", "default", {
-            open = function()
-                lxbluetooth_instance:toggle_popup(nil, popup_cycle_opts())
+            open = function(opts)
+                lxbluetooth_instance:toggle_popup(nil, merge_popup_opts(popup_cycle_opts(), opts))
             end,
             close = function()
                 lxbluetooth_instance:close_popup()
@@ -134,6 +159,8 @@ function M.bluetooth()
             is_visible = function()
                 return lxbluetooth_instance._popup and lxbluetooth_instance._popup.visible or false
             end,
+        }, {
+            click_role = "left",
         })
     end
 
@@ -155,8 +182,8 @@ function M.notify()
         })
         register_lx_widget("notify", lxnotify_instance.widget, 50)
         register_popup_handle("notify", "default", {
-            open = function()
-                local popup_opts = popup_cycle_opts()
+            open = function(opts)
+                local popup_opts = merge_popup_opts(popup_cycle_opts(), opts)
                 popup_opts.hover_close = false
                 lxnotify_instance:show_notification_popup(popup_opts)
             end,
@@ -166,6 +193,8 @@ function M.notify()
             is_visible = function()
                 return lxnotify_instance._popup and lxnotify_instance._popup.visible or false
             end,
+        }, {
+            click_role = "left",
         })
     end
 
@@ -197,8 +226,8 @@ function M.network()
         lxnetwork_instance = require("lxnetwork").new()
         register_lx_widget("network", lxnetwork_instance.widget, 20)
         register_popup_handle("network", "default", {
-            open = function()
-                lxnetwork_instance:toggle_popup(nil, popup_cycle_opts())
+            open = function(opts)
+                lxnetwork_instance:toggle_popup(nil, merge_popup_opts(popup_cycle_opts(), opts))
             end,
             close = function()
                 lxnetwork_instance:close_popup()
@@ -206,6 +235,8 @@ function M.network()
             is_visible = function()
                 return lxnetwork_instance._popup and lxnetwork_instance._popup.visible or false
             end,
+        }, {
+            click_role = "left",
         })
     end
 
@@ -232,8 +263,8 @@ function M.powerprofiles()
         lxpowerprofiles_instance = require("lxpowerprofiles").new()
         register_lx_widget("powerprofiles", lxpowerprofiles_instance.widget, 30)
         register_popup_handle("powerprofiles", "default", {
-            open = function()
-                lxpowerprofiles_instance:toggle_popup(nil, popup_cycle_opts())
+            open = function(opts)
+                lxpowerprofiles_instance:toggle_popup(nil, merge_popup_opts(popup_cycle_opts(), opts))
             end,
             close = function()
                 lxpowerprofiles_instance:close_popup()
@@ -241,6 +272,8 @@ function M.powerprofiles()
             is_visible = function()
                 return lxpowerprofiles_instance._popup and lxpowerprofiles_instance._popup.visible or false
             end,
+        }, {
+            click_role = "right",
         })
     end
 

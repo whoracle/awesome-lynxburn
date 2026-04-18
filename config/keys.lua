@@ -280,7 +280,7 @@ function M.build(context)
     end
 
     local function show_media_popup()
-        lxaudio:toggle_media_popup(nil, {
+        lxbar:toggle_popup("audio", "default", {
             hover_close = false,
             anchor = "center",
             toggle_key = { modifiers = { settings.modkey }, key = "Prior" },
@@ -288,7 +288,7 @@ function M.build(context)
     end
 
     local function show_notification_popup()
-        lxnotify:toggle_notification_popup({
+        lxbar:toggle_popup("notify", "default", {
             hover_close = false,
             toggle_key = { modifiers = { settings.modkey }, key = "Next" },
         })
@@ -296,7 +296,7 @@ function M.build(context)
 
     local function show_bluetooth_popup()
         if lxbluetooth then
-            lxbluetooth:toggle_popup(nil, {
+            lxbar:toggle_popup("bluetooth", "default", {
                 keyboard_navigation = true,
                 toggle_key = { modifiers = { settings.modkey }, key = "F10" },
             })
@@ -305,7 +305,7 @@ function M.build(context)
 
     local function show_network_popup()
         if lxnetwork then
-            lxnetwork:toggle_popup(nil, {
+            lxbar:toggle_popup("network", "default", {
                 keyboard_navigation = true,
                 toggle_key = { modifiers = { settings.modkey }, key = "F11" },
             })
@@ -314,7 +314,7 @@ function M.build(context)
 
     local function show_powerprofiles_popup()
         if lxpowerprofiles then
-            lxpowerprofiles:toggle_popup(nil, {
+            lxbar:toggle_popup("powerprofiles", "default", {
                 keyboard_navigation = true,
                 toggle_key = { modifiers = { settings.modkey }, key = "F12" },
             })

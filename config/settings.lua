@@ -25,6 +25,9 @@ local settings = {
         network = true,
         powerprofiles = false,
     },
+    popup_cycle = {
+        -- network = false,
+    },
 }
 
 return helpers.deep_merge(

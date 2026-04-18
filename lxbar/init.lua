@@ -18,24 +18,15 @@ function M:_ordered_popup_entries()
     local ordered = {}
 
     for _, entry in ipairs(registry.list()) do
-        local popup_entry = popup_manager.get(entry.id, "default")
-
-        if not popup_entry then
-            local module_popups = popup_manager.list_module(entry.id)
-            popup_entry = module_popups[1] and module_popups[1].handle or nil
-            if popup_entry then
+        if entry.include_in_popup_cycle ~= false then
+            for _, popup_entry in ipairs(popup_manager.list_module_cycle(entry.id)) do
                 ordered[#ordered + 1] = {
                     module_id = entry.id,
-                    popup_id = module_popups[1].popup_id,
-                    handle = popup_entry,
+                    popup_id = popup_entry.popup_id,
+                    handle = popup_entry.handle,
+                    click_role = popup_entry.click_role,
                 }
             end
-        else
-            ordered[#ordered + 1] = {
-                module_id = entry.id,
-                popup_id = "default",
-                handle = popup_entry,
-            }
         end
     end
 
@@ -48,6 +39,10 @@ end
 
 function M:show_popup(module_id, popup_id, opts)
     return popup_manager.show(module_id, popup_id or "default", opts)
+end
+
+function M:toggle_popup(module_id, popup_id, opts)
+    return popup_manager.toggle(module_id, popup_id or "default", opts)
 end
 
 function M:cycle_popups(direction, opts)

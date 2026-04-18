@@ -6,6 +6,9 @@ return {
         network = true,
         powerprofiles = true,
     },
+    popup_cycle = {
+        -- network = false,
+    },
     monitors = {
         left = 1,
         center = 2,

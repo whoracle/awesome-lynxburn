@@ -8,6 +8,7 @@ local function normalize_entry(entry)
         widget = assert(entry.widget, "lxcommon registry entry requires widget"),
         default_order = tonumber(entry.default_order) or 100,
         enabled = entry.enabled,
+        include_in_popup_cycle = entry.include_in_popup_cycle,
     }
 end
 
