@@ -935,14 +935,8 @@ function M.new(opts)
 
     popup_common.attach_button_feedback(self.widget, {
         idle_bg = nil,
-        hover_bg = self:_theme_value(
-            "lxnetwork_widget_hover_bg",
-            self:_theme_value("lxnetwork_bg_hover", beautiful.bg_focus or "#444444")
-        ),
-        press_bg = self:_theme_value(
-            "lxnetwork_widget_press_bg",
-            self:_theme_value("lxnetwork_bg_press", self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#666666"))
-        ),
+        hover_bg = self:_theme_value("lxnetwork_widget_hover_bg", beautiful.bg_focus or "#444444"),
+        press_bg = self:_theme_value("lxnetwork_widget_press_bg", self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#666666")),
     })
 
     self.widget:buttons(gears.table.join(

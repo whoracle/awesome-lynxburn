@@ -117,17 +117,11 @@ function instance_methods:notification_meta_fg()
 end
 
 function instance_methods:notification_hover_bg()
-    return util.theme_value(
-        "lxnotify_card_hover_bg",
-        util.theme_value("lxnotify_bg_hover", beautiful.bg_focus or beautiful.bg_minimize or "#333333")
-    )
+    return util.theme_value("lxnotify_card_hover_bg", beautiful.bg_focus or beautiful.bg_minimize or "#333333")
 end
 
 function instance_methods:notification_selected_bg()
-    return util.theme_value(
-        "lxnotify_selected_bg",
-        util.theme_value("lxnotify_selected_border", beautiful.border_focus or beautiful.fg_focus or beautiful.fg_normal or "#ffffff")
-    )
+    return util.theme_value("lxnotify_selected_bg", beautiful.border_focus or beautiful.fg_focus or beautiful.fg_normal or "#ffffff")
 end
 
 function instance_methods:button_bg()
