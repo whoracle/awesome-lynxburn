@@ -13,12 +13,27 @@ M.widgets = {
         "notify",
     },
     modules = {
+        audio = {
+            show_mic_activity = true,
+            refresh_interval = 5,
+            width = 50,
+        },
         bluetooth = {
             enabled = false,
         },
+        display = {},
         network = {
             enabled = true,
             -- cycle = false,
+        },
+        notify = {
+            notification_denylist = {
+                { app_name = "Volume OSD" },
+                { app_name = "Mute Indicator" },
+                { app_name = "Brightness OSD" },
+                { app_name = "Notification Indicator" },
+                { app_name = "Calendar" },
+            },
         },
         powerprofiles = {
             enabled = false,

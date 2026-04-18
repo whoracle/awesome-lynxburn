@@ -45,9 +45,18 @@ return {
     --         "notify",
     --     },
     --     modules = {
+    --         audio = {
+    --             refresh_interval = 2,
+    --             width = 60,
+    --         },
     --         network = {
     --             enabled = true,
     --             -- cycle = false,
+    --         },
+    --         notify = {
+    --             notification_denylist = {
+    --                 { app_name = "Volume OSD" },
+    --             },
     --         },
     --     },
     -- },

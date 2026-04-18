@@ -43,4 +43,17 @@ function M.cycle_enabled(id, default)
     return default ~= false
 end
 
+function M.options(id)
+    local module_settings = widget_module_settings(id)
+    local options = {}
+
+    for key, value in pairs(module_settings) do
+        if key ~= "enabled" and key ~= "cycle" then
+            options[key] = value
+        end
+    end
+
+    return options
+end
+
 return M
