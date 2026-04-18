@@ -739,9 +739,6 @@ end
 function M.new(opts)
     opts = merge_defaults(opts)
 
-    opts.hover_close_timeout = opts.hover_close_timeout or beautiful.lxaudio_hover_close_timeout or 1.5
-    opts.hover_close_poll_interval = opts.hover_close_poll_interval or beautiful.lxaudio_hover_close_poll_interval or 0.25
-
     local self = setmetatable({}, M)
     self.opts = opts
     self.state = {

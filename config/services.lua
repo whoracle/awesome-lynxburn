@@ -206,10 +206,10 @@ end
 function M.display()
     if not lxdisplay_instance then
         local programs = config_data.commands()
-        lxdisplay_instance = require("lxdisplay").new({
-            brightness = programs.brightness,
-            redshift = programs.redshift,
-        })
+        local display_options = widget_config.options("display")
+        display_options.brightness = programs.brightness
+        display_options.redshift = programs.redshift
+        lxdisplay_instance = require("lxdisplay").new(display_options)
         register_lx_widget("display", lxdisplay_instance.widget, 60)
     end
 

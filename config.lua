@@ -48,6 +48,12 @@ return {
     --         audio = {
     --             refresh_interval = 2,
     --             width = 60,
+    --             step = 0.02,
+    --             osd_timeout = 1.5,
+    --         },
+    --         display = {
+    --             refresh_interval = 10,
+    --             osd_timeout = 1.5,
     --         },
     --         bluetooth = {
     --             refresh_interval = 10,

@@ -775,11 +775,16 @@ function M:_build_widget()
 end
 
 function M:_build_osd()
+    if self._opts.enable_osd == false then
+        self._osd = nil
+        return
+    end
+
     self._osd = common.osd.new({
-        width = beautiful.lxdisplay_osd_width or 260,
-        height = beautiful.lxdisplay_osd_height or 18,
-        margin = beautiful.lxdisplay_osd_margin or 16,
-        timeout = beautiful.lxdisplay_osd_timeout or 1,
+        width = self._opts.osd_width or beautiful.lxdisplay_osd_width or 260,
+        height = self._opts.osd_height or beautiful.lxdisplay_osd_height or 18,
+        margin = self._opts.osd_margin or beautiful.lxdisplay_osd_margin or 16,
+        timeout = self._opts.osd_timeout or beautiful.lxdisplay_osd_timeout or 1,
         bar_bg = beautiful.lxdisplay_osd_bar_bg
             or beautiful.lxdisplay_bar_bg
             or beautiful.lxaudio_bar_bg
@@ -795,7 +800,7 @@ end
 
 function M:_start_refresh_timer()
     self._refresh_timer = gears.timer({
-        timeout = beautiful.lxdisplay_refresh_interval or 15,
+        timeout = tonumber(self._opts.refresh_interval) or beautiful.lxdisplay_refresh_interval or 15,
         autostart = true,
         call_now = true,
         callback = function()
@@ -804,31 +809,35 @@ function M:_start_refresh_timer()
     })
 end
 
-function M.new(commands)
+function M.new(opts)
+    opts = opts or {}
     local self = setmetatable({}, M)
+    local brightness = opts.brightness or {}
+    local redshift = opts.redshift or {}
+    self._opts = opts
 
     self._commands = {
-        get = commands.brightness.get,
-        set = commands.brightness.set,
-        step = commands.brightness.step or 5,
-        min = commands.brightness.min or 10,
-        max = commands.brightness.max or 100,
-        off = commands.brightness.off,
+        get = brightness.get,
+        set = brightness.set,
+        step = brightness.step or 5,
+        min = brightness.min or 10,
+        max = brightness.max or 100,
+        off = brightness.off,
     }
     self._redshift = {
-        command = commands.redshift.command or "xrandr",
-        enabled = commands.redshift.enabled ~= false,
-        autostart = commands.redshift.autostart ~= false,
-        latitude = commands.redshift.latitude,
-        longitude = commands.redshift.longitude,
-        temperature_day = commands.redshift.temperature_day,
-        temperature_night = commands.redshift.temperature_night,
-        transition_steps = commands.redshift.transition_steps or 8,
-        transition_interval = commands.redshift.transition_interval or 0.05,
-        refresh_interval = commands.redshift.refresh_interval or 120,
-        schedule_transition_seconds = commands.redshift.schedule_transition_seconds or 3600,
-        day_start = commands.redshift.day_start,
-        night_start = commands.redshift.night_start,
+        command = redshift.command or "xrandr",
+        enabled = redshift.enabled ~= false,
+        autostart = redshift.autostart ~= false,
+        latitude = redshift.latitude,
+        longitude = redshift.longitude,
+        temperature_day = redshift.temperature_day,
+        temperature_night = redshift.temperature_night,
+        transition_steps = redshift.transition_steps or 8,
+        transition_interval = redshift.transition_interval or 0.05,
+        refresh_interval = redshift.refresh_interval or 120,
+        schedule_transition_seconds = redshift.schedule_transition_seconds or 3600,
+        day_start = redshift.day_start,
+        night_start = redshift.night_start,
     }
     self._redshift_suspended = not self._redshift.autostart
 
