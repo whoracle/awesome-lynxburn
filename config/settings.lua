@@ -22,7 +22,7 @@ local settings = {
     },
     widgets = {
         bluetooth = false,
-        network = false,
+        network = true,
         powerprofiles = false,
     },
 }
