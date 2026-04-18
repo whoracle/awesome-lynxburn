@@ -20,11 +20,16 @@ work for, but should be revisited in the final refactor pass.
 - `config.override.settings.lua` and `config.override.programs.lua`
   Current role: backward-compatible local override paths during the central
   config migration.
-  Later option: collapse overlapping user-facing override data into one clearer
-  central override surface once enough sections have migrated.
+  Later option: remove them once `./config.lua` fully replaces the split
+  override flow for centralized sections.
 
 - `config.override.theme.lua` versus central theme selection
   Current role: `config.theme` / central config owns top-level theme selection,
   while `config.override.theme.lua` still owns runtime theme value overrides.
   Later option: decide whether the final user-facing config keeps those as two
   layers or exposes a clearer unified theme config model.
+
+- `config.override.config.lua`
+  Current role: legacy compatibility path for early central-config work.
+  Later option: remove it in favor of `./config.lua`, which is now the intended
+  central user config entrypoint.

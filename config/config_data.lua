@@ -16,8 +16,12 @@ local function load_override_programs()
     return helpers.load_optional_module("config.override.programs", {})
 end
 
-local function load_override_config()
+local function load_legacy_override_config()
     return helpers.load_optional_module("config.override.config", {})
+end
+
+local function load_user_config()
+    return helpers.load_optional_module("config", {})
 end
 
 local function merge_section(merged, key, value)
@@ -32,25 +36,30 @@ end
 
 local function merge_widget_overrides(merged)
     local override_settings = load_override_settings()
-    local override_config = load_override_config()
+    local legacy_override_config = load_legacy_override_config()
+    local user_config = load_user_config()
 
     merge_section(merged, "widgets", override_settings.widgets)
-    merge_section(merged, "widgets", override_config.widgets)
+    merge_section(merged, "widgets", legacy_override_config.widgets)
+    merge_section(merged, "widgets", user_config.widgets)
 end
 
 local function merge_command_overrides(merged)
     local override_settings = load_override_settings()
     local override_programs = load_override_programs()
-    local override_config = load_override_config()
+    local legacy_override_config = load_legacy_override_config()
+    local user_config = load_user_config()
 
     merge_section(merged, "commands", override_settings.commands)
     merge_section(merged, "commands", override_programs)
-    merge_section(merged, "commands", override_config.commands)
+    merge_section(merged, "commands", legacy_override_config.commands)
+    merge_section(merged, "commands", user_config.commands)
 end
 
 local function merge_theme_overrides(merged)
     local override_settings = load_override_settings()
-    local override_config = load_override_config()
+    local legacy_override_config = load_legacy_override_config()
+    local user_config = load_user_config()
 
     if override_settings.theme_name ~= nil then
         helpers.deep_merge(merged, {
@@ -60,12 +69,14 @@ local function merge_theme_overrides(merged)
         })
     end
 
-    merge_section(merged, "theme", override_config.theme)
+    merge_section(merged, "theme", legacy_override_config.theme)
+    merge_section(merged, "theme", user_config.theme)
 end
 
 local function merge_settings_overrides(merged)
     local override_settings = load_override_settings()
-    local override_config = load_override_config()
+    local legacy_override_config = load_legacy_override_config()
+    local user_config = load_user_config()
     local settings_override = {}
 
     for _, key in ipairs({
@@ -83,7 +94,8 @@ local function merge_settings_overrides(merged)
     end
 
     merge_section(merged, "settings", settings_override)
-    merge_section(merged, "settings", override_config.settings)
+    merge_section(merged, "settings", legacy_override_config.settings)
+    merge_section(merged, "settings", user_config.settings)
 end
 
 local function load_commands()

@@ -17,7 +17,7 @@ local naughty = require("naughty")
 
 local my_table = awful.util.table or gears.table
 
-local config = require("config")
+local config = require("config.init")
 
 -- Long-lived shared services are created after the theme is loaded so their
 -- widgets read final `beautiful` values rather than partially initialized ones.
