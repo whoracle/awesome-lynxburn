@@ -87,14 +87,103 @@ local function normalize_key_spec(settings, spec)
     return normalized
 end
 
-local function normalize_key_specs(settings, specs)
-    local normalized = {}
+local function is_binding_spec(value)
+    return type(value) == "table"
+        and (value.scope ~= nil
+            or value.key ~= nil
+            or value.modifiers ~= nil
+            or value.on_press ~= nil
+            or value.on_release ~= nil)
+end
 
-    for name, spec in pairs(specs or {}) do
-        normalized[name] = normalize_key_spec(settings, spec)
+local function binding_entry_name(action_id, index)
+    if index == nil then
+        return action_id
     end
 
-    return normalized
+    return string.format("%s[%d]", action_id, index)
+end
+
+local function collect_binding_entries(settings, key_config)
+    local ordered_action_ids = key_config.order or {}
+    local action_bindings = {}
+
+    for action_id, value in pairs(key_config) do
+        if action_id ~= "order" then
+            local bindings = {}
+
+            if is_binding_spec(value) then
+                bindings[1] = {
+                    name = binding_entry_name(action_id),
+                    spec = normalize_key_spec(settings, value),
+                }
+            elseif type(value) == "table" then
+                for index, spec in ipairs(value) do
+                    if is_binding_spec(spec) then
+                        bindings[#bindings + 1] = {
+                            name = binding_entry_name(action_id, index),
+                            spec = normalize_key_spec(settings, spec),
+                        }
+                    end
+                end
+            end
+
+            if #bindings > 0 then
+                action_bindings[action_id] = bindings
+            end
+        end
+    end
+
+    return ordered_action_ids, action_bindings
+end
+
+local function append_binding_entry(target_specs, target_order, entry)
+    local spec = {}
+
+    for key, value in pairs(entry.spec) do
+        if key ~= "scope" then
+            spec[key] = value
+        end
+    end
+
+    target_specs[entry.name] = spec
+    target_order[#target_order + 1] = entry.name
+end
+
+local function populate_scope_specs(target_specs, target_order, action_bindings, ordered_action_ids, scope)
+    local seen = {}
+
+    for _, action_id in ipairs(ordered_action_ids) do
+        local bindings = action_bindings[action_id]
+
+        if bindings then
+            seen[action_id] = true
+
+            for _, entry in ipairs(bindings) do
+                if (entry.spec.scope or "global") == scope then
+                    append_binding_entry(target_specs, target_order, entry)
+                end
+            end
+        end
+    end
+
+    local extra_action_ids = {}
+
+    for action_id in pairs(action_bindings) do
+        if not seen[action_id] then
+            extra_action_ids[#extra_action_ids + 1] = action_id
+        end
+    end
+
+    table.sort(extra_action_ids)
+
+    for _, action_id in ipairs(extra_action_ids) do
+        for _, entry in ipairs(action_bindings[action_id]) do
+            if (entry.spec.scope or "global") == scope then
+                append_binding_entry(target_specs, target_order, entry)
+            end
+        end
+    end
 end
 
 local function sorted_extra_names(specs, ordered_names)
@@ -189,12 +278,12 @@ end
 
 local function build_lxaudio_popup_key_actions(global_specs)
     local popup_bindings = {
-        media_toggle_play_pause = true,
-        media_next_media_item = true,
-        media_prev_media_item = true,
-        media_volume_up = true,
-        media_volume_down = true,
-        media_toggle_mute = true,
+        media_play_pause = true,
+        media_next = true,
+        media_prev = true,
+        volume_up = true,
+        volume_down = true,
+        toggle_mute = true,
     }
 
     local popup_actions = {}
@@ -590,16 +679,12 @@ function M.build(context)
 
     local global_spec_order = {}
     local client_spec_order = {}
-    local global_specs = normalize_key_specs(settings, key_config.global)
-    local client_specs = normalize_key_specs(settings, key_config.client)
+    local global_specs = {}
+    local client_specs = {}
+    local ordered_action_ids, action_bindings = collect_binding_entries(settings, key_config)
 
-    for _, name in ipairs(key_config.global_order or {}) do
-        global_spec_order[#global_spec_order + 1] = name
-    end
-
-    for _, name in ipairs(key_config.client_order or {}) do
-        client_spec_order[#client_spec_order + 1] = name
-    end
+    populate_scope_specs(global_specs, global_spec_order, action_bindings, ordered_action_ids, "global")
+    populate_scope_specs(client_specs, client_spec_order, action_bindings, ordered_action_ids, "client")
 
     for i = 1, 9 do
         local descr_view

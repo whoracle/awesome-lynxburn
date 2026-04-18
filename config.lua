@@ -53,21 +53,20 @@ return {
         },
     },
     keys = {
-        -- global = {
-        --     programs_terminal = {
-        --         modifiers = { "modkey" },
-        --         key = "Return",
-        --     },
+        -- open_terminal = {
+        --     scope = "global",
+        --     modifiers = { "modkey" },
+        --     key = "Return",
         -- },
-        global = {
-            media_volume_up = {
-                on_press = "volume_down",
-                description = "volume down",
-            },
-            media_volume_down = {
-                on_press = "volume_up",
-                description = "volume up",
-            },
+        volume_up = {
+            scope = "global",
+            on_press = "volume_down",
+            description = "volume down",
+        },
+        volume_down = {
+            scope = "global",
+            on_press = "volume_up",
+            description = "volume up",
         },
     },
     rules = function(context)
