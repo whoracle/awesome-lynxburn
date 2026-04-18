@@ -179,6 +179,18 @@ If you want to:
 - change `lx*` module behavior/backend config: edit `lxmodules.<module>` in
   top-level `config.lua`
 
+Flat `theme = { ... }` overrides in top-level `config.lua` are appropriate for
+the routine user-facing knobs, for example:
+
+- wallpaper and wibar sizing
+- notification sizing
+- module popup widths, colors, and icons
+- runner sizing and colors
+
+Theme-authoring details such as titlebar asset paths, copycats-style icon file
+paths, and other theme-internal composition data should usually stay in
+`themes/lynxburn2/theme2.lua` unless you are actually reshaping the theme.
+
 ## External Dependencies
 
 ### Core Runtime

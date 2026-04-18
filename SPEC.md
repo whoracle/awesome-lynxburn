@@ -126,6 +126,21 @@ Value priority is:
   - any remaining module options beyond the current `lxmodules` surface
   Value: Usability for others than me
   Complexity: medium-high
+- Theme override direction:
+  - keep the runtime theme contract flat via `beautiful.<key>`
+  - keep theme files flat as well
+  - allow top-level `config.lua` to override flat theme keys through
+    `theme = { ... }`
+  - treat routine user-facing knobs as good override candidates:
+    - wallpaper and wibar geometry
+    - notification sizing
+    - module popup widths, colors, icons, and similar visual tuning
+    - runner sizing and colors
+  - keep theme-authoring internals in the theme file unless there is a clear
+    user-facing need:
+    - titlebar asset paths
+    - classic icon file paths
+    - other theme-local composition data
 - Current module-option progress:
   - `lxmodules.lxbar` now owns bar-level composition such as widget order and
     bar participation flags

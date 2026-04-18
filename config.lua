@@ -11,6 +11,11 @@ return {
     --     name = "lynxburn2",
     --     -- Flat keys override `beautiful.*` values after the theme loads.
     --     wallpaper = os.getenv("HOME") .. "/Pictures/wallpaper.png",
+    --     wibar_height = 24,
+    --     notification_max_width = 640,
+    --     lxmedia_bar_fg = "#e0b56a",
+    --     lxmedia_popup_width_media = 420,
+    --     lxpower_popup_width = 420,
     --     lxrunner_width = 640,
     -- },
     -- screens = {
