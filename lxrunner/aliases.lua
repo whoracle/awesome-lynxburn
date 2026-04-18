@@ -3,6 +3,8 @@ return {
         name = "senecvpn",
         type = "shell",
         -- icon = "/absolute/path/to/vpn.svg",
+        -- glyph = "",
+        -- glyph_font = "Symbols Nerd Font 12",
         command = [[
             nmcli c show --active | grep senec
             if [ $? -eq 0 ]; then
@@ -19,6 +21,7 @@ return {
         name = "browser",
         type = "template",
         -- icon = "/absolute/path/to/browser.svg",
+        -- glyph = "󰖟",
         command = "/usr/bin/vivaldi-home %s",
         env = {},
     },

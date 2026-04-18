@@ -196,39 +196,67 @@ local function upsert_alias(target, alias)
     table.insert(target, alias)
 end
 
-local function alias_icon(instance, alias_name)
+local function alias_decoration(instance, alias_name)
     if not instance or type(alias_name) ~= "string" or alias_name == "" then
         return nil
     end
 
     for _, alias in ipairs(instance._aliases or {}) do
-        if alias.name == alias_name and type(alias.icon) == "string" and alias.icon ~= "" then
-            return alias.icon
+        if alias.name == alias_name then
+            if type(alias.icon) == "string" and alias.icon ~= "" then
+                return {
+                    icon = alias.icon,
+                }
+            end
+
+            if type(alias.glyph) == "string" and alias.glyph ~= "" then
+                return {
+                    glyph = alias.glyph,
+                    glyph_font = alias.glyph_font,
+                }
+            end
+
+            return nil
         end
     end
 
     return nil
 end
 
-local function build_row(text, selected, icon)
+local function build_row(text, selected, decoration)
     local fg = selected
         and (beautiful.lxrunner_row_selected_fg or beautiful.fg_focus or "#ffffff")
         or (beautiful.lxrunner_row_fg or beautiful.fg_normal or "#bbbbbb")
+    local icon_size = beautiful.lxrunner_icon_size or 14
 
     local icon_widget
-    if icon then
+    if decoration and decoration.icon then
         icon_widget = wibox.widget({
-            image = gears.color.recolor_image(icon, fg),
+            image = gears.color.recolor_image(decoration.icon, fg),
             resize = true,
-            forced_width = beautiful.lxrunner_icon_size or 14,
-            forced_height = beautiful.lxrunner_icon_size or 14,
+            forced_width = icon_size,
+            forced_height = icon_size,
             widget = wibox.widget.imagebox,
+        })
+    elseif decoration and decoration.glyph then
+        icon_widget = wibox.widget({
+            markup = string.format(
+                '<span foreground="%s" font="%s">%s</span>',
+                fg,
+                gears.string.xml_escape(decoration.glyph_font or beautiful.lxrunner_icon_font or beautiful.font),
+                gears.string.xml_escape(decoration.glyph)
+            ),
+            align = "center",
+            valign = "center",
+            forced_width = icon_size,
+            forced_height = icon_size,
+            widget = wibox.widget.textbox,
         })
     else
         icon_widget = wibox.widget({
             text = "",
-            forced_width = beautiful.lxrunner_icon_size or 14,
-            forced_height = beautiful.lxrunner_icon_size or 14,
+            forced_width = icon_size,
+            forced_height = icon_size,
             widget = wibox.widget.textbox,
         })
     end
@@ -434,7 +462,7 @@ function M:_set_placeholder_rows()
     end
 end
 
-function M:_icon_for_entry(entry)
+function M:_decoration_for_entry(entry)
     if not entry then
         return nil
     end
@@ -442,15 +470,34 @@ function M:_icon_for_entry(entry)
     local source = entry.source == "history" and entry.launch_source or entry.source
 
     if source == "path" then
-        return self._icons.path
+        return {
+            icon = self._icons.path,
+        }
     end
 
     if source == "alias" then
-        return entry.icon or alias_icon(self, entry.alias_name or entry.name) or self._icons.alias
+        if type(entry.icon) == "string" and entry.icon ~= "" then
+            return {
+                icon = entry.icon,
+            }
+        end
+
+        if type(entry.glyph) == "string" and entry.glyph ~= "" then
+            return {
+                glyph = entry.glyph,
+                glyph_font = entry.glyph_font,
+            }
+        end
+
+        return alias_decoration(self, entry.alias_name or entry.name) or {
+            icon = self._icons.alias,
+        }
     end
 
     if source == "desktop" then
-        return self._icons.desktop
+        return {
+            icon = self._icons.desktop,
+        }
     end
 
     return nil
@@ -506,6 +553,8 @@ function M:_load_aliases()
                 command = alias.command,
                 env = alias.env,
                 icon = alias.icon,
+                glyph = alias.glyph,
+                glyph_font = alias.glyph_font,
                 description = alias.description,
                 source = "alias",
             })
@@ -528,6 +577,8 @@ function M:_load_aliases()
                     command = alias.command,
                     env = alias.env,
                     icon = alias.icon,
+                    glyph = alias.glyph,
+                    glyph_font = alias.glyph_font,
                     description = alias.description,
                     source = "alias",
                 })
@@ -786,6 +837,8 @@ function M:_filter_matches()
                 source = "alias",
                 alias_name = alias.name,
                 icon = alias.icon,
+                glyph = alias.glyph,
+                glyph_font = alias.glyph_font,
             })
             ranked[#ranked].rank = ranked[#ranked].rank - self:_history_rank_bonus(ranked[#ranked])
         end
@@ -824,7 +877,7 @@ function M:_render_results()
         for i = 1, self.opts.row_count do
             local entry = self._history[i]
             if entry then
-                self._results:add(build_row(entry.name, i == self._selected_index, self:_icon_for_entry(entry)))
+                self._results:add(build_row(entry.name, i == self._selected_index, self:_decoration_for_entry(entry)))
             else
                 self._results:add(build_row("", false))
             end
@@ -846,7 +899,7 @@ function M:_render_results()
     for i = 1, self.opts.row_count do
         local match = self._matches[i]
         if match then
-            self._results:add(build_row(match.display or match.name, i == self._selected_index, self:_icon_for_entry(match)))
+            self._results:add(build_row(match.display or match.name, i == self._selected_index, self:_decoration_for_entry(match)))
         else
             self._results:add(build_row("", false))
         end
