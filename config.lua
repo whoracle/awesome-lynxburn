@@ -49,14 +49,21 @@ return {
     --             refresh_interval = 2,
     --             width = 60,
     --         },
+    --         bluetooth = {
+    --             refresh_interval = 10,
+    --         },
     --         network = {
     --             enabled = true,
+    --             refresh_interval = 10,
     --             -- cycle = false,
     --         },
     --         notify = {
     --             notification_denylist = {
     --                 { app_name = "Volume OSD" },
     --             },
+    --         },
+    --         powerprofiles = {
+    --             refresh_interval = 10,
     --         },
     --     },
     -- },
@@ -107,6 +114,11 @@ return {
         }
     end,
     runner = {
+        -- options = {
+        --     width = 640,
+        --     row_count = 12,
+        --     history_limit = 20,
+        -- },
         aliases = {
             {
                 name = "yayoff",

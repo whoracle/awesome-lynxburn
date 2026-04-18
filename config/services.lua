@@ -1,5 +1,6 @@
 local M = {}
 local widget_config = require("config.widgets")
+local config_data = require("config.config_data")
 
 local lxaudio_instance
 local lxbar_instance
@@ -159,7 +160,7 @@ function M.bluetooth()
     end
 
     if not lxbluetooth_instance then
-        lxbluetooth_instance = require("lxbluetooth").new()
+        lxbluetooth_instance = require("lxbluetooth").new(widget_config.options("bluetooth"))
         register_lx_widget("bluetooth", lxbluetooth_instance.widget, 10)
         register_semantic_popup("bluetooth", "default", "primary", {
             open = function(opts)
@@ -221,7 +222,7 @@ function M.network()
     end
 
     if not lxnetwork_instance then
-        lxnetwork_instance = require("lxnetwork").new()
+        lxnetwork_instance = require("lxnetwork").new(widget_config.options("network"))
         register_lx_widget("network", lxnetwork_instance.widget, 20)
         register_semantic_popup("network", "default", "primary", {
             open = function(opts)
@@ -243,7 +244,8 @@ end
 ---@return table
 function M.runner()
     if not lxrunner_instance then
-        lxrunner_instance = require("lxrunner").new()
+        local runner_config = config_data.runner()
+        lxrunner_instance = require("lxrunner").new(runner_config.options or {})
     end
 
     return lxrunner_instance
@@ -255,7 +257,7 @@ function M.powerprofiles()
     end
 
     if not lxpowerprofiles_instance then
-        lxpowerprofiles_instance = require("lxpowerprofiles").new()
+        lxpowerprofiles_instance = require("lxpowerprofiles").new(widget_config.options("powerprofiles"))
         register_lx_widget("powerprofiles", lxpowerprofiles_instance.widget, 30)
         register_semantic_popup("powerprofiles", "default", "secondary", {
             open = function(opts)

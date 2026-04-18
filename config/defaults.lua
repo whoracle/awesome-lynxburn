@@ -20,10 +20,12 @@ M.widgets = {
         },
         bluetooth = {
             enabled = false,
+            refresh_interval = 15,
         },
         display = {},
         network = {
             enabled = true,
+            refresh_interval = 20,
             -- cycle = false,
         },
         notify = {
@@ -37,6 +39,7 @@ M.widgets = {
         },
         powerprofiles = {
             enabled = false,
+            refresh_interval = 20,
         },
     },
 }
@@ -159,6 +162,16 @@ M.commands = {
     },
     autostart_once = {},
     autostart = {},
+}
+
+M.runner = {
+    options = {
+        width = 520,
+        row_count = 10,
+        history_limit = 10,
+        prompt = "Run",
+    },
+    aliases = {},
 }
 
 M.keys = default_keys

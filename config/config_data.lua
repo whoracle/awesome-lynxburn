@@ -151,7 +151,9 @@ local function load_runner()
         return cached_runner
     end
 
-    local merged = {}
+    local merged = helpers.deep_merge({}, {
+        runner = defaults.runner,
+    })
 
     merge_runner_overrides(merged)
 
