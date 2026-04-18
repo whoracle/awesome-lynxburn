@@ -6,6 +6,8 @@
 return {
     settings = require("config.settings"),
     programs = require("config.programs"),
+    config_data = require("config.config_data"),
+    defaults = require("config.defaults"),
     helpers = require("config.helpers"),
     widgets = require("config.widgets"),
     layouts = require("config.layouts"),

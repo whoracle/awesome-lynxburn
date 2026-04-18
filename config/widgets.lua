@@ -1,7 +1,8 @@
 local M = {}
+local config_data = require("config.config_data")
 
-local function widget_module_settings(settings, id)
-    local widgets = settings.widgets or {}
+local function widget_module_settings(id)
+    local widgets = config_data.widgets()
     local modules = widgets.modules or {}
     local module_settings = modules[id]
 
@@ -12,8 +13,8 @@ local function widget_module_settings(settings, id)
     return module_settings
 end
 
-function M.order(settings)
-    local widgets = settings.widgets or {}
+function M.order()
+    local widgets = config_data.widgets()
 
     if type(widgets.order) ~= "table" then
         return {}
@@ -22,8 +23,8 @@ function M.order(settings)
     return widgets.order
 end
 
-function M.enabled(settings, id, default)
-    local module_settings = widget_module_settings(settings, id)
+function M.enabled(id, default)
+    local module_settings = widget_module_settings(id)
 
     if module_settings.enabled ~= nil then
         return module_settings.enabled ~= false
@@ -32,8 +33,8 @@ function M.enabled(settings, id, default)
     return default ~= false
 end
 
-function M.cycle_enabled(settings, id, default)
-    local module_settings = widget_module_settings(settings, id)
+function M.cycle_enabled(id, default)
+    local module_settings = widget_module_settings(id)
 
     if module_settings.cycle ~= nil then
         return module_settings.cycle ~= false

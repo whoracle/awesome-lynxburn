@@ -1,5 +1,6 @@
 local os = os
 local helpers = require("config.helpers")
+local config_data = require("config.config_data")
 
 ---Static user-facing settings that are referenced across the config.
 ---
@@ -20,25 +21,7 @@ local settings = {
         center = 1,
         right = 2,
     },
-    widgets = {
-        order = {
-            "network",
-            "audio",
-            "notify",
-        },
-        modules = {
-            bluetooth = {
-                enabled = false,
-            },
-            network = {
-                enabled = true,
-                -- cycle = false,
-            },
-            powerprofiles = {
-                enabled = false,
-            },
-        },
-    },
+    widgets = config_data.widgets(),
 }
 
 return helpers.deep_merge(

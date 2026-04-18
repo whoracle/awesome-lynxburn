@@ -61,13 +61,12 @@ local function merge_popup_opts(defaults, overrides)
 end
 
 local function configure_widget_registry(settings)
-    require("lxcommon.registry").set_order(widget_config.order(settings))
+    require("lxcommon.registry").set_order(widget_config.order())
 end
 
 local function register_lx_widget(id, widget, default_order, opts)
     opts = opts or {}
-    local settings = require("config.settings")
-    local include_in_popup_cycle = widget_config.cycle_enabled(settings, id, opts.include_in_popup_cycle)
+    local include_in_popup_cycle = widget_config.cycle_enabled(id, opts.include_in_popup_cycle)
 
     require("lxcommon.registry").register({
         id = id,
@@ -159,8 +158,7 @@ function M.bar()
 end
 
 function M.bluetooth()
-    local settings = require("config.settings")
-    if not widget_config.enabled(settings, "bluetooth", true) then
+    if not widget_config.enabled("bluetooth", true) then
         return nil
     end
 
@@ -230,8 +228,7 @@ function M.display()
 end
 
 function M.network()
-    local settings = require("config.settings")
-    if not widget_config.enabled(settings, "network", true) then
+    if not widget_config.enabled("network", true) then
         return nil
     end
 
@@ -265,8 +262,7 @@ function M.runner()
 end
 
 function M.powerprofiles()
-    local settings = require("config.settings")
-    if not widget_config.enabled(settings, "powerprofiles", true) then
+    if not widget_config.enabled("powerprofiles", true) then
         return nil
     end
 
