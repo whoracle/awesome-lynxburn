@@ -7,6 +7,7 @@ return {
     settings = require("config.settings"),
     programs = require("config.programs"),
     helpers = require("config.helpers"),
+    widgets = require("config.widgets"),
     layouts = require("config.layouts"),
     osd = require("config.osd"),
     keys = require("config.keys"),

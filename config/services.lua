@@ -1,4 +1,5 @@
 local M = {}
+local widget_config = require("config.widgets")
 
 local lxaudio_instance
 local lxbar_instance
@@ -60,46 +61,13 @@ local function merge_popup_opts(defaults, overrides)
 end
 
 local function configure_widget_registry(settings)
-    local widgets = settings.widgets or {}
-    require("lxcommon.registry").set_order(widgets.order or {})
-end
-
-local function widget_module_settings(settings, id)
-    local widgets = settings.widgets or {}
-    local modules = widgets.modules or {}
-    local module_settings = modules[id]
-
-    if type(module_settings) ~= "table" then
-        return {}
-    end
-
-    return module_settings
-end
-
-local function widget_enabled(settings, id, default)
-    local module_settings = widget_module_settings(settings, id)
-
-    if module_settings.enabled ~= nil then
-        return module_settings.enabled ~= false
-    end
-
-    return default ~= false
-end
-
-local function widget_cycle_enabled(settings, id, default)
-    local module_settings = widget_module_settings(settings, id)
-
-    if module_settings.cycle ~= nil then
-        return module_settings.cycle ~= false
-    end
-
-    return default ~= false
+    require("lxcommon.registry").set_order(widget_config.order(settings))
 end
 
 local function register_lx_widget(id, widget, default_order, opts)
     opts = opts or {}
     local settings = require("config.settings")
-    local include_in_popup_cycle = widget_cycle_enabled(settings, id, opts.include_in_popup_cycle)
+    local include_in_popup_cycle = widget_config.cycle_enabled(settings, id, opts.include_in_popup_cycle)
 
     require("lxcommon.registry").register({
         id = id,
@@ -192,7 +160,7 @@ end
 
 function M.bluetooth()
     local settings = require("config.settings")
-    if not widget_enabled(settings, "bluetooth", true) then
+    if not widget_config.enabled(settings, "bluetooth", true) then
         return nil
     end
 
@@ -263,7 +231,7 @@ end
 
 function M.network()
     local settings = require("config.settings")
-    if not widget_enabled(settings, "network", true) then
+    if not widget_config.enabled(settings, "network", true) then
         return nil
     end
 
@@ -298,7 +266,7 @@ end
 
 function M.powerprofiles()
     local settings = require("config.settings")
-    if not widget_enabled(settings, "powerprofiles", true) then
+    if not widget_config.enabled(settings, "powerprofiles", true) then
         return nil
     end
 
