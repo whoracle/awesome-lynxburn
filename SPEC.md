@@ -115,7 +115,6 @@ Value priority is:
     - `theme` selection
     - `theme` value overrides
     - `screens` including shared tag order and per-screen tag layouts
-    - `widgets`
     - `commands`
     - `lxmodules`
     - key override data
@@ -123,9 +122,8 @@ Value priority is:
   - runtime no longer needs split `config.override.*` files for the centralized
     sections above
 - Gradually move remaining user-facing values into that central config surface:
-  - fonts, colors, icons, spacing
-  - popup widths/timing
-  - module options beyond widget enable/cycle/order
+  - remaining theme keys that still only live in theme files
+  - any remaining module options beyond the current `lxmodules` surface
   Value: Usability for others than me
   Complexity: medium-high
 - Current module-option progress:

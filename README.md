@@ -273,7 +273,7 @@ secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account anthra
 - exposes shared popup actions such as popup cycling in bar order
 - current default widget order is:
   - network
-  - audio
+  - media
   - notify
   with additional bar modules opt-in/configured under `lxmodules.lxbar`
 
