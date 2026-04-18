@@ -43,3 +43,9 @@ work for, but should be revisited in the final refactor pass.
   Current role: legacy compatibility path for early central-config work.
   Later option: remove it in favor of `./config.lua`, which is now the intended
   central user config entrypoint.
+
+- `config.override.rules.lua`
+  Current role: still-active compatibility path because rules do not yet have a
+  final top-level `config.lua` shape.
+  Later option: choose a central rules surface, migrate the live rule override,
+  and then remove the compatibility loader.

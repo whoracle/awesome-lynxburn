@@ -1,150 +1,59 @@
-# Override Migration Notes
+# Remaining Migration Notes
 
-This file records the current state of local overrides found in the live config
-at `/home/anthrax/.config/awesome/` and the intended migration path toward the
-new top-level `./config.lua` model.
+This file now tracks only the still-unresolved live migration work needed to
+fully move the desktop config away from split `config/override/*.lua` files.
 
-The goal is to remove the split `config/override/*.lua` compatibility layer once
-the remaining user-facing surfaces have a clear home in `./config.lua`.
+## Current Remaining Live Override
 
-## Current Live Override State
+Observed unresolved live override in `/home/anthrax/.config/awesome/`:
 
-Observed files in `/home/anthrax/.config/awesome/config/override/`:
+- `config/override/rules.lua`
 
-- present as real local overrides:
-  - `programs.lua`
-  - `keys.lua`
-  - `lxrunner_aliases.lua`
-- not present as real local overrides:
-  - `settings.lua`
-  - `theme.lua`
-  - `screens.lua`
+All other previously observed live override data now has a valid top-level
+`./config.lua` home and should be treated as migrated or ready for deletion
+once verified on the live machine.
 
-Also present:
-
-- top-level `/home/anthrax/.config/awesome/config.lua`
-  Current state: scaffold only, no active overrides yet.
-
-## Live Override Contents
-
-### `config/override/programs.lua`
+## Live `rules.lua` Content
 
 Current content:
 
-- `autostart_once = { "nm-applet --sm-disable", "nextcloud" }`
-- `redshift = { enabled = true, autostart = true, latitude = 47.9990, longitude = 7.8421, temperature_day = 6500, temperature_night = 4500 }`
-
-Migration target:
-
 ```lua
-return {
-    commands = {
-        autostart_once = {
-            "nm-applet --sm-disable",
-            "nextcloud",
-        },
-        redshift = {
-            enabled = true,
-            autostart = true,
-            latitude = 47.9990,
-            longitude = 7.8421,
-            temperature_day = 6500,
-            temperature_night = 4500,
-        },
-    },
-}
-```
-
-Status:
-
-- supported by the current central config loader
-- can be moved into top-level `config.lua` immediately
-
-### `config/override/keys.lua`
-
-Current content:
-
-- swaps the volume up/down actions:
-  - `media_volume_up.on_press = "volume_down"`
-  - `media_volume_down.on_press = "volume_up"`
-
-Migration target:
-
-```lua
-return {
-    keys = {
-        global = {
-            media_volume_up = {
-                on_press = "volume_down",
-                description = "volume down",
-            },
-            media_volume_down = {
-                on_press = "volume_up",
-                description = "volume up",
+return function(context)
+    return {
+        {
+            rule = { class = "Google-chrome" },
+            properties = {
+                screen = context.monitors.right,
+                tag = "primary",
+                maximized = false,
             },
         },
-    },
-}
+    }
+end
 ```
 
-Status:
+## What Still Needs Decision
 
-- supported by the current central config loader
-- can be moved into top-level `config.lua` immediately
+There is not yet a final central `config.lua` surface for rules.
 
-### `config/override/lxrunner_aliases.lua`
+Open design question:
 
-Current content:
+- should top-level `config.lua.rules` hold:
+  - a plain list of additional rule entries
+  - a function-style rule builder
+  - a lighter declarative rule format that `config/rules.lua` expands
 
-- one alias:
-  - `yayoff` shell command that runs `yay -Syu --noconfirm` and shuts down on success
+Current implementation still expects legacy rule overrides through
+`config.override.rules.lua`, including function returns that receive `context`.
 
-Migration target:
+## Recommended Next Step
 
-```lua
-return {
-    runner = {
-        aliases = {
-            {
-                name = "yayoff",
-                type = "shell",
-                command = [[urxvt -fg gray -tr -sh 50 -e sh -lc 'yay -Syu --noconfirm; status=$?; if [ $status -ne 0 ]; then echo; echo "yay failed with exit code $status"; echo "Shutdown was not triggered."; printf "Press Enter to close..."; read -r _; exit $status; fi; exec sudo shutdown -hP now']],
-            },
-        },
-    },
-}
-```
+1. Decide the final central user-facing shape for rule overrides.
+2. Implement that shape in the repo.
+3. Migrate the live `config/override/rules.lua` into top-level `config.lua`.
+4. Remove compatibility loading for `config.override.rules`.
 
-Status:
+## Handoff Note
 
-- supported by the current central config loader
-- can be moved into top-level `config.lua` immediately
-
-## Recommended Next Migration Order
-
-1. Move the live `programs.lua` override into top-level `config.lua`.
-2. Move the live `keys.lua` override into top-level `config.lua`.
-3. Move the live `lxrunner_aliases.lua` override into top-level `config.lua`.
-4. Remove compatibility loading for fully migrated split override files.
-
-## What Can Be Removed Soon
-
-After the live `programs.lua` override is moved into top-level `config.lua`:
-
-- `config/override/programs.lua` no longer needs to exist locally
-- compatibility loading for `config.override.programs` becomes legacy-only
-
-After the live `keys.lua` override is moved into top-level `config.lua`:
-
-- `config/override/keys.lua` no longer needs to exist locally
-- compatibility loading for `config.override.keys` becomes legacy-only
-
-After the live `lxrunner_aliases.lua` override is moved into top-level `config.lua`:
-
-- `config/override/lxrunner_aliases.lua` no longer needs to exist locally
-- compatibility loading for `config.override.lxrunner_aliases` becomes legacy-only
-
-## What Should Not Be Removed Yet
-
-- none of the currently observed live split override files, once the three
-  central migrations above have been applied locally
+For a fresh Codex session, this is the last known live override that still
+requires a migration design rather than a straightforward data move.
