@@ -14,8 +14,8 @@ It shows:
 
 The main widget is compact, and it opens two popups:
 
-- left click: playback streams and media controls
-- right click: output/input device selection
+- primary click: playback streams and media controls
+- secondary click: output/input device selection
 
 ## What It Does
 
@@ -105,8 +105,8 @@ You create an instance with `lxmedia.new(opts)` and place `instance.widget` anyw
 
 On the main widget:
 
-- left click: toggle playback popup
-- right click: toggle devices popup
+- primary click: toggle playback popup
+- secondary click: toggle devices popup
 - middle click on the output section: mute/unmute default sink
 - scroll on the output section: change default sink volume
 - middle click on the mic section: mute/unmute all non-monitor inputs
@@ -136,9 +136,6 @@ Inside the devices popup:
 | `refresh_interval` | `5` | Polling interval in seconds. |
 | `width` | `50` | Width of the volume bar in the compact widget. |
 | `step` | `0.05` | Volume step for scroll actions, expressed as `0.05 == 5%`. |
-| `icon_muted` | `beautiful.lxmedia_icon_muted` or `" "` | Icon shown when the default output is muted. |
-| `icon_unmuted` | `beautiful.lxmedia_icon_volume` or `" "` | Icon shown when the default output is not muted. |
-| `icon_mic_active` | `beautiful.lxmedia_icon_mic_active` or `"🎙"` | Icon shown when microphone activity is detected. |
 | `hover_close_timeout` | `beautiful.lxmedia_hover_close_timeout` or `1.5` | Seconds the pointer must stay outside the popup and anchor before auto-close. |
 | `hover_close_poll_interval` | `beautiful.lxmedia_hover_close_poll_interval` or `0.25` | Poll interval used by the hover-close logic. |
 
@@ -152,9 +149,6 @@ local audio = lxmedia.new({
     step = 0.02,
     refresh_interval = 2,
     show_mic_activity = false,
-    icon_muted = "M ",
-    icon_unmuted = "V ",
-    icon_mic_active = "MIC",
 })
 ```
 
@@ -183,9 +177,11 @@ Useful instance methods:
 - `instance:close_popups()`
   Close any open popups.
 - `instance:toggle_media_popup(anchor_geo_or_opts, opts)`
-  Toggle the playback popup manually. Supports `anchor = "widget"` or `anchor = "center"`.
+  Toggle the playback popup manually. Supports widget anchoring or explicit
+  placement via `opts.placement`.
 - `instance:toggle_devices_popup(anchor_geo_or_opts, opts)`
-  Toggle the device popup manually. Supports `anchor = "widget"` or `anchor = "center"`.
+  Toggle the device popup manually. Supports widget anchoring or explicit
+  placement via `opts.placement`.
 - `instance:show_media_popup(anchor_geo, opts)`
   Show the playback popup without toggling it off if already visible.
 - `instance:show_devices_popup(anchor_geo, opts)`
@@ -220,13 +216,13 @@ root.keys(gears.table.join(
     awful.key({ "Mod4" }, "p", function()
         audio:toggle_media_popup({
             hover_close = false,
-            anchor = "center",
+            placement = "center",
         })
     end),
     awful.key({ "Mod4", "Shift" }, "p", function()
         audio:toggle_devices_popup({
             hover_close = false,
-            anchor = "center",
+            placement = "side",
         })
     end),
     awful.key({}, "Escape", function()
@@ -237,9 +233,11 @@ root.keys(gears.table.join(
 
 Notes:
 
-- `toggle_*_popup({ hover_close = false, anchor = "center" })` is the keyboard-friendly form. It uses one key to open or close the popup, centers it on the focused screen, and disables the "mouse leaves popup" auto-close timer.
+- `toggle_*_popup({ hover_close = false, placement = "center" })` is the
+  keyboard-friendly centered form.
 - `toggle_*_popup(mouse.current_widget_geometry)` remains the mouse-oriented form and anchors the popup to the widget.
-- `anchor = "widget"` asks the popup to anchor to the widget even when no explicit geometry is passed. `anchor = "center"` forces centered placement on the focused screen.
+- popup placement follows the shared `"center"` / `"side"` contract; actual
+  left/right side selection comes from `lxmodules.lxbar.popup_side`
 - For keyboard-driven volume control, `volume_up()`, `volume_down()`, and `toggle_mute()` use the same backend logic as the widget mouse bindings.
 
 ## Theming

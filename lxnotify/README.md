@@ -12,7 +12,7 @@ rest of the desktop decide whether live `naughty` popups are shown.
 
 - interception of new `naughty` notifications into a retained inbox
 - a compact bell-only top-level widget
-- a right-edge popup with:
+- a popup with configurable `"center"` or `"side"` placement with:
   - grouped and ungrouped notification cards
   - keyboard navigation
   - group detail view
