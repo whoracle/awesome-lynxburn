@@ -29,21 +29,6 @@ local DESKTOP_ENTRY_DIRS = {
     end,
 }
 
-local ALIAS_FILES = {
-    {
-        path = function()
-            return gears.filesystem.get_configuration_dir() .. "lxrunner/aliases.lua"
-        end,
-        optional = false,
-    },
-    {
-        path = function()
-            return gears.filesystem.get_configuration_dir() .. "config/override/lxrunner_aliases.lua"
-        end,
-        optional = true,
-    },
-}
-
 local function configured_runner_aliases()
     local lxmodules = config_data.lxmodules()
     local runner = lxmodules.lxrunner or {}
@@ -157,26 +142,6 @@ local function merge_defaults(opts)
     end
 
     return merged
-end
-
-local function load_alias_file(path, optional)
-    local ok, aliases = pcall(dofile, path)
-
-    if ok then
-        if type(aliases) == "table" then
-            return aliases
-        end
-
-        error(string.format("lxrunner alias file %s must return a table", path))
-    end
-
-    local err = tostring(aliases or "")
-
-    if optional and err:match("No such file or directory") then
-        return {}
-    end
-
-    error(string.format("failed to load lxrunner alias file %s: %s", path, err))
 end
 
 local function upsert_alias(target, alias)
@@ -552,31 +517,6 @@ function M:_load_aliases()
                 description = alias.description,
                 source = "alias",
             })
-        end
-    end
-
-    for _, alias_file in ipairs(ALIAS_FILES) do
-        local aliases = load_alias_file(alias_file.path(), alias_file.optional)
-
-        for _, alias in ipairs(aliases) do
-            if type(alias) == "table"
-                and type(alias.name) == "string"
-                and alias.name ~= ""
-                and type(alias.command) == "string"
-                and alias.command ~= ""
-            then
-                upsert_alias(self._aliases, {
-                    name = alias.name,
-                    type = alias.type or "shell",
-                    command = alias.command,
-                    env = alias.env,
-                    icon = alias.icon,
-                    glyph = alias.glyph,
-                    glyph_font = alias.glyph_font,
-                    description = alias.description,
-                    source = "alias",
-                })
-            end
         end
     end
 end

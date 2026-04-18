@@ -16,6 +16,14 @@ Move legacy config into these sections:
 6. `rules = function(context) ... end`
 7. `lxmodules = { ... }`
 
+Tracked repo state now ships:
+
+- `config/defaults.lua` for generic defaults
+- `config.example.lua` for override examples
+- local top-level `config.lua` for machine-specific overrides
+
+`config.lua` is intended to be gitignored local state.
+
 ## Key Migrations
 
 ### Bar and module config
@@ -54,6 +62,12 @@ Examples:
 - old `lxmodules.lxrunner.options.prompt` -> `lxmodules.lxrunner.prompt`
 - old runner aliases belong under `lxmodules.lxrunner.aliases`
 
+### Rules
+
+- machine-specific application placement should live in local
+  `config.lua` under `rules = function(context) ... end`
+- tracked repo defaults should stay minimal and generic
+
 ## Theme Notes
 
 - OSD timing and hover-close timing remain theme-owned
@@ -66,3 +80,23 @@ Once the live config has copied over the values it still needs:
 
 - delete obsolete non-example files from `config/override/`
 - do not create new split override files
+
+## Notebook Migration From `migrate`
+
+For the notebook currently sitting on tag `migrate`:
+
+1. Update to the current repo state.
+2. Copy `config.example.lua` to local `config.lua`.
+3. Move notebook-specific values into `config.lua`, especially:
+   - `settings.monitors`
+   - `screens`
+   - personal `commands` such as terminal/browser/launcher/file browser
+   - `commands.autostart_once` / `commands.autostart`
+   - `commands.lain.*` mail settings
+   - `lxmodules.lxdisplay.redshift.*`
+   - `lxmodules.lxrunner.aliases`
+   - local `rules = function(context) ... end`
+   - any local key overrides
+4. Do not restore tracked `lxrunner/aliases.lua`; aliases now belong in
+   `lxmodules.lxrunner.aliases`.
+5. Delete obsolete split override files once their data has been moved.

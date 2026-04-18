@@ -10,23 +10,6 @@ local unpack = table.unpack or unpack
 
 ---Register a small set of non-Awesome default hotkey hints for the popup.
 local function register_extra_hotkeys()
-    local extra_rule = { class = { "sublime_text", "Sublime_text" } }
-
-    hotkeys_popup.group_rules["Sublime Text 3"] = {
-        color = "#659FdF",
-        rule_any = extra_rule,
-    }
-
-    hotkeys_popup.add_hotkeys({
-        ["Sublime Text 3"] = {
-            {
-                modifiers = { "Mod4" },
-                keys = {
-                    F11 = "Distraction Free Mode",
-                },
-            },
-        },
-    })
 end
 
 local function key_spec(modifiers, key, on_press, description, group, extra)

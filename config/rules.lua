@@ -13,8 +13,6 @@ function M.build(context)
     local beautiful = context.beautiful
     local clientkeys = context.clientkeys
     local clientbuttons = context.clientbuttons
-    local monitors = context.monitors
-    local tags = context.tags
     local rules = {
         {
             rule = {},
@@ -34,53 +32,6 @@ function M.build(context)
         {
             rule_any = { type = { "dialog", "normal" } },
             properties = { titlebars_enabled = false },
-        },
-        {
-            rule = { class = "Vivaldi" },
-            properties = { screen = monitors.center, tag = tags[1], maximized = false },
-        },
-        {
-            rule = { class = "Sublime_text" },
-            properties = { screen = monitors.center, tag = tags[1] },
-        },
-        {
-            rule_any = { class = { "vlc" } },
-            properties = {
-                titlebars_enabled = true,
-                floating = true,
-            },
-        },
-        {
-            rule_any = { class = { "xlax", "Gmrun" } },
-            properties = {
-                titlebars_enabled = true,
-                floating = true,
-                ontop = true,
-            },
-        },
-        {
-            rule_any = { class = { "xfreerdp", "rdesktop" } },
-            properties = {
-                titlebars_enabled = true,
-                floating = true,
-                maximized = true,
-            },
-        },
-        {
-            rule = { class = "Gimp", role = "gimp-image-window" },
-            properties = { maximized = true },
-        },
-        {
-            rule = { class = "steam_app_2344520" },
-            properties = {
-                titlebars_enabled = false,
-                floating = true,
-                maximized = true,
-            },
-        },
-        {
-            rule_any = { class = { "UnrealEditor" } },
-            properties = { focus = false },
         },
     }
 

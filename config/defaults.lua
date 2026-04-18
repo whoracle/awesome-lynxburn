@@ -4,7 +4,7 @@ local default_keys = require("config.default_keys")
 
 local home = os.getenv("HOME")
 local imageeditor = "gimp"
-local imageviewer = "sxiv"
+local imageviewer = "xdg-open"
 
 M.theme = {
     name = "lynxburn2",
@@ -26,42 +26,8 @@ M.screens = {
             layouts = { "floating" },
         },
     },
-    left = {
-        dpi = 96,
-        tags = {
-            primary = {
-                layout = "centerwork.horizontal",
-                layouts = { "centerwork.horizontal", "fair.horizontal", "floating" },
-            },
-            secondary = {
-                layout = "fair.horizontal",
-                layouts = { "fair.horizontal", "centerwork.horizontal", "floating" },
-            },
-            tertiary = {
-                layout = "floating",
-                layouts = { "floating" },
-            },
-        },
-    },
     center = {
-        dpi = 110,
-        tags = {
-            primary = {
-                layout = "centerwork",
-                layouts = { "centerwork", "vertical", "floating" },
-            },
-            secondary = {
-                layout = "vertical",
-                layouts = { "vertical", "centerwork", "floating" },
-            },
-            tertiary = {
-                layout = "floating",
-                layouts = { "floating", "centerwork", "vertical" },
-            },
-        },
-    },
-    right = {
-        dpi = 110,
+        dpi = 96,
     },
 }
 
@@ -72,25 +38,23 @@ M.settings = {
     shiftkey = "Shift",
     volume_step = 5,
     monitors = {
-        left = 3,
         center = 1,
-        right = 2,
     },
 }
 
 M.commands = {
-    terminal = "urxvt -fg gray -tr -sh 50",
-    browser = "vivaldi-stable",
-    gui_editor = "subl",
+    terminal = "alacritty",
+    browser = "firefox",
+    gui_editor = "gedit",
     imageeditor = imageeditor,
     imageviewer = imageviewer,
     numlock = "numlockx",
-    scrlocker = "i3lock -c 000000 -e -t -i ~/.wallpaper",
-    scrotedit = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -e '" .. imageeditor .. " $f'",
+    scrlocker = "i3lock -c 000000",
+    scrotedit = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -e 'xdg-open $f'",
     scrotmouse = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -s",
-    scrotwin = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -ue '" .. imageviewer .. " $f'",
-    xrandr = home .. "/.xrandr",
-    conky = "conky -c ~/.conky/conky-spotify/conky-spotify",
+    scrotwin = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -ue 'xdg-open $f'",
+    xrandr = "xrandr",
+    conky = "conky",
     nmapplet = "nm-applet --sm-disable",
     blueman = "blueman-applet",
     blueman_manager = "blueman-manager",
@@ -98,12 +62,12 @@ M.commands = {
     pulse = "pasystray",
     nextcloud = "nextcloud",
     screendrawer = "gromit-mpx",
-    launcher = home .. "/.config/rofi/launchers/type-1/launcher.sh",
-    filebrowser = "thunar",
+    launcher = "rofi -show drun",
+    filebrowser = "xdg-open",
     lain = {
-        imap_server = "lynxcore.org",
-        imap_mail = "anthrax@lynxcore.org",
-        imap_secret = "secret-tool lookup service awesomewm-imap account anthrax@lynxcore.org",
+        imap_server = nil,
+        imap_mail = nil,
+        imap_secret = nil,
         imap_login_options = "AUTH=LOGIN",
         imap_timeout = 60,
     },

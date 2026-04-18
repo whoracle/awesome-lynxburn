@@ -2,6 +2,7 @@ local helpers = require("config.helpers")
 local defaults = require("config.defaults")
 local os = os
 local ipairs = ipairs
+local gears = require("gears")
 
 local M = {}
 
@@ -12,9 +13,28 @@ local cached_rules
 local cached_settings
 local cached_theme
 local cached_screens
+local cached_user_config
 
 local function load_user_config()
-    return helpers.load_optional_module("config", {})
+    if cached_user_config ~= nil then
+        return cached_user_config
+    end
+
+    local config_path = gears.filesystem.get_configuration_dir() .. "config.lua"
+    local ok, result = pcall(dofile, config_path)
+
+    if ok then
+        cached_user_config = type(result) == "table" and result or {}
+        return cached_user_config
+    end
+
+    local err = tostring(result or "")
+    if err:match("No such file or directory") then
+        cached_user_config = {}
+        return cached_user_config
+    end
+
+    error(result)
 end
 
 local function shell_escape(value)

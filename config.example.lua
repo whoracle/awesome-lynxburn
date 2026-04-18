@@ -2,8 +2,8 @@ return {
     -- settings = {
     --     modkey = "Mod4",
     --     monitors = {
-    --         left = 1,
-    --         center = 2,
+    --         center = 1,
+    --         left = 2,
     --         right = 3,
     --     },
     -- },
@@ -20,42 +20,34 @@ return {
     -- screens = {
     --     tag_order = { "primary", "secondary", "tertiary" },
     --     tag_defaults = {
-    --         primary = { layout = "fair" },
-    --         secondary = { layout = "centerwork" },
-    --         tertiary = { layout = "centerwork.horizontal" },
+    --         primary = { layout = "fair", layouts = { "fair", "floating" } },
+    --         secondary = { layout = "centerwork", layouts = { "centerwork", "floating" } },
+    --         tertiary = { layout = "floating", layouts = { "floating" } },
+    --     },
+    --     center = {
+    --         dpi = 96,
     --     },
     --     left = {
     --         dpi = 96,
     --         tags = {
     --             primary = { layout = "fair.horizontal" },
-    --             secondary = { layout = "centerwork" },
-    --             tertiary = { layout = "floating" },
     --         },
-    --     },
-    --     right = {
-    --         dpi = 110,
-    --         tags = {
-    --             primary = { layout = "floating" },
-    --         },
-    --     },
-    --     center = {
-    --         -- legacy compatibility shortcut:
-    --         -- layout = "centerwork",
     --     },
     -- },
     -- commands = {
     --     terminal = "alacritty",
+    --     browser = "firefox",
+    --     launcher = "rofi -show drun",
+    --     filebrowser = "xdg-open",
+    --     autostart_once = {
+    --         "nm-applet --sm-disable",
+    --     },
     --     lain = {
     --         imap_mail = "me@example.org",
     --         imap_secret = "secret-tool lookup service awesomewm-imap account me@example.org",
+    --         imap_server = "mail.example.org",
     --     },
     -- },
-    commands = {
-        autostart_once = {
-            "nm-applet --sm-disable",
-            "nextcloud",
-        },
-    },
     -- lxmodules = {
     --     lxbar = {
     --         popup_side = "right",
@@ -118,53 +110,22 @@ return {
     --         },
     --     },
     -- },
-    lxmodules = {
-        lxdisplay = {
-            redshift = {
-                latitude = 47.9990,
-                longitude = 7.8421,
-            },
-        },
-        lxrunner = {
-            aliases = {
-                {
-                    name = "yayoff",
-                    type = "shell",
-                    -- icon = "/absolute/path/to/icon.svg",
-                    -- glyph = "󰐥",
-                    -- glyph_font = "Symbols Nerd Font 12",
-                    command = [[urxvt -fg gray -tr -sh 50 -e sh -lc 'yay -Syu --noconfirm; status=$?; if [ $status -ne 0 ]; then echo; echo "yay failed with exit code $status"; echo "Shutdown was not triggered."; printf "Press Enter to close..."; read -r _; exit $status; fi; exec sudo shutdown -hP now']],
-                },
-            },
-        },
-    },
-    keys = {
-        -- open_terminal = {
-        --     scope = "global",
-        --     modifiers = { "modkey" },
-        --     key = "Return",
-        -- },
-        volume_up = {
-            scope = "global",
-            on_press = "volume_down",
-            description = "volume down",
-        },
-        volume_down = {
-            scope = "global",
-            on_press = "volume_up",
-            description = "volume up",
-        },
-    },
-    rules = function(context)
-        return {
-            {
-                rule = { class = "Google-chrome" },
-                properties = {
-                    screen = context.monitors.right,
-                    tag = "primary",
-                    maximized = false,
-                },
-            },
-        }
-    end,
+    -- keys = {
+    --     open_terminal = {
+    --         scope = "global",
+    --         modifiers = { "modkey" },
+    --         key = "Return",
+    --     },
+    -- },
+    -- rules = function(context)
+    --     return {
+    --         {
+    --             rule = { class = "Firefox" },
+    --             properties = {
+    --                 screen = context.monitors.center,
+    --                 tag = "primary",
+    --             },
+    --         },
+    --     }
+    -- end,
 }

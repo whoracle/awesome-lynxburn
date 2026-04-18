@@ -20,9 +20,9 @@ local M = {}
 ---Wrap a widget in the standard LynxBurn wibar background and padding shell.
 local programs = config_data.commands()
 local lain_commands = programs.lain or {}
-local mail_account = lain_commands.imap_mail or ""
-local mail_password_lookup = lain_commands.imap_secret or ""
-local mail_server = lain_commands.imap_server or ""
+local mail_account = lain_commands.imap_mail
+local mail_password_lookup = lain_commands.imap_secret
+local mail_server = lain_commands.imap_server
 local mail_login_options = lain_commands.imap_login_options or "AUTH=LOGIN"
 local mail_timeout = tonumber(lain_commands.imap_timeout) or 60
 
