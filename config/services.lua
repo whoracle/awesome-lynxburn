@@ -84,6 +84,28 @@ local function register_popup_handle(module_id, popup_id, handle, opts)
     require("lxcommon.popup_manager").register(module_id, popup_id, handle, opts)
 end
 
+local function build_popup_handle(spec)
+    return {
+        open = function(opts)
+            local popup_opts = merge_popup_opts(popup_cycle_opts(), opts)
+
+            if spec.hover_close ~= nil then
+                popup_opts.hover_close = spec.hover_close
+            end
+
+            spec.open(popup_opts)
+        end,
+        close = spec.close,
+        is_visible = spec.is_visible,
+    }
+end
+
+local function register_semantic_popup(module_id, popup_id, popup_role, spec)
+    register_popup_handle(module_id, popup_id, build_popup_handle(spec), {
+        popup_role = popup_role,
+    })
+end
+
 ---Shared singleton accessors for the long-lived helper modules.
 ---
 ---Services are created lazily so theme initialization can complete before
@@ -96,11 +118,10 @@ function M.audio()
             width = 50,
         })
         register_lx_widget("audio", lxaudio_instance.widget, 40)
-        register_popup_handle("audio", "default", {
+        register_semantic_popup("audio", "default", "primary", {
+            hover_close = false,
             open = function(opts)
-                local popup_opts = merge_popup_opts(popup_cycle_opts(), opts)
-                popup_opts.hover_close = false
-                lxaudio_instance:show_media_popup(nil, popup_opts)
+                lxaudio_instance:show_media_popup(nil, opts)
             end,
             close = function()
                 lxaudio_instance:close_popups()
@@ -108,14 +129,11 @@ function M.audio()
             is_visible = function()
                 return lxaudio_instance._media_popup and lxaudio_instance._media_popup.visible or false
             end,
-        }, {
-            popup_role = "primary",
         })
-        register_popup_handle("audio", "devices", {
+        register_semantic_popup("audio", "devices", "secondary", {
+            hover_close = false,
             open = function(opts)
-                local popup_opts = merge_popup_opts(popup_cycle_opts(), opts)
-                popup_opts.hover_close = false
-                lxaudio_instance:show_devices_popup(nil, popup_opts)
+                lxaudio_instance:show_devices_popup(nil, opts)
             end,
             close = function()
                 lxaudio_instance:close_popups()
@@ -123,8 +141,6 @@ function M.audio()
             is_visible = function()
                 return lxaudio_instance._devices_popup and lxaudio_instance._devices_popup.visible or false
             end,
-        }, {
-            popup_role = "secondary",
         })
     end
 
@@ -149,9 +165,9 @@ function M.bluetooth()
     if not lxbluetooth_instance then
         lxbluetooth_instance = require("lxbluetooth").new()
         register_lx_widget("bluetooth", lxbluetooth_instance.widget, 10)
-        register_popup_handle("bluetooth", "default", {
+        register_semantic_popup("bluetooth", "default", "primary", {
             open = function(opts)
-                lxbluetooth_instance:toggle_popup(nil, merge_popup_opts(popup_cycle_opts(), opts))
+                lxbluetooth_instance:toggle_popup(nil, opts)
             end,
             close = function()
                 lxbluetooth_instance:close_popup()
@@ -159,8 +175,6 @@ function M.bluetooth()
             is_visible = function()
                 return lxbluetooth_instance._popup and lxbluetooth_instance._popup.visible or false
             end,
-        }, {
-            popup_role = "primary",
         })
     end
 
@@ -181,11 +195,10 @@ function M.notify()
             },
         })
         register_lx_widget("notify", lxnotify_instance.widget, 50)
-        register_popup_handle("notify", "default", {
+        register_semantic_popup("notify", "default", "primary", {
+            hover_close = false,
             open = function(opts)
-                local popup_opts = merge_popup_opts(popup_cycle_opts(), opts)
-                popup_opts.hover_close = false
-                lxnotify_instance:show_notification_popup(popup_opts)
+                lxnotify_instance:show_notification_popup(opts)
             end,
             close = function()
                 lxnotify_instance:close_popups()
@@ -193,8 +206,6 @@ function M.notify()
             is_visible = function()
                 return lxnotify_instance._popup and lxnotify_instance._popup.visible or false
             end,
-        }, {
-            popup_role = "primary",
         })
     end
 
@@ -225,9 +236,9 @@ function M.network()
     if not lxnetwork_instance then
         lxnetwork_instance = require("lxnetwork").new()
         register_lx_widget("network", lxnetwork_instance.widget, 20)
-        register_popup_handle("network", "default", {
+        register_semantic_popup("network", "default", "primary", {
             open = function(opts)
-                lxnetwork_instance:toggle_popup(nil, merge_popup_opts(popup_cycle_opts(), opts))
+                lxnetwork_instance:toggle_popup(nil, opts)
             end,
             close = function()
                 lxnetwork_instance:close_popup()
@@ -235,8 +246,6 @@ function M.network()
             is_visible = function()
                 return lxnetwork_instance._popup and lxnetwork_instance._popup.visible or false
             end,
-        }, {
-            popup_role = "primary",
         })
     end
 
@@ -262,9 +271,9 @@ function M.powerprofiles()
     if not lxpowerprofiles_instance then
         lxpowerprofiles_instance = require("lxpowerprofiles").new()
         register_lx_widget("powerprofiles", lxpowerprofiles_instance.widget, 30)
-        register_popup_handle("powerprofiles", "default", {
+        register_semantic_popup("powerprofiles", "default", "secondary", {
             open = function(opts)
-                lxpowerprofiles_instance:toggle_popup(nil, merge_popup_opts(popup_cycle_opts(), opts))
+                lxpowerprofiles_instance:toggle_popup(nil, opts)
             end,
             close = function()
                 lxpowerprofiles_instance:close_popup()
@@ -272,8 +281,6 @@ function M.powerprofiles()
             is_visible = function()
                 return lxpowerprofiles_instance._popup and lxpowerprofiles_instance._popup.visible or false
             end,
-        }, {
-            popup_role = "secondary",
         })
     end
 
