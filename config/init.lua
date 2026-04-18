@@ -10,7 +10,7 @@ return {
     runtime = require("config.runtime"),
     theme = require("config.theme"),
     tags = require("config.tags"),
-    widgets = require("config.widgets"),
+    lxmodules = require("config.lxmodules"),
     layouts = require("config.layouts"),
     osd = require("config.osd"),
     keys = require("config.keys"),

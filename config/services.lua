@@ -1,5 +1,5 @@
 local M = {}
-local widget_config = require("config.widgets")
+local module_config = require("config.lxmodules")
 local config_data = require("config.config_data")
 
 local lxaudio_instance
@@ -62,12 +62,12 @@ local function merge_popup_opts(defaults, overrides)
 end
 
 local function configure_widget_registry()
-    require("lxcommon.registry").set_order(widget_config.order())
+    require("lxcommon.registry").set_order(module_config.order())
 end
 
 local function register_lx_widget(id, widget, default_order, opts)
     opts = opts or {}
-    local include_in_popup_cycle = widget_config.cycle_enabled(id, opts.include_in_popup_cycle)
+    local include_in_popup_cycle = module_config.cycle_enabled(id, opts.include_in_popup_cycle)
 
     require("lxcommon.registry").register({
         id = id,
@@ -113,7 +113,7 @@ end
 ---theme-driven widget options are read.
 function M.audio()
     if not lxaudio_instance then
-        lxaudio_instance = require("lxaudio").new(widget_config.options("audio"))
+        lxaudio_instance = require("lxaudio").new(module_config.options("audio"))
         register_lx_widget("audio", lxaudio_instance.widget, 40)
         register_semantic_popup("audio", "default", "primary", {
             hover_close = false,
@@ -155,12 +155,12 @@ function M.bar()
 end
 
 function M.bluetooth()
-    if not widget_config.enabled("bluetooth", true) then
+    if not module_config.enabled("bluetooth", true) then
         return nil
     end
 
     if not lxbluetooth_instance then
-        lxbluetooth_instance = require("lxbluetooth").new(widget_config.options("bluetooth"))
+        lxbluetooth_instance = require("lxbluetooth").new(module_config.options("bluetooth"))
         register_lx_widget("bluetooth", lxbluetooth_instance.widget, 10)
         register_semantic_popup("bluetooth", "default", "primary", {
             open = function(opts)
@@ -182,7 +182,7 @@ end
 ---@return table
 function M.notify()
     if not lxnotify_instance then
-        lxnotify_instance = require("lxnotify").new(widget_config.options("notify"))
+        lxnotify_instance = require("lxnotify").new(module_config.options("notify"))
         register_lx_widget("notify", lxnotify_instance.widget, 50)
         register_semantic_popup("notify", "default", "primary", {
             hover_close = false,
@@ -205,7 +205,7 @@ end
 ---@return table
 function M.display()
     if not lxdisplay_instance then
-        lxdisplay_instance = require("lxdisplay").new(widget_config.options("display"))
+        lxdisplay_instance = require("lxdisplay").new(module_config.options("display"))
         register_lx_widget("display", lxdisplay_instance.widget, 60)
     end
 
@@ -213,12 +213,12 @@ function M.display()
 end
 
 function M.network()
-    if not widget_config.enabled("network", true) then
+    if not module_config.enabled("network", true) then
         return nil
     end
 
     if not lxnetwork_instance then
-        lxnetwork_instance = require("lxnetwork").new(widget_config.options("network"))
+        lxnetwork_instance = require("lxnetwork").new(module_config.options("network"))
         register_lx_widget("network", lxnetwork_instance.widget, 20)
         register_semantic_popup("network", "default", "primary", {
             open = function(opts)
@@ -240,7 +240,7 @@ end
 ---@return table
 function M.runner()
     if not lxrunner_instance then
-        local runner_options = widget_config.options("runner")
+        local runner_options = module_config.options("runner")
         runner_options.aliases = nil
         lxrunner_instance = require("lxrunner").new(runner_options)
     end
@@ -249,12 +249,12 @@ function M.runner()
 end
 
 function M.powerprofiles()
-    if not widget_config.enabled("powerprofiles", true) then
+    if not module_config.enabled("powerprofiles", true) then
         return nil
     end
 
     if not lxpowerprofiles_instance then
-        lxpowerprofiles_instance = require("lxpowerprofiles").new(widget_config.options("powerprofiles"))
+        lxpowerprofiles_instance = require("lxpowerprofiles").new(module_config.options("powerprofiles"))
         register_lx_widget("powerprofiles", lxpowerprofiles_instance.widget, 30)
         register_semantic_popup("powerprofiles", "default", "secondary", {
             open = function(opts)
