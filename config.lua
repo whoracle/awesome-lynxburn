@@ -16,7 +16,6 @@ return {
     --     lxmedia_bar_fg = "#e0b56a",
     --     lxmedia_popup_width_media = 420,
     --     lxpower_popup_width = 420,
-    --     lxrunner_width = 640,
     -- },
     -- screens = {
     --     tag_order = { "primary", "secondary", "tertiary" },

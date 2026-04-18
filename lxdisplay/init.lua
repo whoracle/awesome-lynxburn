@@ -800,7 +800,7 @@ end
 
 function M:_start_refresh_timer()
     self._refresh_timer = gears.timer({
-        timeout = tonumber(self._opts.refresh_interval) or beautiful.lxdisplay_refresh_interval or 15,
+        timeout = tonumber(self._opts.refresh_interval) or 15,
         autostart = true,
         call_now = true,
         callback = function()

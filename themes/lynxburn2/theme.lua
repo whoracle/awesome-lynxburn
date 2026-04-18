@@ -209,7 +209,6 @@ local theme = {
     lxdisplay_osd_margin = 16,
     lxdisplay_osd_timeout = 1,
     lxdisplay_osd_screen_margin = 60,
-    lxdisplay_refresh_interval = 15,
 
     lxbluetooth_icon = "",
     lxbluetooth_popup_placement = "side",
@@ -233,7 +232,6 @@ local theme = {
     lxpower_profile_fg_balanced = roles.text,
     lxpower_profile_fg_performance = palette.critical,
 
-    lxrunner_width = 520,
     lxrunner_bg = roles.panel_bg,
     lxrunner_border_color = roles.panel_border,
     lxrunner_border_width = 1,
@@ -245,8 +243,6 @@ local theme = {
     lxrunner_radius = 6,
     lxrunner_outer_margin = 10,
     lxrunner_padding = 12,
-    lxrunner_row_count = 10,
-    lxrunner_history_limit = 10,
     lxrunner_row_bg = roles.panel_bg,
     lxrunner_row_fg = roles.text_meta,
     lxrunner_row_font = font,

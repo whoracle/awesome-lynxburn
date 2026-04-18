@@ -8,15 +8,9 @@ local M = {}
 M.__index = M
 
 local DEFAULTS = {
-    width = function()
-        return beautiful.lxrunner_width or 520
-    end,
-    row_count = function()
-        return beautiful.lxrunner_row_count or 5
-    end,
-    history_limit = function()
-        return beautiful.lxrunner_history_limit or 5
-    end,
+    width = 520,
+    row_count = 5,
+    history_limit = 5,
     history_file = function()
         return (os.getenv("HOME") or "") .. "/.lxrunner_history"
     end,
