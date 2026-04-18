@@ -1,10 +1,7 @@
 local os = os
 local ipairs = ipairs
 local helpers = require("config.helpers")
-
-local home = os.getenv("HOME")
-local imageeditor = "gimp"
-local imageviewer = "sxiv"
+local config_data = require("config.config_data")
 
 local function shell_escape(value)
     return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
@@ -50,65 +47,11 @@ local function resolve_terminal(command)
     return configured
 end
 
----External program definitions and command templates used by the main config.
+---External command definitions and runtime command configuration.
 ---
 ---When changing command-line tools, launchers, screenshot tooling, brightness
 ---control, or Redshift parameters, this is usually the first file to edit.
-local programs = {
-    terminal = "urxvt -fg gray -tr -sh 50",
-    browser = "vivaldi-stable",
-    gui_editor = "subl",
-    imageeditor = imageeditor,
-    imageviewer = imageviewer,
-    numlock = "numlockx",
-    scrlocker = "i3lock -c 000000 -e -t -i ~/.wallpaper",
-    scrotedit = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -e '" .. imageeditor .. " $f'",
-    scrotmouse = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -s",
-    scrotwin = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -ue '" .. imageviewer .. " $f'",
-    xrandr = home .. "/.xrandr",
-    conky = "conky -c ~/.conky/conky-spotify/conky-spotify",
-    nmapplet = "nm-applet --sm-disable",
-    blueman = "blueman-applet",
-    blueman_manager = "blueman-manager",
-    network_manager = "nm-connection-editor",
-    pulse = "pasystray",
-    nextcloud = "nextcloud",
-    screendrawer = "gromit-mpx",
-    launcher = home .. "/.config/rofi/launchers/type-1/launcher.sh",
-    filebrowser = "thunar",
-    redshift = {
-        command = "xrandr",
-        enabled = true,
-        autostart = true,
-        latitude = nil,
-        longitude = nil,
-        temperature_day = 6500,
-        temperature_night = 4500,
-        transition_steps = 16,
-        transition_interval = 0.05,
-        refresh_interval = 120,
-        schedule_transition_seconds = 3600,
-        day_start = "07:00",
-        night_start = "19:00",
-    },
-    brightness = {
-        get = "xbacklight -get",
-        set = "xbacklight -set %d",
-        step = 5,
-        min = 10,
-        off = "xset dpms force off",
-    },
-    autostart_once = {},
-    autostart = {
-        --"nextcloud",
-        --"nm-applet --sm-disable",
-    },
-}
-
-programs = helpers.deep_merge(
-    programs,
-    helpers.load_optional_module("config.override.programs", {})
-)
+local programs = helpers.deep_merge({}, config_data.commands())
 
 programs.terminal = resolve_terminal(programs.terminal)
 
