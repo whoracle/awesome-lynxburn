@@ -12,8 +12,8 @@ Files you are expected to edit directly:
 - `config/*.lua`
 - `lxbar/`
 - `lxcommon/`
-- `themes/lynxburn2/theme.lua`
-- `themes/lynxburn2/widgets.lua`
+- `themes/lynxburn/theme.lua`
+- `themes/lynxburn/widgets.lua`
 
 Vendored / external code you generally should not edit here:
 
@@ -49,11 +49,11 @@ are intended to become submodules later.
   Unified top-level widget that renders registered `lx*` compact widgets and
   exposes shared popup actions such as popup cycling.
 
-- `themes/lynxburn2/theme.lua`
+- `themes/lynxburn/theme.lua`
   Theme values: colors, fonts, icon paths, widget settings, popup sizing, and
   per-module theme knobs.
 
-- `themes/lynxburn2/widgets.lua`
+- `themes/lynxburn/widgets.lua`
   Wibar construction and theme-local widget composition.
 
 ### `config/`
@@ -189,7 +189,7 @@ the routine user-facing knobs, for example:
 
 Theme-authoring details such as titlebar asset paths, copycats-style icon file
 paths, and other theme-internal composition data should usually stay in
-`themes/lynxburn2/theme.lua` unless you are actually reshaping the theme.
+`themes/lynxburn/theme.lua` unless you are actually reshaping the theme.
 
 ## External Dependencies
 
@@ -304,11 +304,11 @@ If you want to change:
 - monitor mapping / tag names / modifier keys: top-level `config.lua` under `settings`
 - client placement rules: `config/rules.lua`
 - screen-specific DPI and default layouts: top-level `config.lua` under `screens`
-- classic wibar order/layout: `themes/lynxburn2/widgets.lua`
+- classic wibar order/layout: `themes/lynxburn/widgets.lua`
 - `lx*` bar composition: top-level `config.lua` under `lxmodules.lxbar`
 - `lx*` shared popup/runtime behavior: `config/services.lua`, `lxbar/init.lua`,
   `lxcommon/*.lua`
-- colors, glyphs, popup sizes, per-widget theme settings: `themes/lynxburn2/theme.lua`
+- colors, glyphs, popup sizes, per-widget theme settings: `themes/lynxburn/theme.lua`
 - `lxrunner` aliases and runner behavior: top-level `config.lua` under
   `lxmodules.lxrunner`, plus `lxrunner/` for implementation
 

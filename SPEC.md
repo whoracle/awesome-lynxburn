@@ -256,7 +256,7 @@ feature expansion.
 
 #### Still Wanted
 
-- later split `themes/lynxburn2/theme.lua` into:
+- later split `themes/lynxburn/theme.lua` into:
   - structure/config wiring
   - palette/colors
 - replace the current personal defaults in `config/defaults.lua` with sane

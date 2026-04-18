@@ -18,7 +18,7 @@ function M.name()
         return theme.name
     end
 
-    return "lynxburn2"
+    return "lynxburn"
 end
 
 function M.overrides()

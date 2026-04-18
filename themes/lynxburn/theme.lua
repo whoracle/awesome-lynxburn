@@ -2,7 +2,7 @@
 --
 -- This version keeps only theme keys that are consumed by:
 -- - Awesome core widgets and notifications used by this config
--- - themes/lynxburn2/widgets.lua
+-- - themes/lynxburn/widgets.lua
 -- - the bundled lxmedia, lxnotify, lxdisplay, and lxrunner modules
 --
 -- It intentionally drops copycats-era fields that are currently unused.
@@ -34,7 +34,7 @@ local palette = {
 --local font = "Terminus 8"
 local font = "Hack Nerd Font Mono 9"
 local padding = 2
-local theme_dir = os.getenv("HOME") .. "/.config/awesome/themes/lynxburn2"
+local theme_dir = os.getenv("HOME") .. "/.config/awesome/themes/lynxburn"
 local zenburn_dir = awful.util.get_themes_dir() .. "zenburn"
 
 local roles = {
@@ -259,7 +259,7 @@ local custom_at_screen_connect = theme_overrides.at_screen_connect
 theme_overrides.at_screen_connect = nil
 helpers.deep_merge(theme, theme_overrides)
 
-theme.at_screen_connect = require("themes.lynxburn2.widgets").build(theme)
+theme.at_screen_connect = require("themes.lynxburn.widgets").build(theme)
 
 if custom_at_screen_connect then
     theme.at_screen_connect = custom_at_screen_connect

@@ -8,7 +8,7 @@ return {
     --     },
     -- },
     -- theme = {
-    --     name = "lynxburn2",
+    --     name = "lynxburn",
     --     -- Flat keys override `beautiful.*` values after the theme loads.
     --     wallpaper = os.getenv("HOME") .. "/Pictures/wallpaper.png",
     --     wibar_height = 24,

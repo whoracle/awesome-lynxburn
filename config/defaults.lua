@@ -3,11 +3,9 @@ local M = {}
 local default_keys = require("config.default_keys")
 
 local home = os.getenv("HOME")
-local imageeditor = "gimp"
-local imageviewer = "xdg-open"
 
 M.theme = {
-    name = "lynxburn2",
+    name = "lynxburn",
 }
 
 M.screens = {
@@ -46,8 +44,8 @@ M.commands = {
     terminal = "alacritty",
     browser = "firefox",
     gui_editor = "gedit",
-    imageeditor = imageeditor,
-    imageviewer = imageviewer,
+    imageeditor = "gimp",
+    imageviewer = "xdg-open",
     numlock = "numlockx",
     scrlocker = "i3lock -c 000000",
     scrotedit = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -e 'xdg-open $f'",
