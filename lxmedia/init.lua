@@ -3,6 +3,7 @@ local gears = require("gears")
 local beautiful = require("beautiful")
 local keygrabber = require("awful.keygrabber")
 local unpack = table.unpack or unpack
+local popup_control = require("lxcommon.popup_control")
 local popup_placement = require("lxcommon.popup_placement")
 
 local M = {}
@@ -45,79 +46,6 @@ local function normalize_popup_args(anchor_geo, opts)
     end
 
     return anchor_geo, opts or {}
-end
-
-local function normalize_popup_toggle_key(toggle_key)
-    if type(toggle_key) ~= "table" or type(toggle_key.key) ~= "string" then
-        return nil
-    end
-
-    local normalized = {
-        key = toggle_key.key,
-        modifiers = {},
-        modifier_set = {},
-    }
-
-    if type(toggle_key.modifiers) == "table" then
-        for _, modifier in ipairs(toggle_key.modifiers) do
-            if type(modifier) == "string" and modifier ~= "" then
-                normalized.modifier_set[modifier] = true
-            end
-        end
-    end
-
-    for modifier in pairs(normalized.modifier_set) do
-        normalized.modifiers[#normalized.modifiers + 1] = modifier
-    end
-
-    table.sort(normalized.modifiers)
-
-    return normalized
-end
-
-local function popup_toggle_key_matches(toggle_key, modifiers, key)
-    if not toggle_key or key ~= toggle_key.key then
-        return false
-    end
-
-    local active_modifiers = {}
-    for _, modifier in ipairs(modifiers or {}) do
-        active_modifiers[modifier] = true
-    end
-
-    for modifier in pairs(active_modifiers) do
-        if not toggle_key.modifier_set[modifier] then
-            return false
-        end
-    end
-
-    for modifier in pairs(toggle_key.modifier_set) do
-        if not active_modifiers[modifier] then
-            return false
-        end
-    end
-
-    return true
-end
-
-local function point_in_geometry(x, y, geo)
-    return geo
-        and x >= geo.x and x < (geo.x + geo.width)
-        and y >= geo.y and y < (geo.y + geo.height)
-end
-
-local function copy_button_list(buttons)
-    local copied = {}
-
-    if not buttons then
-        return copied
-    end
-
-    for _, button in ipairs(buttons) do
-        copied[#copied + 1] = button
-    end
-
-    return copied
 end
 
 local function audio_popup_visible(instance)
@@ -511,17 +439,17 @@ function M:_handle_media_popup_keygrabber(_, modifiers, key, event)
         return
     end
 
-    if popup_toggle_key_matches(self._media_popup_prev_keychain, modifiers, key) and type(self._media_popup_on_cycle_prev) == "function" then
+    if popup_control.popup_toggle_key_matches(self._media_popup_prev_keychain, modifiers, key) and type(self._media_popup_on_cycle_prev) == "function" then
         self._media_popup_on_cycle_prev()
         return
     end
 
-    if popup_toggle_key_matches(self._media_popup_next_keychain, modifiers, key) and type(self._media_popup_on_cycle_next) == "function" then
+    if popup_control.popup_toggle_key_matches(self._media_popup_next_keychain, modifiers, key) and type(self._media_popup_on_cycle_next) == "function" then
         self._media_popup_on_cycle_next()
         return
     end
 
-    if popup_toggle_key_matches(self._media_popup_toggle_key, modifiers, key) then
+    if popup_control.popup_toggle_key_matches(self._media_popup_toggle_key, modifiers, key) then
         self:close_popups()
         return
     end
@@ -590,60 +518,30 @@ function M:blur_devices_popup_keyboard_navigation()
 end
 
 function M:_start_media_popup_outside_click_dismiss()
-    self:_stop_media_popup_outside_click_dismiss()
-
-    local handler = function()
-        local popup = self._media_popup
-        if not (popup and popup.visible) then
-            return
-        end
-
-        local coords = mouse.coords()
-        if point_in_geometry(coords.x, coords.y, popup:geometry()) then
-            return
-        end
-
-        self:close_popups()
-    end
-
-    self._media_popup_outside_click_handler = handler
-
-    self._media_popup_outside_click_binding = awful.button({}, 1, handler)
-    self._media_popup_saved_root_buttons = copy_button_list(root.buttons())
-    local merged_root_buttons = copy_button_list(self._media_popup_saved_root_buttons)
-    merged_root_buttons[#merged_root_buttons + 1] = self._media_popup_outside_click_binding
-    root.buttons(merged_root_buttons)
-
-    if client and client.connect_signal then
-        client.connect_signal("button::press", self._media_popup_outside_click_handler)
-    end
-
-    if drawin and drawin.connect_signal then
-        drawin.connect_signal("button::press", self._media_popup_outside_click_handler)
-    end
+    popup_control.start_outside_click_dismiss(self, {
+        binding_key = "_media_popup_outside_click_binding",
+        saved_root_buttons_key = "_media_popup_saved_root_buttons",
+        handler_key = "_media_popup_outside_click_handler",
+        is_open = function()
+            return self._media_popup and self._media_popup.visible or false
+        end,
+        geometry_providers = {
+            function()
+                return self._media_popup and self._media_popup:geometry() or nil
+            end,
+        },
+        on_outside_click = function()
+            self:close_popups()
+        end,
+    })
 end
 
 function M:_stop_media_popup_outside_click_dismiss()
-    if self._media_popup_outside_click_binding then
-        self._media_popup_outside_click_binding = nil
-    end
-
-    if self._media_popup_saved_root_buttons then
-        root.buttons(self._media_popup_saved_root_buttons)
-        self._media_popup_saved_root_buttons = nil
-    end
-
-    if self._media_popup_outside_click_handler then
-        if client and client.disconnect_signal then
-            client.disconnect_signal("button::press", self._media_popup_outside_click_handler)
-        end
-
-        if drawin and drawin.disconnect_signal then
-            drawin.disconnect_signal("button::press", self._media_popup_outside_click_handler)
-        end
-
-        self._media_popup_outside_click_handler = nil
-    end
+    popup_control.stop_outside_click_dismiss(self, {
+        binding_key = "_media_popup_outside_click_binding",
+        saved_root_buttons_key = "_media_popup_saved_root_buttons",
+        handler_key = "_media_popup_outside_click_handler",
+    })
 end
 
 -- Toggle mute on the current default output device.
@@ -849,9 +747,9 @@ function M:_toggle_popup(kind, anchor_geo, opts)
         if opts.hover_close == false then
             self:_stop_hover_close_timer()
             if kind == "media" then
-                self._media_popup_toggle_key = normalize_popup_toggle_key(opts.toggle_key)
-                self._media_popup_prev_keychain = normalize_popup_toggle_key(opts.prev_keychain)
-                self._media_popup_next_keychain = normalize_popup_toggle_key(opts.next_keychain)
+                self._media_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
+                self._media_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
+                self._media_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
                 self._media_popup_on_cycle_prev = opts.on_cycle_prev
                 self._media_popup_on_cycle_next = opts.on_cycle_next
                 self:focus_media_popup_keyboard_navigation()
@@ -904,9 +802,9 @@ function M:_show_popup(kind, anchor_geo, opts)
     if opts.hover_close == false then
         self:_stop_hover_close_timer()
         if kind == "media" then
-            self._media_popup_toggle_key = normalize_popup_toggle_key(opts.toggle_key)
-            self._media_popup_prev_keychain = normalize_popup_toggle_key(opts.prev_keychain)
-            self._media_popup_next_keychain = normalize_popup_toggle_key(opts.next_keychain)
+            self._media_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
+            self._media_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
+            self._media_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
             self._media_popup_on_cycle_prev = opts.on_cycle_prev
             self._media_popup_on_cycle_next = opts.on_cycle_next
             self:focus_media_popup_keyboard_navigation()
@@ -924,30 +822,45 @@ function M:_show_popup(kind, anchor_geo, opts)
 end
 
 function M:_stop_hover_close_timer()
-    if self._hover_close_timer then
-        self._hover_close_timer:stop()
-        self._hover_close_timer = nil
-    end
+    popup_control.stop_hover_close_timer(self)
 end
 
 -- Close a popup only after the pointer leaves both the popup and its anchor
 -- for a configurable amount of time.
 function M:_start_hover_close_timer(kind, anchor_geo)
-    self:_stop_hover_close_timer()
-
-    local outside_ticks = 0
     local poll_interval = beautiful.lxmedia_hover_close_poll_interval or 0.25
     local hover_timeout = beautiful.lxmedia_hover_close_timeout or 1.5
-    local max_outside_ticks = math.max(1, math.floor((hover_timeout / poll_interval) + 0.5))
 
     self._hover_close_kind = kind
     self._hover_close_anchor_geo = anchor_geo
 
-    self._hover_close_timer = gears.timer({
-        timeout = poll_interval,
-        autostart = true,
-        call_now = false,
-        callback = function()
+    popup_control.start_hover_close_timer(self, {
+        poll_interval = poll_interval,
+        hover_timeout = hover_timeout,
+        is_open = function()
+            local popup = nil
+            if self._hover_close_kind == "media" then
+                popup = self._media_popup
+            elseif self._hover_close_kind == "devices" then
+                popup = self._devices_popup
+            end
+            return popup and popup.visible or false
+        end,
+        geometry_providers = {
+            function()
+                local popup = nil
+                if self._hover_close_kind == "media" then
+                    popup = self._media_popup
+                elseif self._hover_close_kind == "devices" then
+                    popup = self._devices_popup
+                end
+                return popup and popup:geometry() or nil
+            end,
+            function()
+                return self._hover_close_anchor_geo
+            end,
+        },
+        on_timeout = function()
             local popup = nil
             if self._hover_close_kind == "media" then
                 popup = self._media_popup
@@ -955,34 +868,11 @@ function M:_start_hover_close_timer(kind, anchor_geo)
                 popup = self._devices_popup
             end
 
-            if not (popup and popup.visible) then
-                self:_stop_hover_close_timer()
-                return
-            end
-
-            local mx, my = mouse.coords().x, mouse.coords().y
-            local pg = popup:geometry()
-            local ag = self._hover_close_anchor_geo
-
-            local inside_popup =
-                mx >= pg.x and mx < (pg.x + pg.width) and
-                my >= pg.y and my < (pg.y + pg.height)
-
-            local inside_anchor = ag and
-                mx >= ag.x and mx < (ag.x + ag.width) and
-                my >= ag.y and my < (ag.y + ag.height)
-
-            if inside_popup or inside_anchor then
-                outside_ticks = 0
-                return
-            end
-
-            outside_ticks = outside_ticks + 1
-            if outside_ticks >= max_outside_ticks then
+            if popup then
                 popup.visible = false
-                self:_stop_hover_close_timer()
-                self:_sync_toplevel_bar_visibility()
             end
+            self:_stop_hover_close_timer()
+            self:_sync_toplevel_bar_visibility()
         end,
     })
 end
