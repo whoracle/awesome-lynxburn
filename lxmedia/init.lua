@@ -13,10 +13,10 @@ local DEFAULTS = {
     refresh_interval = 5,
     width = 50,
     step = 0.05, -- 5%
-    icon_muted = beautiful.lxaudio_icon_muted or " ",
-    icon_unmuted = beautiful.lxaudio_icon_volume or " ",
-    icon_mic_active = beautiful.lxaudio_icon_mic_active or "🎙",
-    icon_mic_muted = beautiful.lxaudio_icon_mic_muted or "×",
+    icon_muted = beautiful.lxmedia_icon_muted or " ",
+    icon_unmuted = beautiful.lxmedia_icon_volume or " ",
+    icon_mic_active = beautiful.lxmedia_icon_mic_active or "🎙",
+    icon_mic_muted = beautiful.lxmedia_icon_mic_muted or "×",
     enable_osd = true,
     osd_width = 260,
     osd_height = 18,
@@ -136,11 +136,11 @@ end
 -- Clear cached submodules so reloads pick up on-disk changes without
 -- replacing the stable outer widget container.
 function M:_clear_modules()
-    package.loaded["lxaudio.widget"] = nil
-    package.loaded["lxaudio.audio"] = nil
-    package.loaded["lxaudio.media"] = nil
-    package.loaded["lxaudio.popup_media"] = nil
-    package.loaded["lxaudio.popup_devices"] = nil
+    package.loaded["lxmedia.widget"] = nil
+    package.loaded["lxmedia.audio"] = nil
+    package.loaded["lxmedia.media"] = nil
+    package.loaded["lxmedia.popup_media"] = nil
+    package.loaded["lxmedia.popup_devices"] = nil
 end
 
 function M:_load_osd()
@@ -153,7 +153,7 @@ function M:_load_osd()
         width = self.opts.osd_width,
         height = self.opts.osd_height,
         margin = self.opts.osd_margin,
-        timeout = beautiful.lxaudio_osd_timeout or 1,
+        timeout = beautiful.lxmedia_osd_timeout or 1,
         bar_bg = beautiful.bg_minimize or "#444444",
         bar_fg = beautiful.fg_normal or "#ffffff",
     })
@@ -161,7 +161,7 @@ end
 
 -- Rebuild the compact widget while preserving the public `instance.widget`.
 function M:_build_widget()
-    local widget_mod = require("lxaudio.widget")
+    local widget_mod = require("lxmedia.widget")
     local content = widget_mod.build(self)
 
     self._content = content
@@ -194,7 +194,7 @@ function M:_start_subscription()
 
     self._subscription_started = true
 
-    local ok, audio = pcall(require, "lxaudio.audio")
+    local ok, audio = pcall(require, "lxmedia.audio")
     if not ok or not audio or not audio.subscribe then
         return
     end
@@ -206,7 +206,7 @@ end
 
 -- Convenience wrapper for best-effort access to the audio backend.
 function M:_with_audio(callback)
-    local ok, audio = pcall(require, "lxaudio.audio")
+    local ok, audio = pcall(require, "lxmedia.audio")
     if ok and audio then
         callback(audio)
     end
@@ -220,23 +220,23 @@ function M:_apply_widget_state()
     if self._refs.icon then
         self._refs.icon.text = self.state.muted and self.opts.icon_muted or self.opts.icon_unmuted
         self._refs.icon.fg = self.state.muted
-            and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
-            or (beautiful.lxaudio_widget_fg or beautiful.fg_normal or "#ffffff")
+            and (beautiful.lxmedia_widget_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxmedia_widget_fg or beautiful.fg_normal or "#ffffff")
     end
 
     if self._refs.bar then
         self._refs.bar.value = math.max(0, math.min(1, self.state.volume))
         self._refs.bar.color = self.state.muted
-            and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
-            or (beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
+            and (beautiful.lxmedia_widget_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxmedia_bar_fg or beautiful.fg_normal or "#e2ccb0")
     end
 
     if self._refs.mic then
         self._refs.mic.text = self.state.mic_muted and self.opts.icon_mic_muted or self.opts.icon_mic_active
         self._refs.mic.visible = self.opts.show_mic_activity and self.state.mic_active or false
         self._refs.mic.fg = self.state.mic_muted
-            and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
-            or (beautiful.lxaudio_widget_mic_fg or beautiful.fg_urgent or "#ff6666")
+            and (beautiful.lxmedia_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxmedia_widget_mic_fg or beautiful.fg_urgent or "#ff6666")
     end
 
     if self._refs.mic_cluster then
@@ -247,8 +247,8 @@ function M:_apply_widget_state()
         self._refs.mic_bar.value = math.max(0, math.min(1, self.state.mic_volume))
         self._refs.mic_bar.visible = self.opts.show_mic_activity and self.state.mic_active or false
         self._refs.mic_bar.color = self.state.mic_muted
-            and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
-            or (beautiful.lxaudio_mic_bar_fg or beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
+            and (beautiful.lxmedia_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxmedia_mic_bar_fg or beautiful.lxmedia_bar_fg or beautiful.fg_normal or "#e2ccb0")
     end
 
     self:_sync_toplevel_bar_visibility()
@@ -285,7 +285,7 @@ function M:_schedule_refresh(delay, opts)
         self:refresh()
 
         if opts.refresh_media_popup and self._media_popup and self._media_popup.visible then
-            require("lxaudio.popup_media").rebuild(self)
+            require("lxmedia.popup_media").rebuild(self)
         end
 
         return false
@@ -294,7 +294,7 @@ end
 
 -- Refresh the cached widget state and update the compact widget refs.
 function M:refresh()
-    local ok, audio = pcall(require, "lxaudio.audio")
+    local ok, audio = pcall(require, "lxmedia.audio")
     if not ok then
         return
     end
@@ -377,7 +377,7 @@ function M:move_media_popup_selection(delta)
     self.media_popup_selected_index = math.max(1, math.min((self.media_popup_selected_index or 1) + delta, item_count))
 
     if self._media_popup and self._media_popup.visible then
-        require("lxaudio.popup_media").rebuild(self)
+        require("lxmedia.popup_media").rebuild(self)
     end
 end
 
@@ -444,7 +444,7 @@ function M:selected_media_popup_player()
         return stream._matched_player
     end
 
-    local ok, media = pcall(require, "lxaudio.media")
+    local ok, media = pcall(require, "lxmedia.media")
     if not ok or not media or not media.player_for_stream then
         return nil
     end
@@ -459,7 +459,7 @@ function M:transport_selected_media_player(action)
         return
     end
 
-    local ok, media = pcall(require, "lxaudio.media")
+    local ok, media = pcall(require, "lxmedia.media")
     if not ok or not media then
         return
     end
@@ -732,7 +732,7 @@ function M:input_volume_down(step)
     self:change_input_volume(-(step or self.opts.step))
 end
 
----Create a new lxaudio instance.
+---Create a new lxmedia instance.
 ---@param opts? table
 ---@return table
 function M.new(opts)
@@ -822,7 +822,7 @@ end
 function M:_toggle_popup(kind, anchor_geo, opts)
     opts = opts or {}
     if opts.placement == nil then
-        local theme_key = kind == "media" and "lxaudio_popup_placement_media" or "lxaudio_popup_placement_devices"
+        local theme_key = kind == "media" and "lxmedia_popup_placement_media" or "lxmedia_popup_placement_devices"
         opts.placement = popup_placement.normalize(beautiful[theme_key], "center")
     end
 
@@ -837,10 +837,10 @@ function M:_toggle_popup(kind, anchor_geo, opts)
     local popup_module
     local popup_ref
     if kind == "media" then
-        popup_module = require("lxaudio.popup_media")
+        popup_module = require("lxmedia.popup_media")
         popup_ref = "_media_popup"
     else
-        popup_module = require("lxaudio.popup_devices")
+        popup_module = require("lxmedia.popup_devices")
         popup_ref = "_devices_popup"
     end
 
@@ -880,7 +880,7 @@ end
 function M:_show_popup(kind, anchor_geo, opts)
     opts = opts or {}
     if opts.placement == nil then
-        local theme_key = kind == "media" and "lxaudio_popup_placement_media" or "lxaudio_popup_placement_devices"
+        local theme_key = kind == "media" and "lxmedia_popup_placement_media" or "lxmedia_popup_placement_devices"
         opts.placement = popup_placement.normalize(beautiful[theme_key], "center")
     end
 
@@ -894,9 +894,9 @@ function M:_show_popup(kind, anchor_geo, opts)
 
     local popup_module
     if kind == "media" then
-        popup_module = require("lxaudio.popup_media")
+        popup_module = require("lxmedia.popup_media")
     else
-        popup_module = require("lxaudio.popup_devices")
+        popup_module = require("lxmedia.popup_devices")
     end
 
     popup_module.show(self, anchor_geo, opts)
@@ -936,8 +936,8 @@ function M:_start_hover_close_timer(kind, anchor_geo)
     self:_stop_hover_close_timer()
 
     local outside_ticks = 0
-    local poll_interval = beautiful.lxaudio_hover_close_poll_interval or 0.25
-    local hover_timeout = beautiful.lxaudio_hover_close_timeout or 1.5
+    local poll_interval = beautiful.lxmedia_hover_close_poll_interval or 0.25
+    local hover_timeout = beautiful.lxmedia_hover_close_timeout or 1.5
     local max_outside_ticks = math.max(1, math.floor((hover_timeout / poll_interval) + 0.5))
 
     self._hover_close_kind = kind

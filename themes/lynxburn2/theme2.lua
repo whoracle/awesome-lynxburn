@@ -3,7 +3,7 @@
 -- This version keeps only theme keys that are consumed by:
 -- - Awesome core widgets and notifications used by this config
 -- - themes/lynxburn2/widgets.lua
--- - the bundled lxaudio, lxnotify, lxdisplay, and lxrunner modules
+-- - the bundled lxmedia, lxnotify, lxdisplay, and lxrunner modules
 --
 -- It intentionally drops copycats-era fields that are currently unused.
 
@@ -130,17 +130,17 @@ local theme = {
     layout_txt_centerworkh = "centerh",
     layout_txt_floating = "floating",
 
-    lxaudio_bg_hover = roles.raised_bg,
-    lxaudio_button_hover = roles.hover_bg,
-    lxaudio_hover_close_timeout = 2,
-    lxaudio_popup_placement_media = "center",
-    lxaudio_popup_placement_devices = "right",
-    lxaudio_icon_volume = "",
-    lxaudio_icon_muted = "",
-    lxaudio_icon_brightness = "󰃠",
-    lxaudio_icon_mic_active = "🎙",
-    lxaudio_bar_bg = roles.bar_bg,
-    lxaudio_bar_fg = roles.bar_fg,
+    lxmedia_bg_hover = roles.raised_bg,
+    lxmedia_button_hover = roles.hover_bg,
+    lxmedia_hover_close_timeout = 2,
+    lxmedia_popup_placement_media = "center",
+    lxmedia_popup_placement_devices = "right",
+    lxmedia_icon_volume = "",
+    lxmedia_icon_muted = "",
+    lxmedia_icon_brightness = "󰃠",
+    lxmedia_icon_mic_active = "🎙",
+    lxmedia_bar_bg = roles.bar_bg,
+    lxmedia_bar_fg = roles.bar_fg,
 
     lxnotify_icon_suspended = "󰂛",
     lxnotify_icon_notifications = "󰂚",
@@ -156,9 +156,9 @@ local theme = {
     lxnotify_popup_width = 360,
     lxbluetooth_popup_width = 360,
     lxnetwork_popup_width = 360,
-    lxpowerprofiles_popup_width = 360,
-    lxaudio_popup_width_media = 360,
-    lxaudio_popup_width_devices = 360,
+    lxpower_popup_width = 360,
+    lxmedia_popup_width_media = 360,
+    lxmedia_popup_width_devices = 360,
     lxnotify_popup_edge = "right",
     lxnotify_popup_placement = "right",
     lxnotify_notification_icon_size = 32,
@@ -186,12 +186,12 @@ local theme = {
     lxnetwork_icon = "",
     lxnetwork_popup_placement = "right",
     lxnetwork_widget_vpn_fg = palette.critical,
-    lxpowerprofiles_icon_ac = "",
-    lxpowerprofiles_icon_battery = "",
-    lxpowerprofiles_popup_placement = "center",
-    lxpowerprofiles_profile_fg_powersave = roles.text_muted,
-    lxpowerprofiles_profile_fg_balanced = roles.text,
-    lxpowerprofiles_profile_fg_performance = palette.critical,
+    lxpower_icon_ac = "",
+    lxpower_icon_battery = "",
+    lxpower_popup_placement = "center",
+    lxpower_profile_fg_powersave = roles.text_muted,
+    lxpower_profile_fg_balanced = roles.text,
+    lxpower_profile_fg_performance = palette.critical,
 
     lxrunner_input_bg = roles.panel_bg_muted,
     lxrunner_row_count = 10,

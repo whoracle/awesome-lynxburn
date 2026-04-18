@@ -4,8 +4,8 @@ local gears = require("gears")
 local wibox = require("wibox")
 local keygrabber = require("awful.keygrabber")
 
-local popup_common = require("lxaudio.popup_common")
-local util = require("lxaudio.util")
+local popup_common = require("lxmedia.popup_common")
+local util = require("lxmedia.util")
 local popup_placement = require("lxcommon.popup_placement")
 
 local M = {}
@@ -26,9 +26,9 @@ local PROFILE_LABELS = {
 }
 
 local PROFILE_THEME_KEYS = {
-    ["power-saver"] = "lxpowerprofiles_profile_fg_powersave",
-    balanced = "lxpowerprofiles_profile_fg_balanced",
-    performance = "lxpowerprofiles_profile_fg_performance",
+    ["power-saver"] = "lxpower_profile_fg_powersave",
+    balanced = "lxpower_profile_fg_balanced",
+    performance = "lxpower_profile_fg_performance",
 }
 
 local function merge_defaults(opts)
@@ -379,11 +379,11 @@ end
 
 function M:_refresh_widget()
     local source_icon = self.state.power_source == "ac"
-        and self:_theme_value("lxpowerprofiles_icon_ac", "")
-        or self:_theme_value("lxpowerprofiles_icon_battery", "")
+        and self:_theme_value("lxpower_icon_ac", "")
+        or self:_theme_value("lxpower_icon_battery", "")
     local profile_key = PROFILE_THEME_KEYS[self.state.profile]
     local fg = profile_key and self:_theme_value(profile_key, nil)
-        or self:_theme_value("lxpowerprofiles_widget_fg", beautiful.fg_normal or "#ffffff")
+        or self:_theme_value("lxpower_widget_fg", beautiful.fg_normal or "#ffffff")
 
     self._refs.icon.markup = string.format(
         "<span foreground='%s'>%s</span>",
@@ -395,7 +395,7 @@ function M:_refresh_widget()
         compact_text = self.state.time_label or ""
     end
     if self.state.pinned then
-        local pin = self:_theme_value("lxpowerprofiles_icon_pinned", "")
+        local pin = self:_theme_value("lxpower_icon_pinned", "")
         if compact_text ~= "" then
             compact_text = pin .. " " .. compact_text
         else
@@ -415,7 +415,7 @@ function M:_refresh_popup()
         return
     end
 
-    local meta_fg = gears.string.xml_escape(self:_theme_value("lxpowerprofiles_meta_fg", beautiful.fg_minimize or "#999999"))
+    local meta_fg = gears.string.xml_escape(self:_theme_value("lxpower_meta_fg", beautiful.fg_minimize or "#999999"))
     local label
 
     if self.state.power_source == "battery" then
@@ -468,17 +468,17 @@ function M:_build_popup()
         local selected = self._popup_selected_index == (#self._popup_items + 1)
         local label = profile_label(profile_name)
         if self.state.pinned and self.state.profile == profile_name then
-            label = self:_theme_value("lxpowerprofiles_icon_pinned", "") .. " " .. label
+            label = self:_theme_value("lxpower_icon_pinned", "") .. " " .. label
         end
 
         list:add(popup_common.make_selectable_click_row(label, function()
             self:set_profile(profile_name)
         end, {
             selected = selected,
-            inner_bg = self:_theme_value("lxpowerprofiles_popup_bg", beautiful.bg_normal or "#222222"),
-            hover_bg = self:_theme_value("lxpowerprofiles_button_hover", beautiful.bg_focus or "#444444"),
-            outer_bg = self:_theme_value("lxpowerprofiles_popup_bg", beautiful.bg_normal or "#222222"),
-            selected_bg = self:_theme_value("lxpowerprofiles_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+            inner_bg = self:_theme_value("lxpower_popup_bg", beautiful.bg_normal or "#222222"),
+            hover_bg = self:_theme_value("lxpower_button_hover", beautiful.bg_focus or "#444444"),
+            outer_bg = self:_theme_value("lxpower_popup_bg", beautiful.bg_normal or "#222222"),
+            selected_bg = self:_theme_value("lxpower_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
         }))
         self._popup_items[#self._popup_items + 1] = {
             profile = profile_name,
@@ -512,11 +512,11 @@ function M:_build_popup()
 end
 
 function M:hover_close_timeout()
-    return self:_theme_value("lxpowerprofiles_hover_close_timeout", 1.5)
+    return self:_theme_value("lxpower_hover_close_timeout", 1.5)
 end
 
 function M:hover_close_poll_interval()
-    return self:_theme_value("lxpowerprofiles_hover_close_poll_interval", 0.25)
+    return self:_theme_value("lxpower_hover_close_poll_interval", 0.25)
 end
 
 function M:_ensure_popup_selection()
@@ -737,9 +737,9 @@ end
 function M:toggle_popup(anchor, opts)
     opts = normalize_popup_opts(anchor, opts)
     if opts.placement == nil then
-        opts.placement = popup_placement.normalize(self:_theme_value("lxpowerprofiles_popup_placement", "center"), "center")
+        opts.placement = popup_placement.normalize(self:_theme_value("lxpower_popup_placement", "center"), "center")
     end
-    opts.width = opts.width or self:_theme_value("lxpowerprofiles_popup_width", 360)
+    opts.width = opts.width or self:_theme_value("lxpower_popup_width", 360)
 
     if self._popup and self._popup.visible then
         self:close_popup()
@@ -885,7 +885,7 @@ function M.new(opts)
     local icon = wibox.widget({ markup = "", widget = wibox.widget.textbox })
     icon.align = "center"
     icon.valign = "center"
-    icon.font = self:_theme_value("lxpowerprofiles_icon_font", beautiful.font)
+    icon.font = self:_theme_value("lxpower_icon_font", beautiful.font)
     local label = wibox.widget({ markup = "", widget = wibox.widget.textbox })
     label.align = "center"
     label.valign = "center"
@@ -897,7 +897,7 @@ function M.new(opts)
             {
                 {
                     icon,
-                    forced_width = self:_theme_value("lxpowerprofiles_icon_width", 16),
+                    forced_width = self:_theme_value("lxpower_icon_width", 16),
                     strategy = "exact",
                     widget = wibox.container.constraint,
                 },
@@ -914,8 +914,8 @@ function M.new(opts)
 
     popup_common.attach_button_feedback(self.widget, {
         idle_bg = nil,
-        hover_bg = self:_theme_value("lxpowerprofiles_bg_hover", beautiful.bg_focus or "#444444"),
-        press_bg = self:_theme_value("lxpowerprofiles_bg_press", self:_theme_value("lxpowerprofiles_button_hover", beautiful.bg_focus or "#666666")),
+        hover_bg = self:_theme_value("lxpower_bg_hover", beautiful.bg_focus or "#444444"),
+        press_bg = self:_theme_value("lxpower_bg_press", self:_theme_value("lxpower_button_hover", beautiful.bg_focus or "#666666")),
     })
 
     self.widget:buttons(gears.table.join(

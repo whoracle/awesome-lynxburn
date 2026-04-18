@@ -115,26 +115,21 @@ M.lxmodules = {
     lxbar = {
         order = {
             "network",
-            "audio",
+            "media",
             "notify",
         },
         modules = {
-            audio = {},
-            bluetooth = {
-                enabled = false,
-            },
+            media = {},
+            bluetooth = {},
             display = {},
             network = {
-                enabled = true,
                 -- cycle = false,
             },
             notify = {},
-            powerprofiles = {
-                enabled = false,
-            },
+            power = {},
         },
     },
-    lxaudio = {
+    lxmedia = {
         show_mic_activity = true,
         refresh_interval = 5,
         width = 50,
@@ -195,7 +190,7 @@ M.lxmodules = {
         interception_paused = false,
         debug_notifications = false,
     },
-    lxpowerprofiles = {
+    lxpower = {
         refresh_interval = 20,
         preferred_profiles = {
             battery = "power-saver",

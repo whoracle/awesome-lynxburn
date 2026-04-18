@@ -5,8 +5,8 @@ local wibox = require("wibox")
 local keygrabber = require("awful.keygrabber")
 local config_data = require("config.config_data")
 
-local popup_common = require("lxaudio.popup_common")
-local util = require("lxaudio.util")
+local popup_common = require("lxmedia.popup_common")
+local util = require("lxmedia.util")
 local notify_util = require("lxnotify.util")
 local popup_placement = require("lxcommon.popup_placement")
 

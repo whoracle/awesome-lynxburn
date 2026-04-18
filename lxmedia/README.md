@@ -1,6 +1,6 @@
-# lxaudio
+# lxmedia
 
-`lxaudio` is an AwesomeWM audio widget for PipeWire/PulseAudio setups.
+`lxmedia` is an AwesomeWM audio widget for PipeWire/PulseAudio setups.
 
 It shows:
 
@@ -53,14 +53,14 @@ Notes:
 
 ## Installation
 
-Place the project somewhere Awesome can `require`, with the module directory named `lxaudio`.
+Place the project somewhere Awesome can `require`, with the module directory named `lxmedia`.
 
 Example layout:
 
 ```text
 ~/.config/awesome/
 ├── rc.lua
-└── lxaudio/
+└── lxmedia/
     ├── init.lua
     ├── audio.lua
     ├── media.lua
@@ -80,9 +80,9 @@ Basic example in `rc.lua`:
 ```lua
 local awful = require("awful")
 local wibox = require("wibox")
-local lxaudio = require("lxaudio")
+local lxmedia = require("lxmedia")
 
-local audio = lxaudio.new()
+local audio = lxmedia.new()
 
 awful.screen.connect_for_each_screen(function(s)
     s.mywibox = awful.wibar({ position = "top", screen = s })
@@ -99,7 +99,7 @@ awful.screen.connect_for_each_screen(function(s)
 end)
 ```
 
-You create an instance with `lxaudio.new(opts)` and place `instance.widget` anywhere a normal Awesome widget can be used.
+You create an instance with `lxmedia.new(opts)` and place `instance.widget` anywhere a normal Awesome widget can be used.
 
 ### Mouse Controls
 
@@ -128,7 +128,7 @@ Inside the devices popup:
 
 ## Configuration
 
-`lxaudio.new(opts)` supports these options:
+`lxmedia.new(opts)` supports these options:
 
 | Option | Default | Meaning |
 | --- | --- | --- |
@@ -136,18 +136,18 @@ Inside the devices popup:
 | `refresh_interval` | `5` | Polling interval in seconds. |
 | `width` | `50` | Width of the volume bar in the compact widget. |
 | `step` | `0.05` | Volume step for scroll actions, expressed as `0.05 == 5%`. |
-| `icon_muted` | `beautiful.lxaudio_icon_muted` or `" "` | Icon shown when the default output is muted. |
-| `icon_unmuted` | `beautiful.lxaudio_icon_volume` or `" "` | Icon shown when the default output is not muted. |
-| `icon_mic_active` | `beautiful.lxaudio_icon_mic_active` or `"🎙"` | Icon shown when microphone activity is detected. |
-| `hover_close_timeout` | `beautiful.lxaudio_hover_close_timeout` or `1.5` | Seconds the pointer must stay outside the popup and anchor before auto-close. |
-| `hover_close_poll_interval` | `beautiful.lxaudio_hover_close_poll_interval` or `0.25` | Poll interval used by the hover-close logic. |
+| `icon_muted` | `beautiful.lxmedia_icon_muted` or `" "` | Icon shown when the default output is muted. |
+| `icon_unmuted` | `beautiful.lxmedia_icon_volume` or `" "` | Icon shown when the default output is not muted. |
+| `icon_mic_active` | `beautiful.lxmedia_icon_mic_active` or `"🎙"` | Icon shown when microphone activity is detected. |
+| `hover_close_timeout` | `beautiful.lxmedia_hover_close_timeout` or `1.5` | Seconds the pointer must stay outside the popup and anchor before auto-close. |
+| `hover_close_poll_interval` | `beautiful.lxmedia_hover_close_poll_interval` or `0.25` | Poll interval used by the hover-close logic. |
 
 Example:
 
 ```lua
-local lxaudio = require("lxaudio")
+local lxmedia = require("lxmedia")
 
-local audio = lxaudio.new({
+local audio = lxmedia.new({
     width = 72,
     step = 0.02,
     refresh_interval = 2,
@@ -200,9 +200,9 @@ Example:
 ```lua
 local awful = require("awful")
 local gears = require("gears")
-local lxaudio = require("lxaudio")
+local lxmedia = require("lxmedia")
 
-local audio = lxaudio.new({
+local audio = lxmedia.new({
     step = 0.05,
 })
 
@@ -250,58 +250,58 @@ Supported theme keys:
 
 | Theme Variable | Purpose |
 | --- | --- |
-| `beautiful.lxaudio_icon_muted` | Muted speaker icon. |
-| `beautiful.lxaudio_icon_volume` | Unmuted speaker icon. |
-| `beautiful.lxaudio_icon_mic_active` | Microphone activity icon. |
-| `beautiful.lxaudio_widget_muted_fg` | Foreground color of the compact icon while muted. |
-| `beautiful.lxaudio_widget_fg` | Foreground color of the compact icon while unmuted. |
-| `beautiful.lxaudio_widget_mic_fg` | Foreground color of the mic activity icon. |
-| `beautiful.lxaudio_widget_mic_muted_fg` | Foreground color of the mic icon while recording inputs are muted. |
-| `beautiful.lxaudio_bar_bg` | Background color of the volume bar. |
-| `beautiful.lxaudio_bar_fg` | Fill color of the volume bar. |
-| `beautiful.lxaudio_mic_bar_bg` | Background color of the microphone volume bar. |
-| `beautiful.lxaudio_mic_bar_fg` | Fill color of the microphone volume bar. |
-| `beautiful.lxaudio_bg_hover` | Hover background used in popup rows. |
-| `beautiful.lxaudio_button_bg` | Media transport button background. |
-| `beautiful.lxaudio_button_hover` | Media transport button hover background. |
-| `beautiful.lxaudio_popup_width_media` | Width of the playback popup. |
-| `beautiful.lxaudio_popup_width_devices` | Width of the device popup. |
-| `beautiful.lxaudio_artwork_width` | Target artwork width in the playback popup. |
-| `beautiful.lxaudio_artwork_max_height` | Maximum rendered artwork height. |
-| `beautiful.lxaudio_hover_close_timeout` | Hover-close timeout override. |
-| `beautiful.lxaudio_hover_close_poll_interval` | Hover-close poll interval override. |
+| `beautiful.lxmedia_icon_muted` | Muted speaker icon. |
+| `beautiful.lxmedia_icon_volume` | Unmuted speaker icon. |
+| `beautiful.lxmedia_icon_mic_active` | Microphone activity icon. |
+| `beautiful.lxmedia_widget_muted_fg` | Foreground color of the compact icon while muted. |
+| `beautiful.lxmedia_widget_fg` | Foreground color of the compact icon while unmuted. |
+| `beautiful.lxmedia_widget_mic_fg` | Foreground color of the mic activity icon. |
+| `beautiful.lxmedia_widget_mic_muted_fg` | Foreground color of the mic icon while recording inputs are muted. |
+| `beautiful.lxmedia_bar_bg` | Background color of the volume bar. |
+| `beautiful.lxmedia_bar_fg` | Fill color of the volume bar. |
+| `beautiful.lxmedia_mic_bar_bg` | Background color of the microphone volume bar. |
+| `beautiful.lxmedia_mic_bar_fg` | Fill color of the microphone volume bar. |
+| `beautiful.lxmedia_bg_hover` | Hover background used in popup rows. |
+| `beautiful.lxmedia_button_bg` | Media transport button background. |
+| `beautiful.lxmedia_button_hover` | Media transport button hover background. |
+| `beautiful.lxmedia_popup_width_media` | Width of the playback popup. |
+| `beautiful.lxmedia_popup_width_devices` | Width of the device popup. |
+| `beautiful.lxmedia_artwork_width` | Target artwork width in the playback popup. |
+| `beautiful.lxmedia_artwork_max_height` | Maximum rendered artwork height. |
+| `beautiful.lxmedia_hover_close_timeout` | Hover-close timeout override. |
+| `beautiful.lxmedia_hover_close_poll_interval` | Hover-close poll interval override. |
 
 Example theme snippet:
 
 ```lua
-beautiful.lxaudio_icon_muted = "mute "
-beautiful.lxaudio_icon_volume = "vol "
-beautiful.lxaudio_icon_mic_active = "rec"
+beautiful.lxmedia_icon_muted = "mute "
+beautiful.lxmedia_icon_volume = "vol "
+beautiful.lxmedia_icon_mic_active = "rec"
 
-beautiful.lxaudio_widget_fg = "#e8d7b6"
-beautiful.lxaudio_widget_muted_fg = "#9b8f86"
-beautiful.lxaudio_widget_mic_fg = "#ff7a7a"
-beautiful.lxaudio_widget_mic_muted_fg = "#9b8f86"
+beautiful.lxmedia_widget_fg = "#e8d7b6"
+beautiful.lxmedia_widget_muted_fg = "#9b8f86"
+beautiful.lxmedia_widget_mic_fg = "#ff7a7a"
+beautiful.lxmedia_widget_mic_muted_fg = "#9b8f86"
 
-beautiful.lxaudio_bar_bg = "#221917"
-beautiful.lxaudio_bar_fg = "#e0b56a"
-beautiful.lxaudio_mic_bar_bg = "#221917"
-beautiful.lxaudio_mic_bar_fg = "#d98f8f"
+beautiful.lxmedia_bar_bg = "#221917"
+beautiful.lxmedia_bar_fg = "#e0b56a"
+beautiful.lxmedia_mic_bar_bg = "#221917"
+beautiful.lxmedia_mic_bar_fg = "#d98f8f"
 
-beautiful.lxaudio_bg_hover = "#3a2f2b"
-beautiful.lxaudio_button_bg = "#2c2320"
-beautiful.lxaudio_button_hover = "#5b3d28"
+beautiful.lxmedia_bg_hover = "#3a2f2b"
+beautiful.lxmedia_button_bg = "#2c2320"
+beautiful.lxmedia_button_hover = "#5b3d28"
 
-beautiful.lxaudio_popup_width_media = 360
-beautiful.lxaudio_popup_width_devices = 360
+beautiful.lxmedia_popup_width_media = 360
+beautiful.lxmedia_popup_width_devices = 360
 
-beautiful.lxaudio_artwork_width = 420
-beautiful.lxaudio_artwork_max_height = 680
+beautiful.lxmedia_artwork_width = 420
+beautiful.lxmedia_artwork_max_height = 680
 ```
 
 Fallbacks:
 
-- if a custom `lxaudio_*` theme variable is missing, the code falls back to common Awesome theme colors such as `fg_normal`, `bg_minimize`, `bg_focus`, and `fg_urgent`
+- if a custom `lxmedia_*` theme variable is missing, the code falls back to common Awesome theme colors such as `fg_normal`, `bg_minimize`, `bg_focus`, and `fg_urgent`
 - if an icon variable is missing, built-in text icons are used
 
 ## Known Limitations And Edge Cases
@@ -323,11 +323,11 @@ Fallbacks:
 
 ## File Overview
 
-- [init.lua](/home/anthrax/.config/awesome/lxaudio/init.lua): instance lifecycle, timers, refresh logic, popup management
-- [widget.lua](/home/anthrax/.config/awesome/lxaudio/widget.lua): compact bar widget and mouse bindings
-- [audio.lua](/home/anthrax/.config/awesome/lxaudio/audio.lua): sink/source/stream inspection and control via `pactl` and `wpctl`
-- [media.lua](/home/anthrax/.config/awesome/lxaudio/media.lua): MPRIS player lookup, metadata, artwork, and transport control via `playerctl`
-- [popup_media.lua](/home/anthrax/.config/awesome/lxaudio/popup_media.lua): playback streams popup
-- [popup_devices.lua](/home/anthrax/.config/awesome/lxaudio/popup_devices.lua): device selection popup
-- [popup_common.lua](/home/anthrax/.config/awesome/lxaudio/popup_common.lua): shared popup UI helpers
-- [util.lua](/home/anthrax/.config/awesome/lxaudio/util.lua): shared shell and text helpers
+- [init.lua](/home/anthrax/.config/awesome/lxmedia/init.lua): instance lifecycle, timers, refresh logic, popup management
+- [widget.lua](/home/anthrax/.config/awesome/lxmedia/widget.lua): compact bar widget and mouse bindings
+- [audio.lua](/home/anthrax/.config/awesome/lxmedia/audio.lua): sink/source/stream inspection and control via `pactl` and `wpctl`
+- [media.lua](/home/anthrax/.config/awesome/lxmedia/media.lua): MPRIS player lookup, metadata, artwork, and transport control via `playerctl`
+- [popup_media.lua](/home/anthrax/.config/awesome/lxmedia/popup_media.lua): playback streams popup
+- [popup_devices.lua](/home/anthrax/.config/awesome/lxmedia/popup_devices.lua): device selection popup
+- [popup_common.lua](/home/anthrax/.config/awesome/lxmedia/popup_common.lua): shared popup UI helpers
+- [util.lua](/home/anthrax/.config/awesome/lxmedia/util.lua): shared shell and text helpers

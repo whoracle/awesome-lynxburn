@@ -362,13 +362,13 @@ function M.build(theme)
     })
 
     return function(s)
-        local lxaudio = services.audio()
+        local lxmedia = services.media()
         local lxbar = services.bar()
         local lxbluetooth = services.bluetooth()
         local lxdisplay = services.display()
         local lxnetwork = services.network()
         local lxnotify = services.notify()
-        local lxpowerprofiles = services.powerprofiles()
+        local lxpower = services.power()
         local lxbar_widget = wrap_widget(theme, lxbar.widget)
         local right_widgets = {
             layout = wibox.layout.fixed.horizontal,

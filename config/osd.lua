@@ -6,7 +6,7 @@ local M = {}
 
 ---Create the remaining generic text OSD helpers owned by the main config.
 ---
----Volume and brightness OSD ownership has moved into `lxaudio` and
+---Volume and brightness OSD ownership has moved into `lxmedia` and
 ---`lxdisplay`. This module intentionally remains narrow.
 ---@param beautiful table
 ---@param _options table

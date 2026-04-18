@@ -2,7 +2,7 @@
 
 ## Goal
 
-`lxdisplay` is a small AwesomeWM-native display control module/widget in the same spirit as `lxaudio`:
+`lxdisplay` is a small AwesomeWM-native display control module/widget in the same spirit as `lxmedia`:
 
 - it owns display-related UI behavior
 - it can expose a top-level widget for the wibar
@@ -260,7 +260,7 @@ The eventual integration should likely look like:
 - theme/widget code requests the widget from that service
 - keybindings or mouse actions call methods on the service instance
 
-This mirrors the current `lxaudio` pattern and keeps widget behavior encapsulated.
+This mirrors the current `lxmedia` pattern and keeps widget behavior encapsulated.
 
 ## Suggested Public Surface
 

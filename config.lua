@@ -55,17 +55,16 @@ return {
     --     lxbar = {
     --         order = {
     --             "network",
-    --             "audio",
+    --             "media",
     --             "notify",
     --         },
     --         modules = {
     --             network = {
-    --                 enabled = true,
     --                 -- cycle = false,
     --             },
     --         },
     --     },
-    --     lxaudio = {
+    --     lxmedia = {
     --         refresh_interval = 2,
     --         width = 60,
     --         step = 0.02,
@@ -92,7 +91,7 @@ return {
     --         notification_time_format = "%H:%M",
     --         popup_visible_items = 10,
     --     },
-    --     lxpowerprofiles = {
+    --     lxpower = {
     --         refresh_interval = 10,
     --         preferred_profiles = {
     --             battery = "power-saver",

@@ -27,12 +27,12 @@ Notebook migration checklist for the current session's config-shape changes:
 1. Remove any remaining top-level `widgets = { ... }` config.
 2. Move bar composition into `lxmodules.lxbar`, for example:
    - `widgets.order` -> `lxmodules.lxbar.order`
-   - `widgets.modules.<name>.enabled` -> `lxmodules.lxbar.modules.<name>.enabled`
    - `widgets.modules.<name>.cycle` -> `lxmodules.lxbar.modules.<name>.cycle`
 3. Move per-module behavior out of `widgets.modules.<name>` into
    `lxmodules.lx<name>`, for example:
-   - `widgets.modules.audio.refresh_interval` -> `lxmodules.lxaudio.refresh_interval`
+   - `widgets.modules.audio.refresh_interval` -> `lxmodules.lxmedia.refresh_interval`
    - `widgets.modules.notify.popup_visible_items` -> `lxmodules.lxnotify.popup_visible_items`
+   - `widgets.modules.powerprofiles.refresh_interval` -> `lxmodules.lxpower.refresh_interval`
 4. Move display backend/module config out of `commands` and into
    `lxmodules.lxdisplay`:
    - `commands.brightness.*` -> `lxmodules.lxdisplay.brightness.*`
@@ -45,7 +45,10 @@ Notebook migration checklist for the current session's config-shape changes:
 6. Do not copy visibility timeout settings into centralized config:
    - OSD timeouts and hover-close timing remain theme-owned
    - keep those in `theme = { ... }` or the selected theme file
-7. After copying the migrated data, delete obsolete non-example files in
+7. Module presence in `lxbar` is now controlled by `lxmodules.lxbar.order`:
+   - remove any legacy `widgets.modules.<name>.enabled` settings
+   - if a module should not appear in the bar, leave it out of `lxmodules.lxbar.order`
+8. After copying the migrated data, delete obsolete non-example files in
    `~/.config/awesome/config/override/`.
 
 Once the live machine has copied over anything it still needs, the remaining

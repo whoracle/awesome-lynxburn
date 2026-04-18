@@ -19,13 +19,13 @@ Vendored / external code you generally should not edit here:
 
 - `lain/`
 - `freedesktop/`
-- `lxaudio/`
+- `lxmedia/`
 - `lxbluetooth/`
 - `lxnetwork/`
 - `lxnotify/`
 - `lxrunner/`
 - `lxdisplay/`
-- `lxpowerprofiles/`
+- `lxpower/`
 
 The `lx*` directories are local modules with their own ownership boundary and
 are intended to become submodules later.
@@ -96,7 +96,7 @@ are intended to become submodules later.
 
 - `osd.lua`
   Small config-owned OSD helpers outside the `lx*` family. The shared progress
-  and text OSD primitives used by `lxaudio` and `lxdisplay` now live in
+  and text OSD primitives used by `lxmedia` and `lxdisplay` now live in
   `lxcommon/osd.lua`.
 
 ## Startup Flow
@@ -235,7 +235,7 @@ secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account anthra
 
 ## Notable Module Ownership
 
-### `lxaudio`
+### `lxmedia`
 
 - owns the audio widget
 - owns audio state and popup content

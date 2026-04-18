@@ -3,14 +3,14 @@ local gears = require("gears")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local gears_surface = require("gears.surface")
-local common = require("lxaudio.popup_common")
+local common = require("lxmedia.popup_common")
 
 local M = {}
 
 local COLORS = {
-    hover = beautiful.lxaudio_bg_hover or beautiful.bg_focus or "#140c0b",
-    button_bg = beautiful.lxaudio_button_bg or beautiful.bg_minimize or "#333333",
-    button_hover = beautiful.lxaudio_button_hover or beautiful.bg_urgent or "#140c0b",
+    hover = beautiful.lxmedia_bg_hover or beautiful.bg_focus or "#140c0b",
+    button_bg = beautiful.lxmedia_button_bg or beautiful.bg_minimize or "#333333",
+    button_hover = beautiful.lxmedia_button_hover or beautiful.bg_urgent or "#140c0b",
 }
 
 local function make_button(label, onclick)
@@ -78,10 +78,10 @@ local function make_volume_bar(value, muted)
         forced_height = 8,
         paddings = 0,
         border_width = 0,
-        background_color = beautiful.lxaudio_bar_bg or beautiful.bg_minimize or "#140c0b",
+        background_color = beautiful.lxmedia_bar_bg or beautiful.bg_minimize or "#140c0b",
         color = muted
-            and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
-            or (beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0"),
+            and (beautiful.lxmedia_widget_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxmedia_bar_fg or beautiful.fg_normal or "#e2ccb0"),
         widget = wibox.widget.progressbar,
     }
 end
@@ -165,7 +165,7 @@ local function make_meter_row(label, control, value_text)
 end
 
 local function make_stream_volume_control(instance, stream)
-    local audio = require("lxaudio.audio")
+    local audio = require("lxmedia.audio")
 
     local bar = make_volume_bar(stream.volume, stream.muted)
 
@@ -198,7 +198,7 @@ local function make_stream_volume_control(instance, stream)
 end
 
 local function make_source_output_volume_control(instance, source_output)
-    local audio = require("lxaudio.audio")
+    local audio = require("lxmedia.audio")
 
     local bar = wibox.widget {
         max_value = 1,
@@ -206,10 +206,10 @@ local function make_source_output_volume_control(instance, source_output)
         forced_height = 8,
         paddings = 0,
         border_width = 0,
-        background_color = beautiful.lxaudio_mic_bar_bg or beautiful.lxaudio_bar_bg or beautiful.bg_minimize or "#140c0b",
+        background_color = beautiful.lxmedia_mic_bar_bg or beautiful.lxmedia_bar_bg or beautiful.bg_minimize or "#140c0b",
         color = source_output.muted
-            and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
-            or (beautiful.lxaudio_mic_bar_fg or beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0"),
+            and (beautiful.lxmedia_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxmedia_mic_bar_fg or beautiful.lxmedia_bar_fg or beautiful.fg_normal or "#e2ccb0"),
         widget = wibox.widget.progressbar,
     }
 
@@ -307,9 +307,9 @@ local function decorate_stream_card(card, selected)
         },
         shape = gears.shape.rounded_rect,
         border_width = 1,
-        border_color = beautiful.lxaudio_selected_border
+        border_color = beautiful.lxmedia_selected_border
             or beautiful.border_focus
-            or beautiful.lxaudio_bar_fg
+            or beautiful.lxmedia_bar_fg
             or beautiful.fg_normal
             or "#e2ccb0",
         widget = wibox.container.background,
@@ -317,7 +317,7 @@ local function decorate_stream_card(card, selected)
 end
 
 local function build_transport_row(instance, player, player_info)
-    local media = require("lxaudio.media")
+    local media = require("lxmedia.media")
 
     local playpause_label = "⏯"
     if player_info and player_info.status == "Playing" then
@@ -367,7 +367,7 @@ local function build_transport_row(instance, player, player_info)
 end
 
 local function build_stream_card(instance, stream, source_output, default_sink_name, selected)
-    local media = require("lxaudio.media")
+    local media = require("lxmedia.media")
 
     local matched_player = stream._matched_player or media.player_for_stream(stream)
     local player_info = matched_player and media.get_player_info(matched_player) or nil
@@ -377,10 +377,10 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
         layout = wibox.layout.fixed.vertical,
     }
 
-    local mute_prefix = stream.muted and ((beautiful.lxaudio_icon_muted or "M") .. "  ") or ""
+    local mute_prefix = stream.muted and ((beautiful.lxmedia_icon_muted or "M") .. "  ") or ""
 
     local function scroll_up()
-        local audio = require("lxaudio.audio")
+        local audio = require("lxmedia.audio")
         audio.change_sink_input_volume(stream.id, instance.opts.step or 0.05)
         if instance._defer_media_popup_refresh then
             instance:_defer_media_popup_refresh()
@@ -388,7 +388,7 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
     end
 
     local function scroll_down()
-        local audio = require("lxaudio.audio")
+        local audio = require("lxmedia.audio")
         audio.change_sink_input_volume(stream.id, -(instance.opts.step or 0.05))
         if instance._defer_media_popup_refresh then
             instance:_defer_media_popup_refresh()
@@ -396,7 +396,7 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
     end
 
     local function middle_click()
-        local audio = require("lxaudio.audio")
+        local audio = require("lxmedia.audio")
         audio.toggle_sink_input_mute(stream.id)
         if instance._defer_media_popup_refresh then
             instance:_defer_media_popup_refresh()
@@ -450,8 +450,8 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
             if art_path then
                 local surface = media.get_player_art_surface(matched_player)
                 if surface then
-                    local art_width = beautiful.lxaudio_artwork_width or 420
-                    local art_max_height = beautiful.lxaudio_artwork_max_height or art_width * 2
+                    local art_width = beautiful.lxmedia_artwork_width or 420
+                    local art_max_height = beautiful.lxmedia_artwork_max_height or art_width * 2
 
                     local sw, sh = gears_surface.get_size(surface)
                     local target_w = art_width
@@ -586,8 +586,8 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
 end
 
 local function build_widget(instance)
-    local audio = require("lxaudio.audio")
-    local media = require("lxaudio.media")
+    local audio = require("lxmedia.audio")
+    local media = require("lxmedia.media")
 
     local streams = audio.list_sink_inputs() or {}
     local source_outputs = audio.list_source_outputs() or {}
@@ -695,7 +695,7 @@ local function build_widget(instance)
                 margins = 10,
                 widget = wibox.container.margin,
             },
-            forced_width = beautiful.lxaudio_popup_width_media or 420,
+            forced_width = beautiful.lxmedia_popup_width_media or 420,
             strategy = "max",
             widget = wibox.container.constraint,
         },

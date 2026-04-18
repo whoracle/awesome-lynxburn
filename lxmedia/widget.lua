@@ -118,17 +118,17 @@ end
 function M.build(instance)
     local mic_visible = instance.opts.show_mic_activity and instance.state.mic_active or false
     local output_fg = instance.state.muted
-        and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
-        or (beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
+        and (beautiful.lxmedia_widget_muted_fg or beautiful.fg_minimize or "#888888")
+        or (beautiful.lxmedia_bar_fg or beautiful.fg_normal or "#e2ccb0")
     local mic_fg = instance.state.mic_muted
-        and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
-        or (beautiful.lxaudio_mic_bar_fg or beautiful.lxaudio_bar_fg or beautiful.fg_normal or "#e2ccb0")
+        and (beautiful.lxmedia_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
+        or (beautiful.lxmedia_mic_bar_fg or beautiful.lxmedia_bar_fg or beautiful.fg_normal or "#e2ccb0")
 
     local icon = wibox.widget {
         text = instance.state.muted and instance.opts.icon_muted or instance.opts.icon_unmuted,
         fg = instance.state.muted
-            and (beautiful.lxaudio_widget_muted_fg or beautiful.fg_minimize or "#888888")
-            or (beautiful.lxaudio_widget_fg or beautiful.fg_normal or "#ffffff"),
+            and (beautiful.lxmedia_widget_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxmedia_widget_fg or beautiful.fg_normal or "#ffffff"),
         align = "center",
         valign = "center",
         widget = wibox.widget.textbox,
@@ -141,7 +141,7 @@ function M.build(instance)
         forced_height    = 8,
         paddings         = 0,
         border_width     = 0,
-        background_color = beautiful.lxaudio_bar_bg or beautiful.bg_minimize or "#140c0b",
+        background_color = beautiful.lxmedia_bar_bg or beautiful.bg_minimize or "#140c0b",
         color            = output_fg,
         widget           = wibox.widget.progressbar,
     }
@@ -149,8 +149,8 @@ function M.build(instance)
     local mic = wibox.widget {
         text = instance.state.mic_muted and instance.opts.icon_mic_muted or instance.opts.icon_mic_active,
         fg = instance.state.mic_muted
-            and (beautiful.lxaudio_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
-            or (beautiful.lxaudio_widget_mic_fg or beautiful.fg_urgent or "#ff6666"),
+            and (beautiful.lxmedia_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
+            or (beautiful.lxmedia_widget_mic_fg or beautiful.fg_urgent or "#ff6666"),
         visible = mic_visible,
         align = "center",
         valign = "center",
@@ -164,7 +164,7 @@ function M.build(instance)
         forced_height    = 8,
         paddings         = 0,
         border_width     = 0,
-        background_color = beautiful.lxaudio_mic_bar_bg or beautiful.lxaudio_bar_bg or beautiful.bg_minimize or "#140c0b",
+        background_color = beautiful.lxmedia_mic_bar_bg or beautiful.lxmedia_bar_bg or beautiful.bg_minimize or "#140c0b",
         color            = mic_fg,
         visible          = mic_visible,
         widget           = wibox.widget.progressbar,
@@ -189,7 +189,7 @@ function M.build(instance)
                 valign = "center",
                 widget = wibox.container.place,
             },
-            forced_width = beautiful.lxaudio_icon_width or 20,
+            forced_width = beautiful.lxmedia_icon_width or 20,
             strategy = "exact",
             widget = wibox.container.constraint,
         },
@@ -212,7 +212,7 @@ function M.build(instance)
                 valign = "center",
                 widget = wibox.container.place,
             },
-            forced_width = beautiful.lxaudio_icon_width or 20,
+            forced_width = beautiful.lxmedia_icon_width or 20,
             strategy = "exact",
             widget = wibox.container.constraint,
         },
@@ -243,10 +243,10 @@ function M.build(instance)
     })
     instance._feedback_widget = shell
 
-    require("lxaudio.popup_common").attach_button_feedback(shell, {
+    require("lxmedia.popup_common").attach_button_feedback(shell, {
         idle_bg = nil,
-        hover_bg = beautiful.lxaudio_bg_hover or beautiful.bg_focus or "#444444",
-        press_bg = beautiful.lxaudio_button_hover or beautiful.bg_focus or "#666666",
+        hover_bg = beautiful.lxmedia_bg_hover or beautiful.bg_focus or "#444444",
+        press_bg = beautiful.lxmedia_button_hover or beautiful.bg_focus or "#666666",
     })
 
     instance._anchor = shell

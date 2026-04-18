@@ -235,12 +235,12 @@ function M:_show_brightness_osd(percent)
     self._osd:show_progress({
         value = value,
         icon = beautiful.lxdisplay_icon_brightness
-            or beautiful.lxaudio_icon_brightness
+            or beautiful.lxmedia_icon_brightness
             or "󰃠",
         app_name = "Brightness OSD",
         color = beautiful.lxdisplay_osd_bar_fg
             or beautiful.lxdisplay_bar_fg
-            or beautiful.lxaudio_bar_fg
+            or beautiful.lxmedia_bar_fg
             or beautiful.fg_normal
             or "#ffffff",
     })
@@ -265,7 +265,7 @@ function M:_update_widget(percent)
     if self._bar then
         self._bar.value = value
         self._bar.color = beautiful.lxdisplay_bar_fg
-            or beautiful.lxaudio_bar_fg
+            or beautiful.lxmedia_bar_fg
             or beautiful.fg_normal
             or "#ffffff"
     end
@@ -716,11 +716,11 @@ function M:_build_widget()
             paddings = 0,
             border_width = 0,
             background_color = beautiful.lxdisplay_bar_bg
-                or beautiful.lxaudio_bar_bg
+                or beautiful.lxmedia_bar_bg
                 or beautiful.bg_minimize
                 or "#444444",
             color = beautiful.lxdisplay_bar_fg
-                or beautiful.lxaudio_bar_fg
+                or beautiful.lxmedia_bar_fg
                 or beautiful.fg_normal
                 or "#ffffff",
             widget = wibox.widget.progressbar,
@@ -755,7 +755,7 @@ function M:_build_widget()
         shell,
         nil,
         beautiful.lxdisplay_bg_hover or beautiful.bg_focus or "#444444",
-        beautiful.lxdisplay_bg_press or beautiful.lxaudio_button_hover or beautiful.bg_focus or "#666666"
+        beautiful.lxdisplay_bg_press or beautiful.lxmedia_button_hover or beautiful.bg_focus or "#666666"
     )
     self:_attach_mouse_controls(shell)
 
@@ -787,12 +787,12 @@ function M:_build_osd()
         timeout = beautiful.lxdisplay_osd_timeout or 1,
         bar_bg = beautiful.lxdisplay_osd_bar_bg
             or beautiful.lxdisplay_bar_bg
-            or beautiful.lxaudio_bar_bg
+            or beautiful.lxmedia_bar_bg
             or beautiful.bg_minimize
             or "#444444",
         bar_fg = beautiful.lxdisplay_osd_bar_fg
             or beautiful.lxdisplay_bar_fg
-            or beautiful.lxaudio_bar_fg
+            or beautiful.lxmedia_bar_fg
             or beautiful.fg_normal
             or "#ffffff",
     })

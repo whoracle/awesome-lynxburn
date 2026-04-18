@@ -1,11 +1,11 @@
 local wibox = require("wibox")
 local beautiful = require("beautiful")
-local common = require("lxaudio.popup_common")
+local common = require("lxmedia.popup_common")
 
 local M = {}
 
 local COLORS = {
-    hover = beautiful.lxaudio_bg_hover or beautiful.bg_focus or "#535d6c",
+    hover = beautiful.lxmedia_bg_hover or beautiful.bg_focus or "#535d6c",
 }
 
 local function make_card(child)
@@ -65,7 +65,7 @@ local function build_header(default_sink_label, default_source_label)
 end
 
 local function build_outputs_card(instance, sinks)
-    local audio = require("lxaudio.audio")
+    local audio = require("lxmedia.audio")
 
     local layout = wibox.widget {
         spacing = 1,
@@ -109,7 +109,7 @@ local function build_outputs_card(instance, sinks)
 end
 
 local function build_inputs_card(instance, sources)
-    local audio = require("lxaudio.audio")
+    local audio = require("lxmedia.audio")
 
     local layout = wibox.widget {
         spacing = 1,
@@ -153,7 +153,7 @@ local function build_inputs_card(instance, sources)
 end
 
 local function build_stream_route_rows(instance, stream, sinks, layout)
-    local audio = require("lxaudio.audio")
+    local audio = require("lxmedia.audio")
 
     layout:add(make_info_line("Route to:", {
         left = 12,
@@ -212,7 +212,7 @@ local function build_streams_card(instance, streams, sinks)
         }
 
         local prefix = expanded and "▼ " or "▶ "
-        local muted_prefix = stream.muted and ((beautiful.lxaudio_icon_muted or "M") .. "  ") or ""
+        local muted_prefix = stream.muted and ((beautiful.lxmedia_icon_muted or "M") .. "  ") or ""
         local title = prefix .. muted_prefix .. (stream.label or ("Stream " .. tostring(stream.id)))
 
         sublayout:add(make_click_row(title, function()
@@ -259,7 +259,7 @@ local function build_streams_card(instance, streams, sinks)
 end
 
 local function build_advanced_card(instance)
-    local audio = require("lxaudio.audio")
+    local audio = require("lxmedia.audio")
 
     local layout = wibox.widget {
         spacing = 1,
@@ -294,7 +294,7 @@ local function build_advanced_card(instance)
 end
 
 local function build_widget(instance)
-    local audio = require("lxaudio.audio")
+    local audio = require("lxmedia.audio")
 
     local sinks = audio.list_sinks() or {}
     local sources = audio.list_sources() or {}
@@ -338,7 +338,7 @@ local function build_widget(instance)
                 bottom = 16,
                 widget = wibox.container.margin,
             },
-            forced_width = beautiful.lxaudio_popup_width_devices or 420,
+            forced_width = beautiful.lxmedia_popup_width_devices or 420,
             strategy = "max",
             widget = wibox.container.constraint,
         },

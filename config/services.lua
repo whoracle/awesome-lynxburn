@@ -2,13 +2,13 @@ local M = {}
 local module_config = require("config.lxmodules")
 local config_data = require("config.config_data")
 
-local lxaudio_instance
+local lxmedia_instance
 local lxbar_instance
 local lxbluetooth_instance
 local lxdisplay_instance
 local lxnetwork_instance
 local lxnotify_instance
-local lxpowerprofiles_instance
+local lxpower_instance
 local lxrunner_instance
 
 local function popup_cycle_keychains()
@@ -73,6 +73,9 @@ local function register_lx_widget(id, widget, default_order, opts)
         id = id,
         widget = widget,
         default_order = default_order,
+        enabled = function()
+            return module_config.enabled(id, false)
+        end,
         include_in_popup_cycle = include_in_popup_cycle,
     })
 
@@ -111,37 +114,37 @@ end
 ---
 ---Services are created lazily so theme initialization can complete before
 ---theme-driven widget options are read.
-function M.audio()
-    if not lxaudio_instance then
-        lxaudio_instance = require("lxaudio").new(module_config.options("audio"))
-        register_lx_widget("audio", lxaudio_instance.widget, 40)
-        register_semantic_popup("audio", "default", "primary", {
+function M.media()
+    if not lxmedia_instance then
+        lxmedia_instance = require("lxmedia").new(module_config.options("media"))
+        register_lx_widget("media", lxmedia_instance.widget, 40)
+        register_semantic_popup("media", "default", "primary", {
             hover_close = false,
             open = function(opts)
-                lxaudio_instance:show_media_popup(nil, opts)
+                lxmedia_instance:show_media_popup(nil, opts)
             end,
             close = function()
-                lxaudio_instance:close_popups()
+                lxmedia_instance:close_popups()
             end,
             is_visible = function()
-                return lxaudio_instance._media_popup and lxaudio_instance._media_popup.visible or false
+                return lxmedia_instance._media_popup and lxmedia_instance._media_popup.visible or false
             end,
         })
-        register_semantic_popup("audio", "devices", "secondary", {
+        register_semantic_popup("media", "devices", "secondary", {
             hover_close = false,
             open = function(opts)
-                lxaudio_instance:show_devices_popup(nil, opts)
+                lxmedia_instance:show_devices_popup(nil, opts)
             end,
             close = function()
-                lxaudio_instance:close_popups()
+                lxmedia_instance:close_popups()
             end,
             is_visible = function()
-                return lxaudio_instance._devices_popup and lxaudio_instance._devices_popup.visible or false
+                return lxmedia_instance._devices_popup and lxmedia_instance._devices_popup.visible or false
             end,
         })
     end
 
-    return lxaudio_instance
+    return lxmedia_instance
 end
 
 function M.bar()
@@ -155,10 +158,6 @@ function M.bar()
 end
 
 function M.bluetooth()
-    if not module_config.enabled("bluetooth", true) then
-        return nil
-    end
-
     if not lxbluetooth_instance then
         lxbluetooth_instance = require("lxbluetooth").new(module_config.options("bluetooth"))
         register_lx_widget("bluetooth", lxbluetooth_instance.widget, 10)
@@ -213,10 +212,6 @@ function M.display()
 end
 
 function M.network()
-    if not module_config.enabled("network", true) then
-        return nil
-    end
-
     if not lxnetwork_instance then
         lxnetwork_instance = require("lxnetwork").new(module_config.options("network"))
         register_lx_widget("network", lxnetwork_instance.widget, 20)
@@ -248,28 +243,24 @@ function M.runner()
     return lxrunner_instance
 end
 
-function M.powerprofiles()
-    if not module_config.enabled("powerprofiles", true) then
-        return nil
-    end
-
-    if not lxpowerprofiles_instance then
-        lxpowerprofiles_instance = require("lxpowerprofiles").new(module_config.options("powerprofiles"))
-        register_lx_widget("powerprofiles", lxpowerprofiles_instance.widget, 30)
-        register_semantic_popup("powerprofiles", "default", "secondary", {
+function M.power()
+    if not lxpower_instance then
+        lxpower_instance = require("lxpower").new(module_config.options("power"))
+        register_lx_widget("power", lxpower_instance.widget, 30)
+        register_semantic_popup("power", "default", "secondary", {
             open = function(opts)
-                lxpowerprofiles_instance:toggle_popup(nil, opts)
+                lxpower_instance:toggle_popup(nil, opts)
             end,
             close = function()
-                lxpowerprofiles_instance:close_popup()
+                lxpower_instance:close_popup()
             end,
             is_visible = function()
-                return lxpowerprofiles_instance._popup and lxpowerprofiles_instance._popup.visible or false
+                return lxpower_instance._popup and lxpower_instance._popup.visible or false
             end,
         })
     end
 
-    return lxpowerprofiles_instance
+    return lxpower_instance
 end
 
 return M

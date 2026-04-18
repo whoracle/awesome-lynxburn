@@ -60,7 +60,7 @@ Value priority is:
 - Make systray embedding into `lxbar` configurable instead of fixed.
   Value: QoL, Usability for others than me
   Complexity: low-medium
-- Extract the neutral UI pieces still living in `lxaudio.popup_common` into
+- Extract the neutral UI pieces still living in `lxmedia.popup_common` into
   `lxcommon`:
   - selectable popup rows
   - compact popup section/meta rows
@@ -133,12 +133,12 @@ Value priority is:
     bar participation flags
   - `lxmodules.<module>` now owns per-module constructor/runtime options
   - currently centralized there:
-    - `lxmodules.lxaudio` options such as `refresh_interval`, `width`,
+    - `lxmodules.lxmedia` options such as `refresh_interval`, `width`,
       `step`, and OSD enablement
     - `lxmodules.lxdisplay` options such as `refresh_interval`, OSD settings,
       brightness backend wiring, and redshift settings
     - `lxmodules.lxbluetooth`, `lxmodules.lxnetwork`, and
-      `lxmodules.lxpowerprofiles` refresh intervals and profile preferences
+      `lxmodules.lxpower` refresh intervals and profile preferences
     - `lxmodules.lxnotify` options such as denylist rules, truncation limits,
       time formatting, and visible popup item count
     - `lxmodules.lxrunner` options and aliases
@@ -179,7 +179,6 @@ Value priority is:
 - Fully expose in the central config:
   - commands
   - tag names/order plus per-screen tag layouts
-  - enabled `lx*` modules
   - `lxbar` order
   - per-module popup-cycle participation
 - Keep lighter exposure for:
@@ -191,8 +190,8 @@ Value priority is:
     - default single-screen assumption plus a simple two-screen example
 - For bar/module configuration, prefer a split structure that keeps composition
   concerns separate from per-module behavior:
-  - `lxmodules.lxbar.order = { "network", "audio", ... }`
-  - `lxmodules.lxbar.modules.<name> = { enabled = true/false, cycle = true/false }`
+  - `lxmodules.lxbar.order = { "network", "media", ... }`
+  - `lxmodules.lxbar.modules.<name> = { cycle = true/false }`
   - `lxmodules.<module> = { ...module-specific behavior... }`
   This keeps ordering declarative without making layered overrides brittle, and
   avoids mixing `lxbar` concerns with module runtime settings.

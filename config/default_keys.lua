@@ -24,7 +24,7 @@ local M = {
         "show_notification_popup",
         "show_bluetooth_popup",
         "show_network_popup",
-        "show_powerprofiles_popup",
+        "show_power_popup",
         "show_calendar",
         "toggle_lxrunner",
         "open_launcher",
@@ -249,12 +249,12 @@ local M = {
         description = "show network popup",
         group = "04. commands",
     },
-    show_powerprofiles_popup = {
+    show_power_popup = {
         scope = "global",
         modifiers = { "modkey" },
         key = "F12",
-        on_press = "show_powerprofiles_popup",
-        description = "show power profiles popup",
+        on_press = "show_power_popup",
+        description = "show power popup",
         group = "04. commands",
     },
     show_calendar = {

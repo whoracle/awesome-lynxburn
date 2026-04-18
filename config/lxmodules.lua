@@ -37,10 +37,12 @@ function M.order()
 end
 
 function M.enabled(id, default)
-    local module_settings = bar_module_settings(id)
+    local order = M.order()
 
-    if module_settings.enabled ~= nil then
-        return module_settings.enabled ~= false
+    for _, configured_id in ipairs(order) do
+        if configured_id == id then
+            return true
+        end
     end
 
     return default ~= false

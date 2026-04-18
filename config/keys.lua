@@ -276,7 +276,7 @@ local function compile_key_specs(specs, ordered_names, actions, join)
     return join(unpack(keys))
 end
 
-local function build_lxaudio_popup_key_actions(global_specs)
+local function build_lxmedia_popup_key_actions(global_specs)
     local popup_bindings = {
         media_play_pause = true,
         media_next = true,
@@ -349,13 +349,13 @@ function M.build(context)
     local runtime = context.runtime or {}
     local commands = context.commands
     local lxnotify = context.lxnotify
-    local lxaudio = context.lxaudio
+    local lxmedia = context.lxmedia
     local lxbar = context.lxbar
     local lxbluetooth = context.lxbluetooth
     local lxdisplay = context.lxdisplay
     local lxnetwork = context.lxnetwork
     local lxrunner = context.lxrunner
-    local lxpowerprofiles = context.lxpowerprofiles
+    local lxpower = context.lxpower
     local osd = context.osd
     local lain = context.lain
     local key_config = config_data.keys()
@@ -415,7 +415,7 @@ function M.build(context)
     end
 
     local function show_media_popup()
-        lxbar:toggle_popup_by_role("audio", "primary", {
+        lxbar:toggle_popup_by_role("media", "primary", {
             hover_close = false,
             anchor = "center",
             toggle_key = { modifiers = { settings.modkey }, key = "Prior" },
@@ -447,9 +447,9 @@ function M.build(context)
         end
     end
 
-    local function show_powerprofiles_popup()
-        if lxpowerprofiles then
-            lxbar:toggle_popup_by_role("powerprofiles", "secondary", {
+    local function show_power_popup()
+        if lxpower then
+            lxbar:toggle_popup_by_role("power", "secondary", {
                 keyboard_navigation = true,
                 toggle_key = { modifiers = { settings.modkey }, key = "F12" },
             })
@@ -521,15 +521,21 @@ function M.build(context)
     end
 
     local function volume_up()
-        lxaudio:volume_up(nil, { show_osd = true })
+        if lxmedia then
+            lxmedia:volume_up(nil, { show_osd = true })
+        end
     end
 
     local function volume_down()
-        lxaudio:volume_down(nil, { show_osd = true })
+        if lxmedia then
+            lxmedia:volume_down(nil, { show_osd = true })
+        end
     end
 
     local function toggle_mute()
-        lxaudio:toggle_mute({ show_osd = true })
+        if lxmedia then
+            lxmedia:toggle_mute({ show_osd = true })
+        end
     end
 
     local function brightness_up()
@@ -643,7 +649,7 @@ function M.build(context)
         show_notification_popup = show_notification_popup,
         show_bluetooth_popup = show_bluetooth_popup,
         show_network_popup = show_network_popup,
-        show_powerprofiles_popup = show_powerprofiles_popup,
+        show_power_popup = show_power_popup,
         cycle_lxbar_popups_forward = cycle_lxbar_popups_forward,
         cycle_lxbar_popups_backward = cycle_lxbar_popups_backward,
         show_calendar = show_calendar,
@@ -744,8 +750,8 @@ function M.build(context)
             )
     end
 
-    if lxaudio and lxaudio.set_popup_key_actions then
-        lxaudio:set_popup_key_actions(build_lxaudio_popup_key_actions(global_specs))
+    if lxmedia and lxmedia.set_popup_key_actions then
+        lxmedia:set_popup_key_actions(build_lxmedia_popup_key_actions(global_specs))
     end
 
     local keymaps = {
