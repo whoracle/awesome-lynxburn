@@ -244,7 +244,8 @@ end
 ---@return table
 function M.runner()
     if not lxrunner_instance then
-        local runner_config = config_data.runner()
+        local lxmodules = config_data.lxmodules()
+        local runner_config = lxmodules.lxrunner or {}
         lxrunner_instance = require("lxrunner").new(runner_config.options or {})
     end
 

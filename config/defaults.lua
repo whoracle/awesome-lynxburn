@@ -138,6 +138,13 @@ M.commands = {
     screendrawer = "gromit-mpx",
     launcher = home .. "/.config/rofi/launchers/type-1/launcher.sh",
     filebrowser = "thunar",
+    lain = {
+        imap_server = "lynxcore.org",
+        imap_mail = "anthrax@lynxcore.org",
+        imap_secret = "secret-tool lookup service awesomewm-imap account anthrax@lynxcore.org",
+        imap_login_options = "AUTH=LOGIN",
+        imap_timeout = 60,
+    },
     redshift = {
         command = "xrandr",
         enabled = true,
@@ -164,14 +171,16 @@ M.commands = {
     autostart = {},
 }
 
-M.runner = {
-    options = {
-        width = 520,
-        row_count = 10,
-        history_limit = 10,
-        prompt = "Run",
+M.lxmodules = {
+    lxrunner = {
+        options = {
+            width = 520,
+            row_count = 10,
+            history_limit = 10,
+            prompt = "Run",
+        },
+        aliases = {},
     },
-    aliases = {},
 }
 
 M.keys = default_keys

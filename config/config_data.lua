@@ -5,8 +5,8 @@ local M = {}
 
 local cached_commands
 local cached_keys
+local cached_lxmodules
 local cached_rules
-local cached_runner
 local cached_settings
 local cached_theme
 local cached_widgets
@@ -44,10 +44,10 @@ local function merge_key_overrides(merged)
     merge_section(merged, "keys", user_config.keys)
 end
 
-local function merge_runner_overrides(merged)
+local function merge_lxmodule_overrides(merged)
     local user_config = load_user_config()
 
-    merge_section(merged, "runner", user_config.runner)
+    merge_section(merged, "lxmodules", user_config.lxmodules)
 end
 
 local function merge_theme_overrides(merged)
@@ -146,23 +146,23 @@ function M.rules()
     return load_rules()
 end
 
-local function load_runner()
-    if cached_runner then
-        return cached_runner
+local function load_lxmodules()
+    if cached_lxmodules then
+        return cached_lxmodules
     end
 
     local merged = helpers.deep_merge({}, {
-        runner = defaults.runner,
+        lxmodules = defaults.lxmodules,
     })
 
-    merge_runner_overrides(merged)
+    merge_lxmodule_overrides(merged)
 
-    cached_runner = merged.runner or {}
-    return cached_runner
+    cached_lxmodules = merged.lxmodules or {}
+    return cached_lxmodules
 end
 
-function M.runner()
-    return load_runner()
+function M.lxmodules()
+    return load_lxmodules()
 end
 
 local function load_settings()

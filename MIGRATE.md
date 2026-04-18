@@ -12,7 +12,7 @@ under the matching section:
 4. `screens.lua` -> `screens = { ... }`
 5. `keys.lua` -> `keys = { ... }`
 6. `rules.lua` -> `rules = function(context) ... end`
-7. `lxrunner_aliases.lua` -> `runner = { aliases = { ... } }`
+7. `lxrunner_aliases.lua` -> `lxmodules = { lxrunner = { aliases = { ... } } }`
 
 Once the live machine has copied over anything it still needs, the remaining
 non-example files in `config/override/` can be deleted there as well.

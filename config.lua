@@ -69,6 +69,10 @@ return {
     -- },
     -- commands = {
     --     terminal = "alacritty",
+    --     lain = {
+    --         imap_mail = "me@example.org",
+    --         imap_secret = "secret-tool lookup service awesomewm-imap account me@example.org",
+    --     },
     -- },
     commands = {
         autostart_once = {
@@ -113,17 +117,19 @@ return {
             },
         }
     end,
-    runner = {
-        -- options = {
-        --     width = 640,
-        --     row_count = 12,
-        --     history_limit = 20,
-        -- },
-        aliases = {
-            {
-                name = "yayoff",
-                type = "shell",
-                command = [[urxvt -fg gray -tr -sh 50 -e sh -lc 'yay -Syu --noconfirm; status=$?; if [ $status -ne 0 ]; then echo; echo "yay failed with exit code $status"; echo "Shutdown was not triggered."; printf "Press Enter to close..."; read -r _; exit $status; fi; exec sudo shutdown -hP now']],
+    lxmodules = {
+        lxrunner = {
+            -- options = {
+            --     width = 640,
+            --     row_count = 12,
+            --     history_limit = 20,
+            -- },
+            aliases = {
+                {
+                    name = "yayoff",
+                    type = "shell",
+                    command = [[urxvt -fg gray -tr -sh 50 -e sh -lc 'yay -Syu --noconfirm; status=$?; if [ $status -ne 0 ]; then echo; echo "yay failed with exit code $status"; echo "Shutdown was not triggered."; printf "Press Enter to close..."; read -r _; exit $status; fi; exec sudo shutdown -hP now']],
+                },
             },
         },
     },

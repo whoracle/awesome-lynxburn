@@ -51,7 +51,8 @@ local ALIAS_FILES = {
 }
 
 local function configured_runner_aliases()
-    local runner = config_data.runner()
+    local lxmodules = config_data.lxmodules()
+    local runner = lxmodules.lxrunner or {}
 
     if type(runner.aliases) ~= "table" then
         return {}

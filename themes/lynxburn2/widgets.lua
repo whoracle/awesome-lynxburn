@@ -10,6 +10,7 @@ local beautiful = require("beautiful")
 local services = require("config.services")
 local tags = require("config.tags")
 local layouts = require("config.layouts")
+local programs = require("config.programs")
 
 local my_table = awful.util.table or gears.table
 local markup = lain.util.markup
@@ -17,9 +18,12 @@ local markup = lain.util.markup
 local M = {}
 
 ---Wrap a widget in the standard LynxBurn wibar background and padding shell.
-local mail_account = "anthrax@lynxcore.org"
-local mail_password_lookup =
-    "secret-tool lookup service awesomewm-imap account " .. mail_account
+local lain_commands = programs.lain or {}
+local mail_account = lain_commands.imap_mail or ""
+local mail_password_lookup = lain_commands.imap_secret or ""
+local mail_server = lain_commands.imap_server or ""
+local mail_login_options = lain_commands.imap_login_options or "AUTH=LOGIN"
+local mail_timeout = tonumber(lain_commands.imap_timeout) or 60
 
 local function wrap_widget(theme, widget, background)
     return wibox.widget({
@@ -225,11 +229,11 @@ function M.build(theme)
     mail_icon.forced_width = 0
     mail_icon.forced_height = 0
     local mail = lain.widget.imap({
-        timeout = 60,
-        server = "lynxcore.org",
+        timeout = mail_timeout,
+        server = mail_server,
         mail = mail_account,
         password = mail_password_lookup,
-        login_options = "AUTH=LOGIN",
+        login_options = mail_login_options,
         settings = function()
             local count = ""
 

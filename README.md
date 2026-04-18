@@ -218,10 +218,11 @@ Also referenced in program definitions or optional autostart commands:
 
 ### Mail Password Lookup
 
-The IMAP password is not stored in Lua code. It is fetched through
-`secret-tool` from GNOME Keyring.
+The IMAP password is not stored directly in the theme code. It is configured
+through `commands.lain.imap_secret`, which currently uses `secret-tool` from
+GNOME Keyring.
 
-Current lookup used by the theme widget:
+Current default lookup configured in `config/defaults.lua`:
 
 ```sh
 secret-tool lookup service awesomewm-imap account anthrax@lynxcore.org
@@ -298,7 +299,7 @@ If you want to change:
   `lxbar/init.lua`, `lxcommon/*.lua`
 - colors, glyphs, popup sizes, per-widget theme settings: `themes/lynxburn2/theme.lua`
 - `lxrunner` aliases and history behavior: `lxrunner/` plus
-  `config/override/lxrunner_aliases.lua`
+  `config.lua.lxmodules.lxrunner`
 
 ## Installation / Local Testing
 
