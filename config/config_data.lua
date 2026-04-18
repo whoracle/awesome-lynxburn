@@ -1,5 +1,7 @@
 local helpers = require("config.helpers")
 local defaults = require("config.defaults")
+local os = os
+local ipairs = ipairs
 
 local M = {}
 
@@ -14,6 +16,50 @@ local cached_screens
 
 local function load_user_config()
     return helpers.load_optional_module("config", {})
+end
+
+local function shell_escape(value)
+    return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
+end
+
+local function first_token(command)
+    return tostring(command or ""):match("^(%S+)")
+end
+
+local function command_exists(binary)
+    if not binary or binary == "" then
+        return false
+    end
+
+    local ok = os.execute("command -v " .. shell_escape(binary) .. " >/dev/null 2>&1")
+
+    if type(ok) == "number" then
+        return ok == 0
+    end
+
+    return ok == true
+end
+
+local function resolve_terminal(command)
+    local configured = tostring(command or "")
+
+    if command_exists(first_token(configured)) then
+        return configured
+    end
+
+    for _, candidate in ipairs({
+        "alacritty",
+        "kitty",
+        "urxvt",
+        "xterm",
+        "x-terminal-emulator",
+    }) do
+        if command_exists(candidate) then
+            return candidate
+        end
+    end
+
+    return configured
 end
 
 local function merge_section(merged, key, value)
@@ -88,6 +134,7 @@ local function load_commands()
     merge_command_overrides(merged)
 
     cached_commands = merged.commands or {}
+    cached_commands.terminal = resolve_terminal(cached_commands.terminal)
     return cached_commands
 end
 

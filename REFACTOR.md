@@ -6,10 +6,10 @@ work for, but should be revisited in the final refactor pass.
 ## Open Items
 
 - `config/programs.lua`
-  Current role: compatibility wrapper that adds terminal resolution on top of
-  central command data loaded through `config.config_data`.
-  Later option: fold the pure command data path fully into the central config
-  layer and keep only a thinner runtime adapter if it still earns its keep.
+  Current role: thin compatibility adapter over central command data loaded
+  through `config.config_data`.
+  Later option: retire it once direct consumers can read the central command
+  surface without losing readability.
 
 - `config/settings.lua`
   Current role: compatibility surface over central settings/widget/theme data,
