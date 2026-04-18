@@ -138,7 +138,7 @@ Value priority is:
     - `lxmodules.lxdisplay` options such as `refresh_interval`, OSD settings,
       brightness backend wiring, and redshift settings
     - `lxmodules.lxbluetooth`, `lxmodules.lxnetwork`, and
-      `lxmodules.lxpowerprofiles` refresh intervals
+      `lxmodules.lxpowerprofiles` refresh intervals and profile preferences
     - `lxmodules.lxnotify` options such as denylist rules, truncation limits,
       time formatting, and visible popup item count
     - `lxmodules.lxrunner` options and aliases
@@ -447,4 +447,3 @@ why the open items above exist.
   - `config.lua.lxmodules.lxrunner.aliases`
   - do not fold aliases into `commands`
   - split override files are historical migration inputs only
-

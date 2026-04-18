@@ -92,6 +92,13 @@ return {
     --         notification_time_format = "%H:%M",
     --         popup_visible_items = 10,
     --     },
+    --     lxpowerprofiles = {
+    --         refresh_interval = 10,
+    --         preferred_profiles = {
+    --             battery = "power-saver",
+    --             ac = "balanced",
+    --         },
+    --     },
     --     lxrunner = {
     --         width = 640,
     --         row_count = 12,

@@ -105,6 +105,23 @@ local function contains(list, target)
     return false
 end
 
+local function normalize_preferred_profile(profile, fallback)
+    if type(profile) == "string" and contains(ALL_PROFILES, profile) then
+        return profile
+    end
+
+    return fallback
+end
+
+local function normalize_preferred_profiles(preferred_profiles)
+    preferred_profiles = type(preferred_profiles) == "table" and preferred_profiles or {}
+
+    return {
+        battery = normalize_preferred_profile(preferred_profiles.battery, "power-saver"),
+        ac = normalize_preferred_profile(preferred_profiles.ac, "balanced"),
+    }
+end
+
 local function format_duration_hours(hours)
     local numeric = tonumber(hours)
     if not numeric or numeric <= 0 then
@@ -861,6 +878,7 @@ function M.new(opts)
         battery = "power-saver",
         ac = "balanced",
     }
+    self._preferred_profiles = normalize_preferred_profiles(opts.preferred_profiles)
     self._popup_selected_index = 1
     self._refs = {}
 

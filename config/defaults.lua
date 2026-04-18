@@ -197,6 +197,10 @@ M.lxmodules = {
     },
     lxpowerprofiles = {
         refresh_interval = 20,
+        preferred_profiles = {
+            battery = "power-saver",
+            ac = "balanced",
+        },
     },
     lxrunner = {
         width = 520,
