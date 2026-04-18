@@ -164,7 +164,6 @@ local theme = {
     lxmedia_selected_border = roles.text_accent,
 
     lxnotify_icon_suspended = "󰂛",
-    lxnotify_icon_notifications = "󰂚",
     lxnotify_icon_idle = "󰂚 ",
     lxnotify_widget_font = "Hack Nerd Font Mono 9",
     lxnotify_widget_fg = "#e8d7b6",
@@ -190,7 +189,6 @@ local theme = {
     lxdisplay_icon = "󰃟",
     lxdisplay_icon_night = "󰖔",
     lxdisplay_icon_brightness = "󰃠",
-    lxdisplay_show_bar = false,
     lxdisplay_icon_font = font,
     lxdisplay_icon_width = 22,
     lxdisplay_widget_fg = roles.text,
@@ -208,7 +206,6 @@ local theme = {
     lxdisplay_osd_height = 18,
     lxdisplay_osd_margin = 16,
     lxdisplay_osd_timeout = 1,
-    lxdisplay_osd_screen_margin = 60,
 
     lxbluetooth_icon = "",
     lxbluetooth_popup_placement = "side",

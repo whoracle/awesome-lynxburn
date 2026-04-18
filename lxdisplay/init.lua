@@ -186,18 +186,6 @@ local function parse_clock_value(value, fallback_hour)
     return fallback_hour
 end
 
-local function theme_flag(value, default)
-    if value == nil then
-        return default
-    end
-
-    if value == false or value == 0 or value == "0" or value == "false" then
-        return false
-    end
-
-    return true
-end
-
 local function attach_button_feedback(widget, idle_bg, hover_bg, press_bg)
     if not widget then
         return
@@ -707,39 +695,35 @@ function M:_build_widget()
         layout = wibox.layout.fixed.horizontal,
     }
 
-    if theme_flag(beautiful.lxdisplay_show_bar, true) then
-        self._bar = wibox.widget({
-            max_value = 100,
-            value = 0,
-            forced_width = beautiful.lxdisplay_bar_width or 40,
-            forced_height = beautiful.lxdisplay_bar_height or 8,
-            paddings = 0,
-            border_width = 0,
-            background_color = beautiful.lxdisplay_bar_bg
-                or beautiful.lxmedia_bar_bg
-                or beautiful.bg_minimize
-                or "#444444",
-            color = beautiful.lxdisplay_bar_fg
-                or beautiful.lxmedia_bar_fg
-                or beautiful.fg_normal
-                or "#ffffff",
-            widget = wibox.widget.progressbar,
-        })
+    self._bar = wibox.widget({
+        max_value = 100,
+        value = 0,
+        forced_width = beautiful.lxdisplay_bar_width or 40,
+        forced_height = beautiful.lxdisplay_bar_height or 8,
+        paddings = 0,
+        border_width = 0,
+        background_color = beautiful.lxdisplay_bar_bg
+            or beautiful.lxmedia_bar_bg
+            or beautiful.bg_minimize
+            or "#444444",
+        color = beautiful.lxdisplay_bar_fg
+            or beautiful.lxmedia_bar_fg
+            or beautiful.fg_normal
+            or "#ffffff",
+        widget = wibox.widget.progressbar,
+    })
 
-        self._bar_slot = wibox.widget({
-            self._bar,
-            valign = "center",
-            widget = wibox.container.place,
-        })
+    self._bar_slot = wibox.widget({
+        self._bar,
+        valign = "center",
+        widget = wibox.container.place,
+    })
 
-        table.insert(content, 2, {
-            self._bar_slot,
-            left = beautiful.lxdisplay_bar_spacing or 8,
-            widget = wibox.container.margin,
-        })
-    else
-        self._bar = nil
-    end
+    table.insert(content, 2, {
+        self._bar_slot,
+        left = beautiful.lxdisplay_bar_spacing or 8,
+        widget = wibox.container.margin,
+    })
 
     local row = wibox.widget({
         content,
