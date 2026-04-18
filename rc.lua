@@ -59,6 +59,7 @@ local quake = config.layouts.create_quake(config.programs.terminal)
 local keymaps = config.keys.build({
     my_table = my_table,
     settings = config.settings,
+    runtime = config.runtime,
     programs = config.programs,
     layouts = config.layouts,
     lain = lain,
@@ -90,7 +91,7 @@ awful.rules.rules = config.rules.build({
     clientkeys = keymaps.clientkeys,
     clientbuttons = mousemaps.clientbuttons,
     monitors = config.settings.monitors,
-    tags = config.settings.tags,
+    tags = config.runtime.tags(),
 })
 
 config.signals.setup({

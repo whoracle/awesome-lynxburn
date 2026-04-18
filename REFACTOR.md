@@ -12,10 +12,11 @@ work for, but should be revisited in the final refactor pass.
   surface without losing readability.
 
 - `config/settings.lua`
-  Current role: compatibility surface over central settings/widget/theme data,
-  plus runtime-derived values like `home` and `editor`.
-  Later option: reduce it to a very thin runtime adapter or retire it once
-  direct consumers can read the central config surfaces they actually need.
+  Current role: thin compatibility adapter over centralized static settings.
+  Runtime-derived values such as `HOME`, `EDITOR`, and derived tag names now
+  live in `config/runtime.lua`.
+  Later option: retire it once direct consumers can read the central settings
+  surface without losing readability.
 
 - `config/override/` compatibility examples and docs
   Current role: historical scaffolding now that top-level `./config.lua` is the

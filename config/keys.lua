@@ -345,6 +345,7 @@ end
 function M.build(context)
     local my_table = context.my_table or gears.table
     local settings = context.settings
+    local runtime = context.runtime or {}
     local programs = context.programs
     local lxnotify = context.lxnotify
     local lxaudio = context.lxaudio
@@ -483,7 +484,7 @@ function M.build(context)
     end
 
     local function open_file_browser()
-        awful.spawn(programs.filebrowser .. " " .. settings.home)
+        awful.spawn(programs.filebrowser .. " " .. (runtime.home and runtime.home() or ""))
     end
 
     local function screenshot_region()
