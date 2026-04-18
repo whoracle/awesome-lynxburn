@@ -4,7 +4,7 @@ local gears = require("gears")
 local wibox = require("wibox")
 local keygrabber = require("awful.keygrabber")
 
-local popup_common = require("lxmedia.popup_common")
+local popup_common = require("lxcommon.popup_ui")
 local util = require("lxmedia.util")
 local notify_util = require("lxnotify.util")
 local popup_placement = require("lxcommon.popup_placement")
