@@ -9,6 +9,7 @@ local wibox = require("wibox")
 local beautiful = require("beautiful")
 local services = require("config.services")
 local tags = require("config.tags")
+local layouts = require("config.layouts")
 
 local my_table = awful.util.table or gears.table
 local markup = lain.util.markup
@@ -185,11 +186,11 @@ local function build_layout_switcher(theme, s)
     awful.tag.attached_connect_signal(s, "property::layout", update)
 
     layoutbox:buttons(my_table.join(
-        awful.button({}, 1, function() awful.layout.inc(1) end),
-        awful.button({}, 2, function() awful.layout.set(awful.layout.layouts[1]) end),
-        awful.button({}, 3, function() awful.layout.inc(-1) end),
-        awful.button({}, 4, function() awful.layout.inc(1) end),
-        awful.button({}, 5, function() awful.layout.inc(-1) end)
+        awful.button({}, 1, function() layouts.cycle_selected_tag(1) end),
+        awful.button({}, 2, function() layouts.reset_selected_tag_layout() end),
+        awful.button({}, 3, function() layouts.cycle_selected_tag(-1) end),
+        awful.button({}, 4, function() layouts.cycle_selected_tag(1) end),
+        awful.button({}, 5, function() layouts.cycle_selected_tag(-1) end)
     ))
 
     return wrap_widget(theme, layoutbox)

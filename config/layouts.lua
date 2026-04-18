@@ -31,4 +31,21 @@ function M.create_quake(terminal)
     })
 end
 
+function M.cycle_selected_tag(step)
+    local screen = awful.screen.focused()
+    local tag = screen and screen.selected_tag
+
+    tags.cycle_for_tag(tag, step)
+end
+
+function M.reset_selected_tag_layout()
+    local screen = awful.screen.focused()
+    local tag = screen and screen.selected_tag
+    local layout = tags.first_layout_for_tag(tag)
+
+    if tag and layout then
+        tag.layout = layout
+    end
+end
+
 return M

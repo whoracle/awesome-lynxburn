@@ -60,6 +60,7 @@ local keymaps = config.keys.build({
     my_table = my_table,
     settings = config.settings,
     programs = config.programs,
+    layouts = config.layouts,
     lain = lain,
     lxaudio = lxaudio,
     lxbar = lxbar,

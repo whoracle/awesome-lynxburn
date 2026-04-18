@@ -357,6 +357,7 @@ function M.build(context)
     local osd = context.osd
     local lain = context.lain
     local key_config = config_data.keys()
+    local layouts = context.layouts
 
     register_extra_hotkeys()
 
@@ -396,11 +397,11 @@ function M.build(context)
     end
 
     local function next_layout()
-        awful.layout.inc(1)
+        layouts.cycle_selected_tag(1)
     end
 
     local function prev_layout()
-        awful.layout.inc(-1)
+        layouts.cycle_selected_tag(-1)
     end
 
     local function grow_gaps()

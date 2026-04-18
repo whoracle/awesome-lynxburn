@@ -35,28 +35,49 @@ M.screens = {
     tag_defaults = {
         primary = {
             layout = "fair",
+            layouts = { "fair" },
         },
         secondary = {
             layout = "centerwork",
+            layouts = { "centerwork" },
         },
         tertiary = {
-            layout = "centerwork.horizontal",
+            layout = "floating",
+            layouts = { "floating" },
         },
     },
     left = {
         dpi = 96,
         tags = {
-            primary = { layout = "centerwork.horizontal" },
-            secondary = { layout = "centerwork.horizontal" },
-            tertiary = { layout = "centerwork.horizontal" },
+            primary = {
+                layout = "centerwork.horizontal",
+                layouts = { "centerwork.horizontal", "fair.horizontal", "floating" },
+            },
+            secondary = {
+                layout = "fair.horizontal",
+                layouts = { "fair.horizontal", "centerwork.horizontal", "floating" },
+            },
+            tertiary = {
+                layout = "floating",
+                layouts = { "floating" },
+            },
         },
     },
     center = {
         dpi = 110,
         tags = {
-            primary = { layout = "centerwork" },
-            secondary = { layout = "centerwork" },
-            tertiary = { layout = "centerwork" },
+            primary = {
+                layout = "centerwork",
+                layouts = { "centerwork", "vertical", "floating" },
+            },
+            secondary = {
+                layout = "vertical",
+                layouts = { "vertical", "centerwork", "floating" },
+            },
+            tertiary = {
+                layout = "floating",
+                layouts = { "floating", "centerwork", "vertical" },
+            },
         },
     },
     right = {
