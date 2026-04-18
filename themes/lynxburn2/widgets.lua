@@ -7,10 +7,10 @@ local lain = require("lain")
 local awful = require("awful")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
+local config_data = require("config.config_data")
 local services = require("config.services")
 local tags = require("config.tags")
 local layouts = require("config.layouts")
-local programs = require("config.programs")
 
 local my_table = awful.util.table or gears.table
 local markup = lain.util.markup
@@ -18,6 +18,7 @@ local markup = lain.util.markup
 local M = {}
 
 ---Wrap a widget in the standard LynxBurn wibar background and padding shell.
+local programs = config_data.commands()
 local lain_commands = programs.lain or {}
 local mail_account = lain_commands.imap_mail or ""
 local mail_password_lookup = lain_commands.imap_secret or ""

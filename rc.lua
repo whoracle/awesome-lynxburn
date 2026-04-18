@@ -18,6 +18,10 @@ local naughty = require("naughty")
 local my_table = awful.util.table or gears.table
 
 local config = require("config.init")
+local config_data = config.config_data
+local runtime = config.runtime
+local settings = config_data.settings()
+local commands = config_data.commands()
 
 -- Long-lived shared services are created after the theme is loaded so their
 -- widgets read final `beautiful` values rather than partially initialized ones.
@@ -47,20 +51,20 @@ lxnetwork = config.services.network()
 lxpowerprofiles = config.services.powerprofiles()
 
 local osd_handlers = config.osd.new(beautiful, {
-    volume_step = config.settings.volume_step,
+    volume_step = settings.volume_step,
 })
 
 config.layouts.setup({
-    terminal = config.programs.terminal,
+    terminal = commands.terminal,
 })
 
-local quake = config.layouts.create_quake(config.programs.terminal)
+local quake = config.layouts.create_quake(commands.terminal)
 
 local keymaps = config.keys.build({
     my_table = my_table,
-    settings = config.settings,
-    runtime = config.runtime,
-    programs = config.programs,
+    settings = settings,
+    runtime = runtime,
+    programs = commands,
     layouts = config.layouts,
     lain = lain,
     lxaudio = lxaudio,
@@ -77,11 +81,11 @@ local keymaps = config.keys.build({
 
 local mousemaps = config.mouse.build({
     my_table = my_table,
-    terminal = config.programs.terminal,
-    modkey = config.settings.modkey,
+    terminal = commands.terminal,
+    modkey = settings.modkey,
 })
 
-config.helpers.run_once(awful, config.programs.autostart_once)
+config.helpers.run_once(awful, commands.autostart_once)
 
 root.buttons(mousemaps.mousebuttons)
 root.keys(keymaps.globalkeys)
@@ -90,8 +94,8 @@ awful.rules.rules = config.rules.build({
     beautiful = beautiful,
     clientkeys = keymaps.clientkeys,
     clientbuttons = mousemaps.clientbuttons,
-    monitors = config.settings.monitors,
-    tags = config.runtime.tags(),
+    monitors = settings.monitors,
+    tags = runtime.tags(),
 })
 
 config.signals.setup({
@@ -100,8 +104,8 @@ config.signals.setup({
 })
 
 awful.screen.set_auto_dpi_enabled(true)
-config.screens.setup(config.settings)
+config.screens.setup(settings)
 
-for _, command in ipairs(config.programs.autostart) do
+for _, command in ipairs(commands.autostart) do
     awful.spawn(command)
 end

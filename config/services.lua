@@ -12,7 +12,7 @@ local lxpowerprofiles_instance
 local lxrunner_instance
 
 local function popup_cycle_keychains()
-    local settings = require("config.settings")
+    local settings = config_data.settings()
 
     return {
         prev = {
@@ -61,7 +61,7 @@ local function merge_popup_opts(defaults, overrides)
     return merged
 end
 
-local function configure_widget_registry(settings)
+local function configure_widget_registry()
     require("lxcommon.registry").set_order(widget_config.order())
 end
 
@@ -146,7 +146,7 @@ end
 
 function M.bar()
     if not lxbar_instance then
-        configure_widget_registry(require("config.settings"))
+        configure_widget_registry()
         lxbar_instance = require("lxbar").new()
     end
 
@@ -205,7 +205,7 @@ end
 ---@return table
 function M.display()
     if not lxdisplay_instance then
-        local programs = require("config.programs")
+        local programs = config_data.commands()
         lxdisplay_instance = require("lxdisplay").new({
             brightness = programs.brightness,
             redshift = programs.redshift,

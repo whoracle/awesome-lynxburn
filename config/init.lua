@@ -4,8 +4,6 @@
 ---`local config = require("config.init")`
 ---and then `config.keys`, `config.programs`, `config.services`, etc.
 return {
-    settings = require("config.settings"),
-    programs = require("config.programs"),
     config_data = require("config.config_data"),
     defaults = require("config.defaults"),
     helpers = require("config.helpers"),

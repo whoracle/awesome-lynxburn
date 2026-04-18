@@ -3,6 +3,7 @@ local beautiful = require("beautiful")
 local gears = require("gears")
 local wibox = require("wibox")
 local keygrabber = require("awful.keygrabber")
+local config_data = require("config.config_data")
 
 local popup_common = require("lxaudio.popup_common")
 local util = require("lxaudio.util")
@@ -223,7 +224,7 @@ function M:_refresh_popup()
         {
             on_enter = function()
                 self:close_popup()
-                local programs = require("config.programs")
+                local programs = config_data.commands()
                 awful.spawn.with_shell(programs.blueman_manager)
             end,
         },
@@ -304,7 +305,7 @@ function M:_build_popup()
         {
             popup_common.make_selectable_click_row("Open blueman-manager", function()
                 self:close_popup()
-                local programs = require("config.programs")
+                local programs = config_data.commands()
                 awful.spawn.with_shell(programs.blueman_manager)
             end, {
                 selected = self._popup_selected_index == 1,
@@ -736,7 +737,7 @@ function M.new(opts)
             self:toggle_power()
         end),
         awful.button({}, 3, function()
-            local programs = require("config.programs")
+            local programs = config_data.commands()
             awful.spawn.with_shell(programs.blueman_manager)
         end)
     ))
