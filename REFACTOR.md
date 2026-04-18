@@ -11,3 +11,9 @@ work for, but should be revisited in the final refactor pass.
   files.
   Later option: remove or rewrite the directory once the example/documentation
   story is settled.
+- `themes/lynxburn2/theme.lua` structure vs palette split
+  Current role: one authoritative flat theme file with both visual structure
+  defaults and concrete colors.
+  Later option: split non-color theme wiring/config from the color palette so
+  multiple color schemes can reuse the same sizing, icon, and module-theme
+  structure.
