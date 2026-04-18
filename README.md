@@ -59,16 +59,15 @@ are intended to become submodules later.
 ### `config/`
 
 - `init.lua`
-  Aggregates the config modules behind `require("config")`.
+  Aggregates the maintainable config modules behind `require("config.init")`.
 
-- `settings.lua`
-  Static user preferences such as mod keys, monitor mapping, tag names,
-  and theme selection.
+- `defaults.lua`
+  Central default user-facing config values. This is the base layer merged with
+  top-level `config.lua`.
 
-- `programs.lua`
-  External command definitions and runtime command configuration. This is the
-  first place to look when changing launchers, screenshot commands, brightness,
-  or Redshift behavior.
+- `config_data.lua`
+  Shared loader and merge layer for centralized config sections such as
+  `settings`, `commands`, `screens`, `theme`, and `lxmodules`.
 
 - `helpers.lua`
   Small shared helpers such as startup error handling and run-once autostart.
@@ -95,9 +94,6 @@ are intended to become submodules later.
   Shared singleton instances for the `lx*` modules plus registration into
   `lxcommon.registry` and `lxcommon.popup_manager`.
 
-- `override/*.example.lua`
-  Templates for local machine-specific overrides that should not be committed.
-
 - `osd.lua`
   Small config-owned OSD helpers outside the `lx*` family. The shared progress
   and text OSD primitives used by `lxaudio` and `lxdisplay` now live in
@@ -121,44 +117,45 @@ This split is intentional:
 - theme values live in `theme.lua`
 - wibar structure lives in `widgets.lua`
 - service/module ownership lives in `config/services.lua`
-- user-editable behavior lives in `config/*.lua`
+- user-editable behavior lives in top-level `config.lua`, merged over
+  `config/defaults.lua`
 - shared `lx*` composition and popup coordination live in `lxcommon/` and
   `lxbar/`
-- default `lxbar` order currently comes from per-module registration priorities
-  in `config/services.lua`
+- bar composition now lives in `lxmodules.lxbar`
+- module behavior now lives in `lxmodules.<module>`
 
-## Local Overrides
+## Central Config
 
-Machine-specific changes can live in `config/override/*.lua` instead of
-changing the tracked defaults.
+The intended user config entrypoint is top-level `config.lua` next to `rc.lua`.
+It is merged over `config/defaults.lua`.
 
-Supported override files:
+Centralized sections currently include:
 
-- `config/override/settings.lua`
-- `config/override/programs.lua`
-- `config/override/theme.lua`
-- `config/override/screens.lua`
-- `config/override/rules.lua`
-- `config/override/keys.lua`
-- `config/override/lxrunner_aliases.lua`
+- `settings`
+- `commands`
+- `theme`
+- `screens`
+- `keys`
+- `rules`
+- `lxmodules`
 
-These files are git-ignored. The tracked `*.example.lua` files in the same
-directory show the expected structure.
+Within `lxmodules`:
 
-Override precedence is always:
+- `lxmodules.lxbar` owns bar composition such as order and cycle participation
+- `lxmodules.<module>` owns per-module behavior and backend wiring
+- `lxmodules.lxrunner.aliases` owns runner aliases
 
-1. tracked default
-2. local override
+Examples:
 
-What each override is for:
+- `commands.terminal`
+- `theme.name`
+- `screens.center.tags.primary.layout`
+- `lxmodules.lxbar.order`
+- `lxmodules.lxdisplay.redshift`
+- `lxmodules.lxrunner.aliases`
 
-- `settings.lua`: modifier keys, monitor indices, tag names, theme name
-- `programs.lua`: terminal/browser/launcher commands, autostart, Redshift
-- `theme.lua`: colors, wallpaper, theme-local module sizing and styling
-- `screens.lua`: per-monitor default layout and DPI
-- `rules.lua`: local application placement or behavior rule overrides
-- `keys.lua`: override named key specs or disable bindings
-- `lxrunner_aliases.lua`: override or add lxrunner aliases by alias name
+Legacy `config/override/*.lua` files are migration-only scaffolding now and are
+no longer read by the runtime.
 
 ## Theme Split
 
@@ -176,8 +173,10 @@ If you want to:
   values: edit `theme.lua`
 - reorder the classic theme widgets or change their wrapping/composition: edit
   `widgets.lua`
-- change `lx*` module order/composition behavior: inspect `config/services.lua`,
-  `lxcommon/`, and `lxbar/`
+- change `lx*` module order/composition behavior: edit `lxmodules.lxbar` in
+  top-level `config.lua`
+- change `lx*` module behavior/backend config: edit `lxmodules.<module>` in
+  top-level `config.lua`
 
 ## External Dependencies
 
@@ -246,10 +245,10 @@ secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account anthra
 ### `lxdisplay`
 
 - owns the display widget
-- owns brightness and Redshift state
+- owns brightness and redshift state
 - scroll brightness changes do not show OSD by default
 - keyboard brightness changes do request OSD explicitly
-- owns Redshift control plumbing
+- owns redshift control plumbing
 - uses shared OSD primitives from `lxcommon.osd`
 
 ### `lxnotify`
@@ -272,12 +271,10 @@ secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account anthra
 - renders registered module widgets in one container
 - exposes shared popup actions such as popup cycling in bar order
 - current default widget order is:
-  - bluetooth
   - network
-  - powerprofiles
   - audio
-  - display
   - notify
+  with additional bar modules opt-in/configured under `lxmodules.lxbar`
 
 ### `lxrunner`
 
@@ -290,16 +287,17 @@ secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account anthra
 If you want to change:
 
 - keybindings: `config/keys.lua`
-- app commands and tool paths: `config/programs.lua`
-- monitor mapping / tag names / modifier keys: `config/settings.lua`
+- app commands and tool paths: top-level `config.lua` under `commands`
+- monitor mapping / tag names / modifier keys: top-level `config.lua` under `settings`
 - client placement rules: `config/rules.lua`
-- screen-specific DPI and default layouts: `config/screens.lua`
+- screen-specific DPI and default layouts: top-level `config.lua` under `screens`
 - classic wibar order/layout: `themes/lynxburn2/widgets.lua`
-- `lx*` bar composition / shared popup behavior: `config/services.lua`,
-  `lxbar/init.lua`, `lxcommon/*.lua`
+- `lx*` bar composition: top-level `config.lua` under `lxmodules.lxbar`
+- `lx*` shared popup/runtime behavior: `config/services.lua`, `lxbar/init.lua`,
+  `lxcommon/*.lua`
 - colors, glyphs, popup sizes, per-widget theme settings: `themes/lynxburn2/theme.lua`
-- `lxrunner` aliases and history behavior: `lxrunner/` plus
-  `config.lua.lxmodules.lxrunner`
+- `lxrunner` aliases and runner behavior: top-level `config.lua` under
+  `lxmodules.lxrunner`, plus `lxrunner/` for implementation
 
 ## Installation / Local Testing
 
@@ -327,9 +325,9 @@ workflow.
 - `lxcommon` and `lxbar` are the current shared architecture for the `lx*`
   modules. They are intentionally small and should stay pragmatic.
 - The `config` aggregator exists so `rc.lua` can use `local config =
-  require("config")` and then address modules as `config.keys`,
-  `config.programs`, and so on.
-- Some legacy commands and optional tools remain in `programs.lua` even if they
-  are not always enabled in autostart.
+  require("config.init")` and then address modules as `config.keys`,
+  `config.lxmodules`, and so on.
+- Top-level `config.lua` is the intended user config entrypoint, merged over
+  `config/defaults.lua`.
 - The current docs intentionally describe the repo-owned `lx*` behavior, not the
   vendored upstream `lain` subtree.

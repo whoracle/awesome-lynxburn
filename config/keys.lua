@@ -338,7 +338,8 @@ end
 ---Build root and client keymaps from the shared config context.
 ---
 ---This module intentionally owns only keybinding definitions and their local
----helper functions. Application commands live in `programs.lua`, and long-lived
+---helper functions. Application commands live in the centralized `commands`
+---config section, and long-lived
 ---widget/module state is passed in through `context`.
 ---@param context table
 ---@return {globalkeys:any, clientkeys:any}
@@ -346,7 +347,7 @@ function M.build(context)
     local my_table = context.my_table or gears.table
     local settings = context.settings
     local runtime = context.runtime or {}
-    local programs = context.programs
+    local commands = context.commands
     local lxnotify = context.lxnotify
     local lxaudio = context.lxaudio
     local lxbar = context.lxbar
@@ -472,7 +473,7 @@ function M.build(context)
     end
 
     local function open_launcher()
-        awful.spawn(programs.launcher)
+        awful.spawn(commands.launcher)
     end
 
     local function toggle_lxrunner()
@@ -480,23 +481,23 @@ function M.build(context)
     end
 
     local function open_terminal()
-        awful.spawn(programs.terminal)
+        awful.spawn(commands.terminal)
     end
 
     local function open_file_browser()
-        awful.spawn(programs.filebrowser .. " " .. (runtime.home and runtime.home() or ""))
+        awful.spawn(commands.filebrowser .. " " .. (runtime.home and runtime.home() or ""))
     end
 
     local function screenshot_region()
-        awful.spawn.with_shell(programs.scrotmouse, false)
+        awful.spawn.with_shell(commands.scrotmouse, false)
     end
 
     local function screenshot_desktop()
-        awful.spawn.with_shell(programs.scrotedit, false)
+        awful.spawn.with_shell(commands.scrotedit, false)
     end
 
     local function screenshot_window()
-        awful.spawn.with_shell(programs.scrotwin, false)
+        awful.spawn.with_shell(commands.scrotwin, false)
     end
 
     local function start_awesome_on_tv()
@@ -504,7 +505,7 @@ function M.build(context)
     end
 
     local function lock_screen()
-        os.execute(programs.scrlocker)
+        os.execute(commands.scrlocker)
     end
 
     local function media_play_pause()

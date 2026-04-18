@@ -2,7 +2,7 @@
 ---
 ---This keeps `rc.lua` readable by allowing:
 ---`local config = require("config.init")`
----and then `config.keys`, `config.programs`, `config.services`, etc.
+---and then `config.keys`, `config.lxmodules`, `config.services`, etc.
 return {
     config_data = require("config.config_data"),
     defaults = require("config.defaults"),
