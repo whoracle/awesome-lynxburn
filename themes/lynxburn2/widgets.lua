@@ -250,15 +250,20 @@ function M.build(theme)
             widget:set_markup(count)
         end,
     })
-    local mailwidget = wrap_widget(theme, wibox.widget({
-        {
-            mail_icon,
-            mail.widget,
-            layout = wibox.layout.fixed.horizontal,
-        },
-        draw_empty = false,
-        widget = wibox.container.margin,
-    }))
+    local mailwidget
+    if mail and mail.widget then
+        mailwidget = wrap_widget(theme, wibox.widget({
+            {
+                mail_icon,
+                mail.widget,
+                layout = wibox.layout.fixed.horizontal,
+            },
+            draw_empty = false,
+            widget = wibox.container.margin,
+        }))
+    else
+        mailwidget = wibox.widget.textbox("")
+    end
 
     local cpu_icon = make_metric_icon(theme.icon_cpu)
     local cpu = lain.widget.cpu({
