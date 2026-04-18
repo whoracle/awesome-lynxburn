@@ -720,27 +720,27 @@ function M.build(context)
 
     if not has_binding(global_specs, { settings.modkey, settings.altkey, settings.ctrlkey }, "Left")
         and not has_binding(client_specs, { settings.modkey, settings.altkey, settings.ctrlkey }, "Left") then
-        global_spec_order[#global_spec_order + 1] = "programs_cycle_lxbar_popups_backward"
-        global_specs.programs_cycle_lxbar_popups_backward =
+        global_spec_order[#global_spec_order + 1] = "commands_cycle_lxbar_popups_backward"
+        global_specs.commands_cycle_lxbar_popups_backward =
             key_spec(
                 { settings.modkey, settings.altkey, settings.ctrlkey },
                 "Left",
                 "cycle_lxbar_popups_backward",
                 "cycle lxbar popups backward",
-                "04. programs"
+                "04. commands"
             )
     end
 
     if not has_binding(global_specs, { settings.modkey, settings.altkey, settings.ctrlkey }, "Right")
         and not has_binding(client_specs, { settings.modkey, settings.altkey, settings.ctrlkey }, "Right") then
-        global_spec_order[#global_spec_order + 1] = "programs_cycle_lxbar_popups_forward"
-        global_specs.programs_cycle_lxbar_popups_forward =
+        global_spec_order[#global_spec_order + 1] = "commands_cycle_lxbar_popups_forward"
+        global_specs.commands_cycle_lxbar_popups_forward =
             key_spec(
                 { settings.modkey, settings.altkey, settings.ctrlkey },
                 "Right",
                 "cycle_lxbar_popups_forward",
                 "cycle lxbar popups forward",
-                "04. programs"
+                "04. commands"
             )
     end
 

@@ -63,7 +63,7 @@ local M = {
         key = "dead_circumflex",
         on_press = "toggle_quake",
         description = "quake terminal",
-        group = "04. programs",
+        group = "04. commands",
     },
     jump_to_urgent_client = {
         scope = "global",
@@ -223,7 +223,7 @@ local M = {
         key = "Prior",
         on_press = "show_media_popup",
         description = "show media popup",
-        group = "04. programs",
+        group = "04. commands",
     },
     show_notification_popup = {
         scope = "global",
@@ -231,7 +231,7 @@ local M = {
         key = "Next",
         on_press = "show_notification_popup",
         description = "show notification popup",
-        group = "04. programs",
+        group = "04. commands",
     },
     show_bluetooth_popup = {
         scope = "global",
@@ -239,7 +239,7 @@ local M = {
         key = "F10",
         on_press = "show_bluetooth_popup",
         description = "show bluetooth popup",
-        group = "04. programs",
+        group = "04. commands",
     },
     show_network_popup = {
         scope = "global",
@@ -247,7 +247,7 @@ local M = {
         key = "F11",
         on_press = "show_network_popup",
         description = "show network popup",
-        group = "04. programs",
+        group = "04. commands",
     },
     show_powerprofiles_popup = {
         scope = "global",
@@ -255,7 +255,7 @@ local M = {
         key = "F12",
         on_press = "show_powerprofiles_popup",
         description = "show power profiles popup",
-        group = "04. programs",
+        group = "04. commands",
     },
     show_calendar = {
         scope = "global",
@@ -263,7 +263,7 @@ local M = {
         key = "c",
         on_press = "show_calendar",
         description = "show calendar",
-        group = "04. programs",
+        group = "04. commands",
     },
     toggle_lxrunner = {
         scope = "global",
@@ -271,7 +271,7 @@ local M = {
         key = "F2",
         on_press = "toggle_lxrunner",
         description = "lxrunner",
-        group = "04. programs",
+        group = "04. commands",
     },
     open_launcher = {
         scope = "global",
@@ -279,7 +279,7 @@ local M = {
         key = "F3",
         on_press = "open_launcher",
         description = "launcher",
-        group = "04. programs",
+        group = "04. commands",
     },
     open_terminal = {
         scope = "global",
@@ -287,7 +287,7 @@ local M = {
         key = "q",
         on_press = "open_terminal",
         description = "terminal",
-        group = "04. programs",
+        group = "04. commands",
     },
     open_file_browser = {
         scope = "global",
@@ -295,7 +295,7 @@ local M = {
         key = "e",
         on_press = "open_file_browser",
         description = "file browser",
-        group = "04. programs",
+        group = "04. commands",
     },
     screenshot_region = {
         scope = "global",
@@ -303,7 +303,7 @@ local M = {
         key = "p",
         on_press = "screenshot_region",
         description = "screenshot of region",
-        group = "04. programs",
+        group = "04. commands",
     },
     screenshot_desktop = {
         scope = "global",
@@ -311,7 +311,7 @@ local M = {
         key = "p",
         on_press = "screenshot_desktop",
         description = "screenshot of desktop",
-        group = "04. programs",
+        group = "04. commands",
     },
     screenshot_window = {
         scope = "global",
@@ -319,7 +319,7 @@ local M = {
         key = "p",
         on_press = "screenshot_window",
         description = "screenshot of window",
-        group = "04. programs",
+        group = "04. commands",
     },
     start_awesome_on_tv = {
         scope = "global",
@@ -327,7 +327,7 @@ local M = {
         key = "t",
         on_press = "start_awesome_on_tv",
         description = "start awesome on TV",
-        group = "04. programs",
+        group = "04. commands",
     },
     lock_screen = {
         {
@@ -336,7 +336,7 @@ local M = {
             key = "l",
             on_press = "lock_screen",
             description = "lock screen",
-            group = "04. programs",
+            group = "04. commands",
         },
         {
             scope = "global",
@@ -344,7 +344,7 @@ local M = {
             key = "F12",
             on_press = "lock_screen",
             description = "lock screen",
-            group = "04. programs",
+            group = "04. commands",
         },
         {
             scope = "global",
