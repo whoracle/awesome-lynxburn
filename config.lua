@@ -40,4 +40,16 @@ return {
             temperature_night = 4500,
         },
     },
+    -- keys = {
+    --     global = {
+    --         media_volume_up = {
+    --             on_press = "volume_down",
+    --             description = "volume down",
+    --         },
+    --         media_volume_down = {
+    --             on_press = "volume_up",
+    --             description = "volume up",
+    --         },
+    --     },
+    -- },
 }

@@ -4,6 +4,7 @@ local defaults = require("config.defaults")
 local M = {}
 
 local cached_commands
+local cached_keys
 local cached_settings
 local cached_theme
 local cached_widgets
@@ -54,6 +55,14 @@ local function merge_command_overrides(merged)
     merge_section(merged, "commands", override_programs)
     merge_section(merged, "commands", legacy_override_config.commands)
     merge_section(merged, "commands", user_config.commands)
+end
+
+local function merge_key_overrides(merged)
+    local legacy_key_overrides = helpers.load_optional_module("config.override.keys", {})
+    local user_config = load_user_config()
+
+    merge_section(merged, "keys", legacy_key_overrides)
+    merge_section(merged, "keys", user_config.keys)
 end
 
 local function merge_theme_overrides(merged)
@@ -130,6 +139,23 @@ end
 
 function M.commands()
     return load_commands()
+end
+
+local function load_keys()
+    if cached_keys then
+        return cached_keys
+    end
+
+    local merged = {}
+
+    merge_key_overrides(merged)
+
+    cached_keys = merged.keys or {}
+    return cached_keys
+end
+
+function M.keys()
+    return load_keys()
 end
 
 local function load_settings()

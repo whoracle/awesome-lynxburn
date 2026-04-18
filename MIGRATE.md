@@ -70,9 +70,27 @@ Current content:
 
 Migration target:
 
-- not migrated yet
-- needs a user-facing top-level `keys = { ... }` section in `config.lua`
-- current compatibility path should stay until that exists
+```lua
+return {
+    keys = {
+        global = {
+            media_volume_up = {
+                on_press = "volume_down",
+                description = "volume down",
+            },
+            media_volume_down = {
+                on_press = "volume_up",
+                description = "volume up",
+            },
+        },
+    },
+}
+```
+
+Status:
+
+- supported by the current central config loader
+- can be moved into top-level `config.lua` immediately
 
 ### `config/override/lxrunner_aliases.lua`
 
@@ -90,7 +108,7 @@ Migration target:
 ## Recommended Next Migration Order
 
 1. Move the live `programs.lua` override into top-level `config.lua`.
-2. Add top-level `keys` config support that can replace `config.override.keys.lua`.
+2. Move the live `keys.lua` override into top-level `config.lua`.
 3. Decide and implement the final user-facing home for `lxrunner` aliases.
 4. Remove compatibility loading for fully migrated split override files.
 
@@ -101,10 +119,12 @@ After the live `programs.lua` override is moved into top-level `config.lua`:
 - `config/override/programs.lua` no longer needs to exist locally
 - compatibility loading for `config.override.programs` becomes legacy-only
 
-## What Should Not Be Removed Yet
+After the live `keys.lua` override is moved into top-level `config.lua`:
 
-- `config.override.keys.lua`
-  Reason: no top-level replacement exists yet
+- `config/override/keys.lua` no longer needs to exist locally
+- compatibility loading for `config.override.keys` becomes legacy-only
+
+## What Should Not Be Removed Yet
 
 - `config.override/lxrunner_aliases.lua`
   Reason: no final central alias surface exists yet

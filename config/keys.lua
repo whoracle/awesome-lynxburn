@@ -2,6 +2,7 @@ local awful = require("awful")
 local gears = require("gears")
 local hotkeys_popup = require("awful.hotkeys_popup").widget
 local helpers = require("config.helpers")
+local config_data = require("config.config_data")
 
 local M = {}
 
@@ -214,7 +215,7 @@ function M.build(context)
     local lxpowerprofiles = context.lxpowerprofiles
     local osd = context.osd
     local lain = context.lain
-    local key_overrides = helpers.load_optional_module("config.override.keys", {})
+    local key_overrides = config_data.keys()
 
     local grp_names = {
         "01. window",
