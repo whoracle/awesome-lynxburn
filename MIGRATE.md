@@ -101,15 +101,30 @@ Current content:
 
 Migration target:
 
-- not migrated yet
-- likely should stay separate from generic `commands`
-- needs an explicit top-level alias section or a dedicated user config surface
+```lua
+return {
+    runner = {
+        aliases = {
+            {
+                name = "yayoff",
+                type = "shell",
+                command = [[urxvt -fg gray -tr -sh 50 -e sh -lc 'yay -Syu --noconfirm; status=$?; if [ $status -ne 0 ]; then echo; echo "yay failed with exit code $status"; echo "Shutdown was not triggered."; printf "Press Enter to close..."; read -r _; exit $status; fi; exec sudo shutdown -hP now']],
+            },
+        },
+    },
+}
+```
+
+Status:
+
+- supported by the current central config loader
+- can be moved into top-level `config.lua` immediately
 
 ## Recommended Next Migration Order
 
 1. Move the live `programs.lua` override into top-level `config.lua`.
 2. Move the live `keys.lua` override into top-level `config.lua`.
-3. Decide and implement the final user-facing home for `lxrunner` aliases.
+3. Move the live `lxrunner_aliases.lua` override into top-level `config.lua`.
 4. Remove compatibility loading for fully migrated split override files.
 
 ## What Can Be Removed Soon
@@ -124,7 +139,12 @@ After the live `keys.lua` override is moved into top-level `config.lua`:
 - `config/override/keys.lua` no longer needs to exist locally
 - compatibility loading for `config.override.keys` becomes legacy-only
 
+After the live `lxrunner_aliases.lua` override is moved into top-level `config.lua`:
+
+- `config/override/lxrunner_aliases.lua` no longer needs to exist locally
+- compatibility loading for `config.override.lxrunner_aliases` becomes legacy-only
+
 ## What Should Not Be Removed Yet
 
-- `config.override/lxrunner_aliases.lua`
-  Reason: no final central alias surface exists yet
+- none of the currently observed live split override files, once the three
+  central migrations above have been applied locally

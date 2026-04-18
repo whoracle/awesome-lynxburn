@@ -27,19 +27,28 @@ return {
     --     terminal = "alacritty",
     -- },
     commands = {
-        autostart_once = {
-            "nm-applet --sm-disable",
-            "nextcloud",
-        },
-        redshift = {
-            enabled = true,
-            autostart = true,
-            latitude = 47.9990,
-            longitude = 7.8421,
-            temperature_day = 6500,
-            temperature_night = 4500,
-        },
-    },
+          autostart_once = {
+              "nm-applet --sm-disable",
+              "nextcloud",
+          },
+          redshift = {
+              enabled = true,
+              autostart = true,
+              latitude = 47.9990,
+              longitude = 7.8421,
+              temperature_day = 6500,
+              temperature_night = 4500,
+          },
+      },
+      runner = {
+          aliases = {
+              {
+                  name = "yayoff",
+                  type = "shell",
+                  command = [[urxvt -fg gray -tr -sh 50 -e sh -lc 'yay -Syu --noconfirm; status=$?; if [ $status -ne 0 ]; then echo; echo "yay failed with exit code $status"; echo "Shutdown was not triggered."; printf "Press Enter to close..."; read -r _; exit $status; fi; exec sudo shutdown -hP now']],
+              },
+          },
+      },
     -- keys = {
     --     global = {
     --         media_volume_up = {
@@ -49,6 +58,15 @@ return {
     --         media_volume_down = {
     --             on_press = "volume_up",
     --             description = "volume up",
+    --         },
+    --     },
+    -- },
+    -- runner = {
+    --     aliases = {
+    --         {
+    --             name = "yayoff",
+    --             type = "shell",
+    --             command = [[urxvt -fg gray -tr -sh 50 -e sh -lc 'yay -Syu --noconfirm; status=$?; if [ $status -ne 0 ]; then echo; echo "yay failed with exit code $status"; echo "Shutdown was not triggered."; printf "Press Enter to close..."; read -r _; exit $status; fi; exec sudo shutdown -hP now']],
     --         },
     --     },
     -- },

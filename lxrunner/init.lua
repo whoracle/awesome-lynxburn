@@ -2,6 +2,7 @@ local awful = require("awful")
 local gears = require("gears")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
+local config_data = require("config.config_data")
 
 local M = {}
 M.__index = M
@@ -48,6 +49,16 @@ local ALIAS_FILES = {
         optional = true,
     },
 }
+
+local function configured_runner_aliases()
+    local runner = config_data.runner()
+
+    if type(runner.aliases) ~= "table" then
+        return {}
+    end
+
+    return runner.aliases
+end
 
 local function trim(s)
     s = tostring(s or "")
@@ -466,6 +477,24 @@ end
 
 function M:_load_aliases()
     self._aliases = {}
+
+    for _, alias in ipairs(configured_runner_aliases()) do
+        if type(alias) == "table"
+            and type(alias.name) == "string"
+            and alias.name ~= ""
+            and type(alias.command) == "string"
+            and alias.command ~= ""
+        then
+            upsert_alias(self._aliases, {
+                name = alias.name,
+                type = alias.type or "shell",
+                command = alias.command,
+                env = alias.env,
+                description = alias.description,
+                source = "alias",
+            })
+        end
+    end
 
     for _, alias_file in ipairs(ALIAS_FILES) do
         local aliases = load_alias_file(alias_file.path(), alias_file.optional)

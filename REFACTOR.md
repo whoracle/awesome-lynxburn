@@ -28,6 +28,11 @@ work for, but should be revisited in the final refactor pass.
   `config.lua.keys` exists.
   Later option: remove it once the live key overrides have been migrated.
 
+- `config.override.lxrunner_aliases.lua`
+  Current role: backward-compatible alias override path now that top-level
+  `config.lua.runner.aliases` exists.
+  Later option: remove it once the live alias overrides have been migrated.
+
 - `config.override.theme.lua` versus central theme selection
   Current role: `config.theme` / central config owns top-level theme selection,
   while `config.override.theme.lua` still owns runtime theme value overrides.

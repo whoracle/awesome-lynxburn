@@ -5,6 +5,7 @@ local M = {}
 
 local cached_commands
 local cached_keys
+local cached_runner
 local cached_settings
 local cached_theme
 local cached_widgets
@@ -63,6 +64,12 @@ local function merge_key_overrides(merged)
 
     merge_section(merged, "keys", legacy_key_overrides)
     merge_section(merged, "keys", user_config.keys)
+end
+
+local function merge_runner_overrides(merged)
+    local user_config = load_user_config()
+
+    merge_section(merged, "runner", user_config.runner)
 end
 
 local function merge_theme_overrides(merged)
@@ -156,6 +163,23 @@ end
 
 function M.keys()
     return load_keys()
+end
+
+local function load_runner()
+    if cached_runner then
+        return cached_runner
+    end
+
+    local merged = {}
+
+    merge_runner_overrides(merged)
+
+    cached_runner = merged.runner or {}
+    return cached_runner
+end
+
+function M.runner()
+    return load_runner()
 end
 
 local function load_settings()
