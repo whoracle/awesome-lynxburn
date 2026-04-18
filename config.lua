@@ -67,6 +67,8 @@ return {
     --             notification_denylist = {
     --                 { app_name = "Volume OSD" },
     --             },
+    --             notification_time_format = "%H:%M",
+    --             popup_visible_items = 10,
     --         },
     --         powerprofiles = {
     --             refresh_interval = 10,

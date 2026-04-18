@@ -229,26 +229,50 @@ function instance_methods:button_hover_bg()
 end
 
 function instance_methods:hover_close_timeout()
+    if self.hover_close_timeout_seconds ~= nil then
+        return self.hover_close_timeout_seconds
+    end
+
     return util.theme_value("lxnotify_hover_close_timeout", 1.5)
 end
 
 function instance_methods:hover_close_poll_interval()
+    if self.hover_close_poll_interval_seconds ~= nil then
+        return self.hover_close_poll_interval_seconds
+    end
+
     return util.theme_value("lxnotify_hover_close_poll_interval", 0.25)
 end
 
 function instance_methods:notification_title_max_length()
+    if self.notification_title_limit ~= nil then
+        return self.notification_title_limit
+    end
+
     return util.theme_value("lxnotify_notification_title_max_length", 72)
 end
 
 function instance_methods:notification_body_max_length()
+    if self.notification_body_limit ~= nil then
+        return self.notification_body_limit
+    end
+
     return util.theme_value("lxnotify_notification_body_max_length", 140)
 end
 
 function instance_methods:notification_source_max_length()
+    if self.notification_source_limit ~= nil then
+        return self.notification_source_limit
+    end
+
     return util.theme_value("lxnotify_notification_source_max_length", 28)
 end
 
 function instance_methods:notification_time_format()
+    if self.notification_time_format_string ~= nil then
+        return self.notification_time_format_string
+    end
+
     return util.theme_value("lxnotify_notification_time_format", "%H:%M")
 end
 
@@ -261,6 +285,10 @@ function instance_methods:notification_group_icon_size()
 end
 
 function instance_methods:popup_visible_items()
+    if self.popup_visible_item_count ~= nil then
+        return self.popup_visible_item_count
+    end
+
     return util.theme_value("lxnotify_popup_visible_items", 7)
 end
 
@@ -1129,6 +1157,13 @@ function lxnotify.new(opts)
         _next_notification_id = 0,
         debug_notifications = opts.debug_notifications == true,
         notification_denylist = opts.notification_denylist or {},
+        hover_close_timeout_seconds = opts.hover_close_timeout,
+        hover_close_poll_interval_seconds = opts.hover_close_poll_interval,
+        notification_title_limit = opts.notification_title_max_length,
+        notification_body_limit = opts.notification_body_max_length,
+        notification_source_limit = opts.notification_source_max_length,
+        notification_time_format_string = opts.notification_time_format,
+        popup_visible_item_count = opts.popup_visible_items,
     }, {
         __index = instance_methods,
     })
