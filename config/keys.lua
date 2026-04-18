@@ -280,7 +280,7 @@ function M.build(context)
     end
 
     local function show_media_popup()
-        lxbar:toggle_popup("audio", "default", {
+        lxbar:toggle_popup_by_role("audio", "primary", {
             hover_close = false,
             anchor = "center",
             toggle_key = { modifiers = { settings.modkey }, key = "Prior" },
@@ -288,7 +288,7 @@ function M.build(context)
     end
 
     local function show_notification_popup()
-        lxbar:toggle_popup("notify", "default", {
+        lxbar:toggle_popup_by_role("notify", "primary", {
             hover_close = false,
             toggle_key = { modifiers = { settings.modkey }, key = "Next" },
         })
@@ -296,7 +296,7 @@ function M.build(context)
 
     local function show_bluetooth_popup()
         if lxbluetooth then
-            lxbar:toggle_popup("bluetooth", "default", {
+            lxbar:toggle_popup_by_role("bluetooth", "primary", {
                 keyboard_navigation = true,
                 toggle_key = { modifiers = { settings.modkey }, key = "F10" },
             })
@@ -305,7 +305,7 @@ function M.build(context)
 
     local function show_network_popup()
         if lxnetwork then
-            lxbar:toggle_popup("network", "default", {
+            lxbar:toggle_popup_by_role("network", "primary", {
                 keyboard_navigation = true,
                 toggle_key = { modifiers = { settings.modkey }, key = "F11" },
             })
@@ -314,7 +314,7 @@ function M.build(context)
 
     local function show_powerprofiles_popup()
         if lxpowerprofiles then
-            lxbar:toggle_popup("powerprofiles", "default", {
+            lxbar:toggle_popup_by_role("powerprofiles", "secondary", {
                 keyboard_navigation = true,
                 toggle_key = { modifiers = { settings.modkey }, key = "F12" },
             })

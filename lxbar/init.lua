@@ -24,7 +24,7 @@ function M:_ordered_popup_entries()
                     module_id = entry.id,
                     popup_id = popup_entry.popup_id,
                     handle = popup_entry.handle,
-                    click_role = popup_entry.click_role,
+                    popup_role = popup_entry.popup_role,
                 }
             end
         end
@@ -43,6 +43,14 @@ end
 
 function M:toggle_popup(module_id, popup_id, opts)
     return popup_manager.toggle(module_id, popup_id or "default", opts)
+end
+
+function M:show_popup_by_role(module_id, popup_role, opts)
+    return popup_manager.show_by_popup_role(module_id, popup_role, opts)
+end
+
+function M:toggle_popup_by_role(module_id, popup_role, opts)
+    return popup_manager.toggle_by_popup_role(module_id, popup_role, opts)
 end
 
 function M:cycle_popups(direction, opts)

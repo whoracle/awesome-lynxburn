@@ -109,7 +109,7 @@ function M.audio()
                 return lxaudio_instance._media_popup and lxaudio_instance._media_popup.visible or false
             end,
         }, {
-            click_role = "left",
+            popup_role = "primary",
         })
         register_popup_handle("audio", "devices", {
             open = function(opts)
@@ -124,7 +124,7 @@ function M.audio()
                 return lxaudio_instance._devices_popup and lxaudio_instance._devices_popup.visible or false
             end,
         }, {
-            click_role = "right",
+            popup_role = "secondary",
         })
     end
 
@@ -160,7 +160,7 @@ function M.bluetooth()
                 return lxbluetooth_instance._popup and lxbluetooth_instance._popup.visible or false
             end,
         }, {
-            click_role = "left",
+            popup_role = "primary",
         })
     end
 
@@ -194,7 +194,7 @@ function M.notify()
                 return lxnotify_instance._popup and lxnotify_instance._popup.visible or false
             end,
         }, {
-            click_role = "left",
+            popup_role = "primary",
         })
     end
 
@@ -236,7 +236,7 @@ function M.network()
                 return lxnetwork_instance._popup and lxnetwork_instance._popup.visible or false
             end,
         }, {
-            click_role = "left",
+            popup_role = "primary",
         })
     end
 
@@ -273,7 +273,7 @@ function M.powerprofiles()
                 return lxpowerprofiles_instance._popup and lxpowerprofiles_instance._popup.visible or false
             end,
         }, {
-            click_role = "right",
+            popup_role = "secondary",
         })
     end
 

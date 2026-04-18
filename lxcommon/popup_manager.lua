@@ -1,10 +1,10 @@
 local M = {}
 
 local popups = {}
-local CLICK_ROLE_ORDER = {
-    left = 1,
-    right = 2,
-    middle = 3,
+local POPUP_ROLE_ORDER = {
+    primary = 1,
+    secondary = 2,
+    tertiary = 3,
 }
 
 local function ensure_module(module_id)
@@ -23,14 +23,14 @@ local function normalize_handle(handle, opts)
     end
 
     opts = opts or {}
-    normalized.click_role = opts.click_role
+    normalized.popup_role = opts.popup_role
     normalized.include_in_cycle = opts.include_in_cycle
 
     return normalized
 end
 
-local function click_role_sort_key(click_role)
-    return CLICK_ROLE_ORDER[click_role] or math.huge
+local function popup_role_sort_key(popup_role)
+    return POPUP_ROLE_ORDER[popup_role] or math.huge
 end
 
 function M.register(module_id, popup_id, handle, opts)
@@ -86,19 +86,19 @@ function M.list_module_cycle(module_id)
 
     for popup_id, handle in pairs(popups[module_id] or {}) do
         if handle
-            and handle.click_role
+            and handle.popup_role
             and handle.include_in_cycle ~= false then
             ordered[#ordered + 1] = {
                 popup_id = popup_id,
                 handle = handle,
-                click_role = handle.click_role,
+                popup_role = handle.popup_role,
             }
         end
     end
 
     table.sort(ordered, function(a, b)
-        local left_key = click_role_sort_key(a.click_role)
-        local right_key = click_role_sort_key(b.click_role)
+        local left_key = popup_role_sort_key(a.popup_role)
+        local right_key = popup_role_sort_key(b.popup_role)
 
         if left_key ~= right_key then
             return left_key < right_key
@@ -108,6 +108,24 @@ function M.list_module_cycle(module_id)
     end)
 
     return ordered
+end
+
+function M.find_by_popup_role(module_id, popup_role)
+    if not popup_role then
+        return nil
+    end
+
+    for popup_id, handle in pairs(popups[module_id] or {}) do
+        if handle and handle.popup_role == popup_role then
+            return {
+                popup_id = popup_id,
+                handle = handle,
+                popup_role = popup_role,
+            }
+        end
+    end
+
+    return nil
 end
 
 function M.close_all()
@@ -158,6 +176,24 @@ function M.toggle(module_id, popup_id, opts)
     end
 
     return M.show(module_id, popup_id, opts)
+end
+
+function M.show_by_popup_role(module_id, popup_role, opts)
+    local entry = M.find_by_popup_role(module_id, popup_role)
+    if not entry then
+        return false
+    end
+
+    return M.show(module_id, entry.popup_id, opts)
+end
+
+function M.toggle_by_popup_role(module_id, popup_role, opts)
+    local entry = M.find_by_popup_role(module_id, popup_role)
+    if not entry then
+        return false
+    end
+
+    return M.toggle(module_id, entry.popup_id, opts)
 end
 
 return M
