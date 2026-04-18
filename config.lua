@@ -25,8 +25,19 @@ return {
     -- },
     -- commands = {
     --     terminal = "alacritty",
-    --     autostart_once = {
-    --         "nm-applet --sm-disable",
-    --     },
     -- },
+    commands = {
+        autostart_once = {
+            "nm-applet --sm-disable",
+            "nextcloud",
+        },
+        redshift = {
+            enabled = true,
+            autostart = true,
+            latitude = 47.9990,
+            longitude = 7.8421,
+            temperature_day = 6500,
+            temperature_night = 4500,
+        },
+    },
 }
