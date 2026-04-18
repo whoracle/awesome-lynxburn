@@ -117,7 +117,10 @@ function instance_methods:notification_meta_fg()
 end
 
 function instance_methods:notification_hover_bg()
-    return util.theme_value("lxnotify_bg_hover", beautiful.bg_focus or beautiful.bg_minimize or "#333333")
+    return util.theme_value(
+        "lxnotify_card_hover_bg",
+        util.theme_value("lxnotify_bg_hover", beautiful.bg_focus or beautiful.bg_minimize or "#333333")
+    )
 end
 
 function instance_methods:notification_selected_bg()

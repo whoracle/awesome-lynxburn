@@ -173,6 +173,7 @@ local theme = {
     lxnotify_popup_bg = roles.panel_bg,
     lxnotify_notification_card_bg = roles.raised_bg,
     lxnotify_notification_meta_fg = roles.text_meta,
+    lxnotify_card_hover_bg = roles.hover_bg,
     lxnotify_button_bg = roles.raised_bg,
     lxnotify_button_hover = roles.hover_bg,
     lxnotify_popup_width = 360,

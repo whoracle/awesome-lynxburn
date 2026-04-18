@@ -108,7 +108,7 @@ The most important current keys are:
 - `beautiful.lxnotify_popup_placement`
 - `beautiful.lxnotify_popup_bg`
 - `beautiful.lxnotify_notification_card_bg`
-- `beautiful.lxnotify_bg_hover`
+- `beautiful.lxnotify_card_hover_bg`
 - `beautiful.lxnotify_button_hover`
 - `beautiful.lxnotify_selected_bg`
 

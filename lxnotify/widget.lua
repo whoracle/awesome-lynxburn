@@ -30,6 +30,7 @@ function widget.new(instance)
         container,
         nil,
         beautiful.lxnotify_widget_hover_bg
+            or beautiful.lxnotify_card_hover_bg
             or beautiful.lxnotify_bg_hover
             or beautiful.bg_focus
             or "#444444",
