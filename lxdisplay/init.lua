@@ -738,8 +738,15 @@ function M:_build_widget()
     attach_button_feedback(
         shell,
         nil,
-        beautiful.lxdisplay_bg_hover or beautiful.bg_focus or "#444444",
-        beautiful.lxdisplay_bg_press or beautiful.lxmedia_button_hover or beautiful.bg_focus or "#666666"
+        beautiful.lxdisplay_widget_hover_bg
+            or beautiful.lxdisplay_bg_hover
+            or beautiful.bg_focus
+            or "#444444",
+        beautiful.lxdisplay_widget_press_bg
+            or beautiful.lxdisplay_bg_press
+            or beautiful.lxmedia_button_hover
+            or beautiful.bg_focus
+            or "#666666"
     )
     self:_attach_mouse_controls(shell)
 

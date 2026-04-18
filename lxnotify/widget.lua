@@ -29,8 +29,14 @@ function widget.new(instance)
     require("lxnotify.util").attach_hover_background(
         container,
         nil,
-        beautiful.lxnotify_bg_hover or beautiful.bg_focus or "#444444",
-        beautiful.lxnotify_button_hover or beautiful.bg_focus or "#666666"
+        beautiful.lxnotify_widget_hover_bg
+            or beautiful.lxnotify_bg_hover
+            or beautiful.bg_focus
+            or "#444444",
+        beautiful.lxnotify_widget_press_bg
+            or beautiful.lxnotify_button_hover
+            or beautiful.bg_focus
+            or "#666666"
     )
 
     container:buttons(gears.table.join(
