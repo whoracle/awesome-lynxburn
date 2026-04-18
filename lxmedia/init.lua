@@ -430,49 +430,53 @@ function M:_handle_popup_media_action(action)
 end
 
 function M:_handle_media_popup_keygrabber(_, modifiers, key, event)
-    if event ~= "press" then
-        return
-    end
-
-    if not (self._media_popup and self._media_popup.visible) then
-        self:blur_media_popup_keyboard_navigation()
-        return
-    end
-
-    if popup_control.popup_toggle_key_matches(self._media_popup_prev_keychain, modifiers, key) and type(self._media_popup_on_cycle_prev) == "function" then
-        self._media_popup_on_cycle_prev()
-        return
-    end
-
-    if popup_control.popup_toggle_key_matches(self._media_popup_next_keychain, modifiers, key) and type(self._media_popup_on_cycle_next) == "function" then
-        self._media_popup_on_cycle_next()
-        return
-    end
-
-    if popup_control.popup_toggle_key_matches(self._media_popup_toggle_key, modifiers, key) then
-        self:close_popups()
-        return
-    end
-
     local popup_key_actions = self.opts.popup_key_actions or {}
+    local handled = popup_control.dispatch_popup_keypress({
+        event = event,
+        modifiers = modifiers,
+        key = key,
+        is_open = function()
+            return self._media_popup and self._media_popup.visible or false
+        end,
+        on_not_open = function()
+            self:blur_media_popup_keyboard_navigation()
+        end,
+        prev_keychain = self._media_popup_prev_keychain,
+        next_keychain = self._media_popup_next_keychain,
+        toggle_key = self._media_popup_toggle_key,
+        on_cycle_prev = self._media_popup_on_cycle_prev,
+        on_cycle_next = self._media_popup_on_cycle_next,
+        on_close = function()
+            self:close_popups()
+        end,
+        actions = {
+            Up = function()
+                self:move_media_popup_selection(-1)
+            end,
+            Down = function()
+                self:move_media_popup_selection(1)
+            end,
+            Left = function()
+                self:change_selected_media_stream_volume(-(self.opts.step or 0.05))
+            end,
+            Right = function()
+                self:change_selected_media_stream_volume(self.opts.step or 0.05)
+            end,
+            Home = function()
+                self:set_selected_media_stream_volume(100)
+            end,
+            End = function()
+                self:toggle_selected_media_stream_mute()
+            end,
+        },
+    })
+
+    if handled then
+        return
+    end
+
     if self:_handle_popup_media_action(popup_key_actions[key]) then
         return
-    end
-
-    if key == "Escape" then
-        self:close_popups()
-    elseif key == "Up" then
-        self:move_media_popup_selection(-1)
-    elseif key == "Down" then
-        self:move_media_popup_selection(1)
-    elseif key == "Left" then
-        self:change_selected_media_stream_volume(-(self.opts.step or 0.05))
-    elseif key == "Right" then
-        self:change_selected_media_stream_volume(self.opts.step or 0.05)
-    elseif key == "Home" then
-        self:set_selected_media_stream_volume(100)
-    elseif key == "End" then
-        self:toggle_selected_media_stream_mute()
     end
 end
 

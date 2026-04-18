@@ -660,50 +660,53 @@ function instance_methods:scroll_popup(delta)
 end
 
 function instance_methods:_handle_popup_keygrabber(_, modifiers, key, event)
-    if event ~= "press" then
-        return
-    end
-
-    if not (self._popup and self._popup.visible) then
-        self:blur_popup_keyboard_navigation()
-        return
-    end
-
-    if popup_control.popup_toggle_key_matches(self._popup_prev_keychain, modifiers, key, {
+    local handled = popup_control.dispatch_popup_keypress({
+        event = event,
+        modifiers = modifiers,
+        key = key,
         ignored_modifiers = IGNORED_POPUP_MODIFIERS,
-    }) and type(self._popup_on_cycle_prev) == "function" then
-        self._popup_on_cycle_prev()
-        return
-    end
-
-    if popup_control.popup_toggle_key_matches(self._popup_next_keychain, modifiers, key, {
-        ignored_modifiers = IGNORED_POPUP_MODIFIERS,
-    }) and type(self._popup_on_cycle_next) == "function" then
-        self._popup_on_cycle_next()
-        return
-    end
-
-    if popup_control.popup_toggle_key_matches(self._popup_toggle_key, modifiers, key, {
-        ignored_modifiers = IGNORED_POPUP_MODIFIERS,
-    }) or key == "Escape" then
-        self:close_popups()
-        return
-    end
-
-    if key == "Up" then
-        self:move_popup_selection(-1)
-    elseif key == "Down" then
-        self:move_popup_selection(1)
-    elseif key == "Right" then
-        self:activate_selected_popup_right()
-    elseif key == "Return" or key == "KP_Enter" then
-        self:activate_selected_popup_enter()
-    elseif key == "Left" then
-        if self.active_group_key then
-            self:leave_group_detail()
-        else
+        is_open = function()
+            return self._popup and self._popup.visible or false
+        end,
+        on_not_open = function()
+            self:blur_popup_keyboard_navigation()
+        end,
+        prev_keychain = self._popup_prev_keychain,
+        next_keychain = self._popup_next_keychain,
+        toggle_key = self._popup_toggle_key,
+        on_cycle_prev = self._popup_on_cycle_prev,
+        on_cycle_next = self._popup_on_cycle_next,
+        on_close = function()
             self:close_popups()
-        end
+        end,
+        actions = {
+            Up = function()
+                self:move_popup_selection(-1)
+            end,
+            Down = function()
+                self:move_popup_selection(1)
+            end,
+            Right = function()
+                self:activate_selected_popup_right()
+            end,
+            Return = function()
+                self:activate_selected_popup_enter()
+            end,
+            KP_Enter = function()
+                self:activate_selected_popup_enter()
+            end,
+            Left = function()
+                if self.active_group_key then
+                    self:leave_group_detail()
+                else
+                    self:close_popups()
+                end
+            end,
+        },
+    })
+
+    if handled then
+        return
     end
 end
 

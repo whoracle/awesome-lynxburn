@@ -229,4 +229,56 @@ function M.start_hover_close_timer(instance, opts)
     })
 end
 
+function M.dispatch_popup_keypress(opts)
+    opts = opts or {}
+
+    if opts.event ~= "press" then
+        return true
+    end
+
+    local is_open = opts.is_open or function()
+        return false
+    end
+
+    if not is_open() then
+        if type(opts.on_not_open) == "function" then
+            opts.on_not_open()
+        end
+        return true
+    end
+
+    local match_opts = {
+        ignored_modifiers = opts.ignored_modifiers,
+    }
+
+    if M.popup_toggle_key_matches(opts.prev_keychain, opts.modifiers, opts.key, match_opts)
+        and type(opts.on_cycle_prev) == "function" then
+        opts.on_cycle_prev()
+        return true
+    end
+
+    if M.popup_toggle_key_matches(opts.next_keychain, opts.modifiers, opts.key, match_opts)
+        and type(opts.on_cycle_next) == "function" then
+        opts.on_cycle_next()
+        return true
+    end
+
+    if M.popup_toggle_key_matches(opts.toggle_key, opts.modifiers, opts.key, match_opts)
+        or opts.key == "Escape" then
+        if type(opts.on_close) == "function" then
+            opts.on_close()
+        end
+        return true
+    end
+
+    local actions = opts.actions or {}
+    local action = actions[opts.key]
+    if type(action) == "function" then
+        action()
+        return true
+    end
+
+    return false
+end
+
 return M

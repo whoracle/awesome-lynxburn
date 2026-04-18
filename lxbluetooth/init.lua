@@ -294,36 +294,42 @@ function M:activate_selected_popup_item()
 end
 
 function M:_handle_popup_keygrabber(_, modifiers, key, event)
-    if event ~= "press" then
-        return
-    end
+    local handled = popup_control.dispatch_popup_keypress({
+        event = event,
+        modifiers = modifiers,
+        key = key,
+        is_open = function()
+            return self._popup and self._popup.visible or false
+        end,
+        on_not_open = function()
+            self:blur_popup_keyboard_navigation()
+        end,
+        prev_keychain = self._popup_prev_keychain,
+        next_keychain = self._popup_next_keychain,
+        toggle_key = self._popup_toggle_key,
+        on_cycle_prev = self._popup_on_cycle_prev,
+        on_cycle_next = self._popup_on_cycle_next,
+        on_close = function()
+            self:close_popup()
+        end,
+        actions = {
+            Up = function()
+                self:move_popup_selection(-1)
+            end,
+            Down = function()
+                self:move_popup_selection(1)
+            end,
+            Return = function()
+                self:activate_selected_popup_item()
+            end,
+            KP_Enter = function()
+                self:activate_selected_popup_item()
+            end,
+        },
+    })
 
-    if not (self._popup and self._popup.visible) then
-        self:blur_popup_keyboard_navigation()
+    if handled then
         return
-    end
-
-    if popup_control.popup_toggle_key_matches(self._popup_prev_keychain, modifiers, key) and type(self._popup_on_cycle_prev) == "function" then
-        self._popup_on_cycle_prev()
-        return
-    end
-
-    if popup_control.popup_toggle_key_matches(self._popup_next_keychain, modifiers, key) and type(self._popup_on_cycle_next) == "function" then
-        self._popup_on_cycle_next()
-        return
-    end
-
-    if popup_control.popup_toggle_key_matches(self._popup_toggle_key, modifiers, key) or key == "Escape" then
-        self:close_popup()
-        return
-    end
-
-    if key == "Up" then
-        self:move_popup_selection(-1)
-    elseif key == "Down" then
-        self:move_popup_selection(1)
-    elseif key == "Return" or key == "KP_Enter" then
-        self:activate_selected_popup_item()
     end
 end
 
