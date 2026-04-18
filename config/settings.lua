@@ -29,9 +29,9 @@ local settings = {
         bluetooth = false,
         network = true,
         powerprofiles = false,
-    },
-    popup_cycle = {
-        -- network = false,
+        popup_cycle = {
+            -- network = false,
+        },
     },
 }
 

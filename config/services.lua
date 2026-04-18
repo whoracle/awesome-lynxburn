@@ -62,10 +62,11 @@ end
 local function register_lx_widget(id, widget, default_order, opts)
     opts = opts or {}
     local settings = require("config.settings")
+    local widgets = settings.widgets or {}
     local include_in_popup_cycle = opts.include_in_popup_cycle
 
-    if settings.popup_cycle and settings.popup_cycle[id] ~= nil then
-        include_in_popup_cycle = settings.popup_cycle[id] ~= false
+    if widgets.popup_cycle and widgets.popup_cycle[id] ~= nil then
+        include_in_popup_cycle = widgets.popup_cycle[id] ~= false
     end
 
     require("lxcommon.registry").register({

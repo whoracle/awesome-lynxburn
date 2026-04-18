@@ -12,9 +12,9 @@ return {
         bluetooth = true,
         network = true,
         powerprofiles = true,
-    },
-    popup_cycle = {
-        -- network = false,
+        popup_cycle = {
+            -- network = false,
+        },
     },
     monitors = {
         left = 1,
