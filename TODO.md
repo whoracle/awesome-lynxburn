@@ -1,0 +1,9 @@
+- make lx* modules excludable from cycle but still loaded (desktop lxnetwork use case)
+- common config streamlining
+- license
+- readme
+- debug/noglyph mode
+- polish spacing
+- embed tray in lxbar (configurable)
+- per-alias icons (for reboot, update, off and VPN for example)
+- some kind of RANDR for lxdisplay
