@@ -5,6 +5,7 @@ local util = require("lxmedia.util")
 local M = {}
 local subscription_pid = nil
 local subscription_debounce = nil
+local subscription_exit_hook_registered = false
 local parse_first_percent
 
 -- Parse `pactl list short ...` output into small typed row tables.
@@ -661,12 +662,40 @@ function M.open_pavucontrol()
     awful.spawn("pavucontrol", false)
 end
 
+function M.unsubscribe()
+    if subscription_debounce then
+        subscription_debounce:stop()
+        subscription_debounce = nil
+    end
+
+    if subscription_pid then
+        awful.spawn("kill " .. tostring(subscription_pid), false)
+        subscription_pid = nil
+    end
+end
+
+local function ensure_subscription_exit_hook()
+    if subscription_exit_hook_registered then
+        return
+    end
+
+    subscription_exit_hook_registered = true
+
+    if awesome and awesome.connect_signal then
+        awesome.connect_signal("exit", function()
+            M.unsubscribe()
+        end)
+    end
+end
+
 -- Subscribe to backend events once and debounce bursts of `pactl subscribe`
 -- output into a single callback.
 function M.subscribe(callback)
     if subscription_pid then
         return subscription_pid
     end
+
+    ensure_subscription_exit_hook()
 
     subscription_debounce = gears.timer({
         timeout = 0.15,
@@ -689,6 +718,10 @@ function M.subscribe(callback)
             -- ignore
         end,
         exit = function()
+            if subscription_debounce then
+                subscription_debounce:stop()
+                subscription_debounce = nil
+            end
             subscription_pid = nil
         end,
     })
