@@ -54,6 +54,18 @@ return {
     --         display = {
     --             refresh_interval = 10,
     --             osd_timeout = 1.5,
+    --             brightness = {
+    --                 get = "brightnessctl g",
+    --                 set = "brightnessctl s %d%%",
+    --                 step = 5,
+    --                 min = 10,
+    --                 off = "xset dpms force off",
+    --             },
+    --             redshift = {
+    --                 enabled = true,
+    --                 latitude = 47.9990,
+    --                 longitude = 7.8421,
+    --             },
     --         },
     --         bluetooth = {
     --             refresh_interval = 10,
@@ -87,13 +99,19 @@ return {
             "nm-applet --sm-disable",
             "nextcloud",
         },
-        redshift = {
-            enabled = true,
-            autostart = true,
-            latitude = 47.9990,
-            longitude = 7.8421,
-            temperature_day = 6500,
-            temperature_night = 4500,
+    },
+    widgets = {
+        modules = {
+            display = {
+                redshift = {
+                    enabled = true,
+                    autostart = true,
+                    latitude = 47.9990,
+                    longitude = 7.8421,
+                    temperature_day = 6500,
+                    temperature_night = 4500,
+                },
+            },
         },
     },
     keys = {
