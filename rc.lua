@@ -36,12 +36,7 @@ local lxrunner = nil
 
 config.helpers.setup_error_handling(awesome, naughty)
 
-local theme_path = string.format(
-    "%s/.config/awesome/themes/%s/theme2.lua",
-    os.getenv("HOME"),
-    config.theme.name()
-)
-beautiful.init(theme_path)
+config.theme.init(beautiful)
 
 lxrunner = config.services.runner()
 lxbar = config.services.bar()

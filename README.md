@@ -105,7 +105,8 @@ The high-level startup order is:
 
 1. `rc.lua` loads `config`
 2. startup error handling is installed
-3. the selected theme is loaded with `beautiful.init(...)`
+3. the selected theme is loaded, then flat `theme = { ... }` overrides from
+   `config.lua` are applied onto `beautiful`
 4. long-lived service instances are created
 5. `lx*` widgets and popup handles are registered through `config/services.lua`
 6. layouts, keybindings, mouse bindings, rules, signals, and screens are wired

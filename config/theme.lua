@@ -1,5 +1,15 @@
 local M = {}
 local config_data = require("config.config_data")
+local pairs = pairs
+local string = string
+
+local function theme_path(name)
+    return string.format(
+        "%s/.config/awesome/themes/%s/theme2.lua",
+        os.getenv("HOME"),
+        name
+    )
+end
 
 function M.name()
     local theme = config_data.theme()
@@ -22,6 +32,14 @@ function M.overrides()
     end
 
     return overrides
+end
+
+function M.init(beautiful)
+    beautiful.init(theme_path(M.name()))
+
+    for key, value in pairs(M.overrides()) do
+        beautiful[key] = value
+    end
 end
 
 return M

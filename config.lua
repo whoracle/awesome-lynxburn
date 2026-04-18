@@ -9,6 +9,7 @@ return {
     -- },
     -- theme = {
     --     name = "lynxburn2",
+    --     -- Flat keys override `beautiful.*` values after the theme loads.
     --     wallpaper = os.getenv("HOME") .. "/Pictures/wallpaper.png",
     --     lxrunner_width = 640,
     -- },
