@@ -4,6 +4,7 @@ local gears = require("gears")
 local naughty = require("naughty")
 local keygrabber = require("awful.keygrabber")
 
+local popup_control = require("lxcommon.popup_control")
 local actions = require("lxnotify.actions")
 local cards = require("lxnotify.cards")
 local debug = require("lxnotify.debug")
@@ -41,18 +42,6 @@ local ENTRY_SIGNAL_PROPERTIES = {
     "images",
 }
 
-local function normalize_popup_opts(arg1, arg2)
-    if type(arg2) == "table" then
-        return arg2
-    end
-
-    if type(arg1) == "table" then
-        return arg1
-    end
-
-    return {}
-end
-
 local function supports_notification_signal()
     return type(naughty.connect_signal) == "function"
 end
@@ -66,81 +55,6 @@ local function current_target_screen_context()
     end
 
     return { screen = awful.screen.focused() }
-end
-
-local function normalize_popup_toggle_key(toggle_key)
-    if type(toggle_key) ~= "table" or type(toggle_key.key) ~= "string" then
-        return nil
-    end
-
-    local normalized = {
-        key = toggle_key.key,
-        modifiers = {},
-        modifier_set = {},
-    }
-
-    if type(toggle_key.modifiers) == "table" then
-        for _, modifier in ipairs(toggle_key.modifiers) do
-            if type(modifier) == "string" and not IGNORED_POPUP_MODIFIERS[modifier] then
-                normalized.modifier_set[modifier] = true
-            end
-        end
-    end
-
-    for modifier in pairs(normalized.modifier_set) do
-        normalized.modifiers[#normalized.modifiers + 1] = modifier
-    end
-
-    table.sort(normalized.modifiers)
-
-    return normalized
-end
-
-local function popup_toggle_key_matches(toggle_key, modifiers, key)
-    if not toggle_key or key ~= toggle_key.key then
-        return false
-    end
-
-    local active_modifiers = {}
-    for _, modifier in ipairs(modifiers or {}) do
-        if not IGNORED_POPUP_MODIFIERS[modifier] then
-            active_modifiers[modifier] = true
-        end
-    end
-
-    for modifier in pairs(active_modifiers) do
-        if not toggle_key.modifier_set[modifier] then
-            return false
-        end
-    end
-
-    for modifier in pairs(toggle_key.modifier_set) do
-        if not active_modifiers[modifier] then
-            return false
-        end
-    end
-
-    return true
-end
-
-local function point_in_geometry(x, y, geo)
-    return geo
-        and x >= geo.x and x < (geo.x + geo.width)
-        and y >= geo.y and y < (geo.y + geo.height)
-end
-
-local function copy_button_list(buttons)
-    local copied = {}
-
-    if not buttons then
-        return copied
-    end
-
-    for _, button in ipairs(buttons) do
-        copied[#copied + 1] = button
-    end
-
-    return copied
 end
 
 local function sync_feedback_highlight(instance)
@@ -755,17 +669,23 @@ function instance_methods:_handle_popup_keygrabber(_, modifiers, key, event)
         return
     end
 
-    if popup_toggle_key_matches(self._popup_prev_keychain, modifiers, key) and type(self._popup_on_cycle_prev) == "function" then
+    if popup_control.popup_toggle_key_matches(self._popup_prev_keychain, modifiers, key, {
+        ignored_modifiers = IGNORED_POPUP_MODIFIERS,
+    }) and type(self._popup_on_cycle_prev) == "function" then
         self._popup_on_cycle_prev()
         return
     end
 
-    if popup_toggle_key_matches(self._popup_next_keychain, modifiers, key) and type(self._popup_on_cycle_next) == "function" then
+    if popup_control.popup_toggle_key_matches(self._popup_next_keychain, modifiers, key, {
+        ignored_modifiers = IGNORED_POPUP_MODIFIERS,
+    }) and type(self._popup_on_cycle_next) == "function" then
         self._popup_on_cycle_next()
         return
     end
 
-    if popup_toggle_key_matches(self._popup_toggle_key, modifiers, key) or key == "Escape" then
+    if popup_control.popup_toggle_key_matches(self._popup_toggle_key, modifiers, key, {
+        ignored_modifiers = IGNORED_POPUP_MODIFIERS,
+    }) or key == "Escape" then
         self:close_popups()
         return
     end
@@ -810,7 +730,9 @@ function instance_methods:focus_popup_keyboard_navigation()
 end
 
 function instance_methods:set_popup_toggle_key(toggle_key)
-    self._popup_toggle_key = normalize_popup_toggle_key(toggle_key)
+    self._popup_toggle_key = popup_control.normalize_popup_toggle_key(toggle_key, {
+        ignored_modifiers = IGNORED_POPUP_MODIFIERS,
+    })
 end
 
 function instance_methods:blur_popup_keyboard_navigation()
@@ -827,66 +749,33 @@ function instance_methods:blur_popup_keyboard_navigation()
 end
 
 function instance_methods:_start_popup_outside_click_dismiss()
-    self:_stop_popup_outside_click_dismiss()
-
-    local handler = function()
-        local popup_widget = self._popup
-        if not (popup_widget and popup_widget.visible) then
-            return
-        end
-
-        local coords = mouse.coords()
-        if point_in_geometry(coords.x, coords.y, popup_widget:geometry()) then
-            return
-        end
-
-        self:close_popups()
-    end
-
-    self._popup_outside_click_handler = handler
-
-    self._popup_outside_click_binding = awful.button({}, 1, handler)
-    self._popup_saved_root_buttons = copy_button_list(root.buttons())
-    local merged_root_buttons = copy_button_list(self._popup_saved_root_buttons)
-    merged_root_buttons[#merged_root_buttons + 1] = self._popup_outside_click_binding
-    root.buttons(merged_root_buttons)
-
-    if client and client.connect_signal then
-        client.connect_signal("button::press", self._popup_outside_click_handler)
-    end
-
-    if drawin and drawin.connect_signal then
-        drawin.connect_signal("button::press", self._popup_outside_click_handler)
-    end
+    popup_control.start_outside_click_dismiss(self, {
+        is_open = function()
+            return self._popup and self._popup.visible or false
+        end,
+        geometry_providers = {
+            function()
+                return self._popup and self._popup:geometry() or nil
+            end,
+        },
+        on_outside_click = function()
+            self:close_popups()
+        end,
+    })
 end
 
 function instance_methods:_stop_popup_outside_click_dismiss()
-    if self._popup_outside_click_binding then
-        self._popup_outside_click_binding = nil
-    end
-
-    if self._popup_saved_root_buttons then
-        root.buttons(self._popup_saved_root_buttons)
-        self._popup_saved_root_buttons = nil
-    end
-
-    if self._popup_outside_click_handler then
-        if client and client.disconnect_signal then
-            client.disconnect_signal("button::press", self._popup_outside_click_handler)
-        end
-
-        if drawin and drawin.disconnect_signal then
-            drawin.disconnect_signal("button::press", self._popup_outside_click_handler)
-        end
-
-        self._popup_outside_click_handler = nil
-    end
+    popup_control.stop_outside_click_dismiss(self)
 end
 
 function instance_methods:_apply_popup_keyboard_opts(opts)
     self:set_popup_toggle_key(opts.toggle_key)
-    self._popup_prev_keychain = normalize_popup_toggle_key(opts.prev_keychain)
-    self._popup_next_keychain = normalize_popup_toggle_key(opts.next_keychain)
+    self._popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain, {
+        ignored_modifiers = IGNORED_POPUP_MODIFIERS,
+    })
+    self._popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain, {
+        ignored_modifiers = IGNORED_POPUP_MODIFIERS,
+    })
     self._popup_on_cycle_prev = opts.on_cycle_prev
     self._popup_on_cycle_next = opts.on_cycle_next
 
@@ -1099,7 +988,7 @@ end
 
 ---Open the popup explicitly, optionally disabling hover-close for keyboard use.
 function instance_methods:show_notification_popup(arg1, arg2)
-    local opts = normalize_popup_opts(arg1, arg2)
+    local opts = popup_control.normalize_popup_opts(arg1, arg2)
     if opts.hover_close == nil then
         opts.hover_close = true
     end
@@ -1111,7 +1000,7 @@ end
 
 ---Toggle the popup, with keyboard-friendly control over hover-close behavior.
 function instance_methods:toggle_notification_popup(arg1, arg2)
-    local opts = normalize_popup_opts(arg1, arg2)
+    local opts = popup_control.normalize_popup_opts(arg1, arg2)
     if opts.hover_close == nil then
         opts.hover_close = true
     end
