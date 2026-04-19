@@ -19,6 +19,97 @@ local function apply_popup_geometry(instance, popup_widget, anchor)
     )
 end
 
+local function make_section_header(instance, text)
+    return popup_common.make_info_line(string.format(
+        "<span foreground='%s'>%s</span>",
+        gears.string.xml_escape(instance:_theme_value("lxbluetooth_meta_fg", beautiful.fg_minimize or "#999999")),
+        gears.string.xml_escape(text)
+    ), {
+        top = 4,
+        bottom = 2,
+    })
+end
+
+local function make_status_line(instance, text)
+    return popup_common.make_info_line(string.format(
+        "<span foreground='%s'>%s</span>",
+        gears.string.xml_escape(instance:_theme_value("lxbluetooth_meta_fg", beautiful.fg_minimize or "#999999")),
+        gears.string.xml_escape(text)
+    ))
+end
+
+local function device_metadata(device)
+    local parts = {}
+
+    if device.connected then
+        parts[#parts + 1] = "connected"
+    else
+        parts[#parts + 1] = "paired"
+    end
+
+    if device.trusted then
+        parts[#parts + 1] = "trusted"
+    end
+
+    if device.blocked then
+        parts[#parts + 1] = "blocked"
+    end
+
+    if device.battery then
+        parts[#parts + 1] = string.format("%d%%", device.battery)
+    end
+
+    return table.concat(parts, " • ")
+end
+
+local function make_device_row(instance, device, selected, onclick)
+    local meta_fg = instance:_theme_value("lxbluetooth_meta_fg", beautiful.fg_minimize or "#999999")
+    local name = device.name or device.address
+    local action = device.connected and "Disconnect" or "Connect"
+
+    local row = wibox.widget({
+        {
+            {
+                markup = gears.string.xml_escape(name),
+                ellipsize = "end",
+                widget = wibox.widget.textbox,
+            },
+            {
+                markup = string.format(
+                    "<span foreground='%s'>%s</span>",
+                    gears.string.xml_escape(meta_fg),
+                    gears.string.xml_escape(device_metadata(device))
+                ),
+                ellipsize = "end",
+                widget = wibox.widget.textbox,
+            },
+            spacing = 2,
+            layout = wibox.layout.fixed.vertical,
+        },
+        nil,
+        {
+            markup = string.format(
+                "<span foreground='%s'>%s</span>",
+                gears.string.xml_escape(meta_fg),
+                gears.string.xml_escape(action)
+            ),
+            align = "right",
+            valign = "center",
+            widget = wibox.widget.textbox,
+        },
+        expand = "inside",
+        layout = wibox.layout.align.horizontal,
+    })
+
+    return popup_common.make_selectable_click_container(row, onclick, {
+        selected = selected,
+        inner_bg = instance:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
+        hover_bg = instance:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
+        outer_bg = instance:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
+        selected_bg = instance:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+    })
+end
+
 ---Attach popup rendering and selection-state methods to the lxbluetooth instance.
 function popup.extend(instance_methods)
     function instance_methods:_refresh_popup()
@@ -28,6 +119,7 @@ function popup.extend(instance_methods)
 
         local refs = self._popup_refs
         refs.list:reset()
+        refs.status:reset()
         self._popup_items = {
             {
                 on_enter = function()
@@ -42,39 +134,29 @@ function popup.extend(instance_methods)
             },
         }
 
-        local status = self.state.powered and "Powered" or "Disabled"
-        refs.status.markup = string.format(
-            "<span foreground='%s'>Bluetooth %s</span>",
-            gears.string.xml_escape(self:_theme_value("lxbluetooth_meta_fg", beautiful.fg_minimize or "#999999")),
-            gears.string.xml_escape(status)
-        )
+        local status_parts = {
+            self.state.powered and "Bluetooth powered" or "Bluetooth disabled",
+        }
+
+        if self.state.powered and (self.state.connected_count or 0) > 0 then
+            status_parts[#status_parts + 1] = string.format("%d connected", self.state.connected_count)
+        end
+
+        refs.status:add(make_section_header(self, "Status"))
+        refs.status:add(make_status_line(self, table.concat(status_parts, " • ")))
+
+        refs.list:add(make_section_header(self, "Devices"))
 
         for _, device in ipairs(self.state.devices) do
-            local prefix = device.connected and "● " or "○ "
-            local suffix = {}
-            if device.battery then
-                suffix[#suffix + 1] = string.format("%d%%", device.battery)
-            end
-            local summary = device.name or device.address
-            if #suffix > 0 then
-                summary = string.format("%s  [%s]", summary, table.concat(suffix, ", "))
-            end
-
             local next_index = #self._popup_items + 1
             local selected = self._popup_selected_index == next_index
-            local row = popup_common.make_selectable_click_row(prefix .. summary, function()
+            local row = make_device_row(self, device, selected, function()
                 if device.connected then
                     self:_device_action("disconnect", device.address)
                 else
                     self:_device_action("connect", device.address)
                 end
-            end, {
-                selected = selected,
-                inner_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
-                hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
-                outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
-                selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-            })
+            end)
 
             refs.list:add(row)
             self._popup_items[#self._popup_items + 1] = {
@@ -89,18 +171,12 @@ function popup.extend(instance_methods)
         end
 
         if #self.state.devices == 0 then
-            refs.list:add(popup_common.make_info_line(string.format(
-                "<span foreground='%s'>No paired devices found.</span>",
-                gears.string.xml_escape(self:_theme_value("lxbluetooth_meta_fg", beautiful.fg_minimize or "#999999"))
-            )))
+            refs.list:add(make_status_line(self, "No paired devices found."))
         end
     end
 
     function instance_methods:_build_popup()
-        local status = wibox.widget({
-            markup = "",
-            widget = wibox.widget.textbox,
-        })
+        local status = wibox.layout.fixed.vertical()
         local list = wibox.layout.fixed.vertical()
 
         self._popup_refs = {
