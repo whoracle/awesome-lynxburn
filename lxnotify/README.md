@@ -2,36 +2,60 @@
 
 `lxnotify` is the local AwesomeWM notification inbox used by this config.
 
-It is not a generic notification mirror. Its job is to retain actionable or
-missed notifications in a compact popup-oriented UI, while still letting the
-rest of the desktop decide whether live `naughty` popups are shown.
+It retains actionable or missed `naughty` notifications in a compact popup
+UI. It is not a generic notification database and it does not try to own every
+live-notification behavior on the desktop.
 
-## Current Behavior
+## Dependencies
 
-`lxnotify` currently provides:
+External:
 
-- interception of new `naughty` notifications into a retained inbox
-- a compact bell-only top-level widget
-- a popup with configurable `"center"` or `"side"` placement with:
-  - grouped and ungrouped notification cards
-  - keyboard navigation
-  - group detail view
-  - dismiss / action handling
-- separate control over:
-  - `naughty` suspension
-  - interception pause
+- AwesomeWM core libraries: `awful`, `gears`, `wibox`, `beautiful`
+- `naughty`
 
-The compact widget no longer shows a numeric unread count.
+Internal:
 
-Its current visual contract is:
+- `lxcommon.popup_control`
+- `lxcommon.popup_placement`
+- `lxcommon.widget_feedback`
+- `lxbar` only if popup cycling integration is enabled through shared services
 
-- unread always overrides to red
-- gold bell: `naughty` enabled, intercept enabled
-- grey bell: `naughty` enabled, intercept disabled
-- struck gold bell: `naughty` disabled, intercept enabled
-- struck grey bell: both disabled
+## Features
 
-## Mouse Controls
+- intercept new `naughty` notifications into a retained inbox
+- compact bell-only top-level widget
+- grouped and ungrouped notification cards
+- per-group detail view
+- keyboard navigation inside the popup
+- popup cycling participation through shared `lxbar` services
+- separate toggles for:
+  - daemon suspension
+  - inbox interception pause
+- notification action invocation and dismiss handling
+
+## Example Usage
+
+lxbar block:
+
+```lua
+lxmodules = {
+    lxbar = {
+        order = { "network", "media", "notify" },
+    },
+}
+```
+
+Keybinding via service action:
+
+```lua
+{
+    description = "show notification popup",
+    group = "awesome",
+    on_press = "show_notification_popup",
+}
+```
+
+## Controls
 
 Top-level widget:
 
@@ -66,19 +90,81 @@ If popup cycling is enabled through `lxbar`, the shared prev/next popup
 keychains are also passed into the popup keygrabber so cycling can continue
 while `lxnotify` is focused.
 
-## Notes On Dismiss Semantics
+## Configuration
 
-One important behavior difference exists when `naughty` is suspended:
+`lxnotify` is configured through `lxmodules.lxnotify`:
 
-- dismissing stored notifications from `lxnotify` should remove them from the
-  retained inbox
-- it should not destroy the underlying notification object in a way that
-  triggers browser/web-app side effects
+```lua
+lxmodules = {
+    lxnotify = {
+        notification_denylist = {
+            { app_name = "Volume OSD" },
+        },
+        notification_title_max_length = 72,
+        notification_body_max_length = 140,
+        notification_source_max_length = 28,
+        notification_time_format = "%H:%M",
+        popup_visible_items = 7,
+        interception_paused = false,
+        debug_notifications = false,
+    },
+}
+```
 
-The current code explicitly avoids underlying destroy calls during suspended
-dismiss-all paths for that reason.
+Supported knobs:
 
-## Instance API
+- `notification_denylist`
+- `notification_title_max_length`
+- `notification_body_max_length`
+- `notification_source_max_length`
+- `notification_time_format`
+- `popup_visible_items`
+- `interception_paused`
+- `debug_notifications`
+
+## Theme Variables
+
+`lxnotify` reads these `beautiful` keys:
+
+- `lxnotify_icon_suspended`
+- `lxnotify_icon_idle`
+- `lxnotify_widget_font`
+- `lxnotify_widget_fg`
+- `lxnotify_widget_suspended_fg`
+- `lxnotify_widget_hover_bg`
+- `lxnotify_widget_press_bg`
+- `lxnotify_popup_bg`
+- `lxnotify_notification_card_bg`
+- `lxnotify_notification_meta_fg`
+- `lxnotify_card_hover_bg`
+- `lxnotify_button_bg`
+- `lxnotify_button_hover`
+- `lxnotify_popup_width`
+- `lxnotify_popup_placement`
+- `lxnotify_notification_icon_size`
+- `lxnotify_group_icon_size`
+- `lxnotify_selected_bg`
+- `lxnotify_hover_close_timeout`
+- `lxnotify_hover_close_poll_interval`
+- `lxnotify_notification_title_max_length`
+- `lxnotify_notification_body_max_length`
+- `lxnotify_notification_source_max_length`
+- `lxnotify_notification_time_format`
+- `lxnotify_popup_visible_items`
+- `lxnotify_urgency_low_fg`
+- `lxnotify_urgency_normal_fg`
+- `lxnotify_urgency_critical_fg`
+
+Placement is configured as `"center"` or `"side"`. When set to `"side"`, the
+actual side follows `lxmodules.lxbar.popup_side`.
+
+## Dismiss Semantics
+
+When `naughty` is suspended, dismissing stored notifications should clear the
+`lxnotify` inbox without destroying the underlying notification object in ways
+that trigger browser or web-app side effects. The module preserves that split.
+
+## Public Instance API
 
 Commonly used instance methods:
 
@@ -93,32 +179,19 @@ Commonly used instance methods:
 - `instance:dismiss_all()`
 - `instance:dismiss_group(group_key)`
 
-## Theme Keys
+## Screenshots
 
-`lxnotify` is themed through `beautiful.lxnotify_*`.
-
-The most important current keys are:
-
-- `beautiful.lxnotify_icon_suspended`
-- `beautiful.lxnotify_icon_idle`
-- `beautiful.lxnotify_widget_fg`
-- `beautiful.lxnotify_widget_suspended_fg`
-- `beautiful.lxnotify_urgency_critical_fg`
-- `beautiful.lxnotify_popup_width`
-- `beautiful.lxnotify_popup_placement`
-- `beautiful.lxnotify_popup_bg`
-- `beautiful.lxnotify_notification_card_bg`
-- `beautiful.lxnotify_card_hover_bg`
-- `beautiful.lxnotify_button_hover`
-- `beautiful.lxnotify_selected_bg`
-
-The popup width in the current theme is normalized to `360`.
-Placement is configured as `"center"` or `"side"`; the actual left/right side
-comes from `lxmodules.lxbar.popup_side`.
+- `[placeholder] inbox popup`
+- `[placeholder] grouped detail view`
+- `[placeholder] bell widget states`
 
 ## Code Layout
 
-- `init.lua`: instance lifecycle, interception hooks, popup state, and public API
+- `init.lua`: constructor and public module entry point
+- `theme.lua`: theme accessors, widget markup, refresh/reload helpers
+- `store.lua`: notification interception, filtering, entry lifecycle, and dismiss logic
+- `popup_state.lua`: grouped view state, selection, scrolling, and popup list rebuilding
+- `controller.lua`: popup session control, keygrabber wiring, hover-close, and open/close paths
 - `popup.lua`: popup shell, geometry, and header widgets
 - `cards.lua`: notification and burst-group card rendering
 - `format.lua`: notification text normalization, summaries, and grouping keys
@@ -127,10 +200,9 @@ comes from `lxmodules.lxbar.popup_side`.
 - `widget.lua`: compact bell widget
 - `util.lua`: theme lookup and shared widget helpers
 
-## Known Rough Edges
+## Notes
 
 - browser and web-app notifications remain the most fragile invocation path
   because their action objects and client associations are less predictable than
   native app notifications
-- `lxnotify` still owns more popup/controller duplication than it should; some
-  of that should eventually move into `lxcommon`
+- no secrets or passwords are currently embedded in `lxnotify`
