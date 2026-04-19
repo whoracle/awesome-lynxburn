@@ -128,4 +128,7 @@ actual side follows `lxmodules.lxbar.popup_side`.
 
 - `lxbluetooth` currently works with paired devices exposed through
   `bluetoothctl`
+- the top-level startup preflight checks `bluetoothctl` and the configured
+  `blueman-manager` command when `lxbluetooth` is enabled in
+  `lxmodules.lxbar.order`
 - no secrets or credentials are embedded in the module

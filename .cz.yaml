@@ -1,0 +1,93 @@
+---
+commitizen:
+  annotated_tag: true
+  changelog_file: CHANGELOG.md
+  customize:
+    bump_map:
+      break: MAJOR
+      bugfix: PATCH
+      feature: MINOR
+    bump_pattern: ^(break|feature|bugfix|bump)
+    change_type_map:
+      break: Breaking Changes
+      bugfix: Bug Fixes
+      bump: Version Bumps
+      chore: Chores
+      docs: Documentation
+      feature: Features
+      refactor: Refactors
+    change_type_order:
+    - Breaking Changes
+    - Features
+    - Bug Fixes
+    - Version Bumps
+    - Refactors
+    - Documentation
+    - Chores
+    changelog_pattern: '^(?:bump: .+|(feature|bugfix|docs|chore|refactor|break): \[(core|theme|lx[a-z0-9_-]+)\]
+      .+)$'
+    commit_parser: '^(?P<change_type>feature|bugfix|docs|chore|refactor|break|bump):
+      (?P<message>(?:\[(?P<component>core|theme|lx[a-z0-9_-]+)\] )?.+)$'
+    example: 'feature: [lxmedia] add microphone activity bar toggle'
+    info: 'Use ''<type>: [<component>] <message>'' for normal commits. `bump` is the
+      exception and uses ''bump: <message>'' without a component.'
+    message_template: '{{change_type}}: [{{component}}] {{message}}'
+    questions:
+    - choices:
+      - name: 'feature: user-visible feature, bumps minor'
+        value: feature
+      - name: 'bugfix: user-visible fix, bumps patch'
+        value: bugfix
+      - name: 'refactor: internal cleanup, no bump'
+        value: refactor
+      - name: 'docs: documentation-only, no bump'
+        value: docs
+      - name: 'chore: maintenance-only, no bump'
+        value: chore
+      - name: 'break: breaking change, bumps major'
+        value: break
+      - name: 'bump: version-only maintenance change, bumps patch'
+        value: bump
+      message: Select the type of change
+      name: change_type
+      type: list
+    - choices:
+      - name: core
+        value: core
+      - name: theme
+        value: theme
+      - name: lxbar
+        value: lxbar
+      - name: lxbluetooth
+        value: lxbluetooth
+      - name: lxcommon
+        value: lxcommon
+      - name: lxdisplay
+        value: lxdisplay
+      - name: lxmedia
+        value: lxmedia
+      - name: lxnetwork
+        value: lxnetwork
+      - name: lxnotify
+        value: lxnotify
+      - name: lxpower
+        value: lxpower
+      - name: lxrunner
+        value: lxrunner
+      message: Select the affected component
+      name: component
+      type: list
+    - message: Write a short imperative summary
+      name: message
+      type: input
+    schema: '<type>: [<component>] <message> | bump: <message>'
+    schema_pattern: '^(?:bump: .+|(feature|bugfix|docs|chore|refactor|break): \[(core|theme|lx[a-z0-9_-]+)\]
+      .+)$'
+  gpg_sign: true
+  name: cz_customize
+  tag_format: v$version
+  update_changelog_on_bump: true
+  version: 1.1.0
+  version_files:
+  - .cz.yaml:commitizen.version
+  version_scheme: semver

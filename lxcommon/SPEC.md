@@ -4,9 +4,6 @@ This file tracks the remaining intended work for the shared helper layer.
 
 ## Planned Features
 
-- continue moving concrete repeated popup/controller behavior into `lxcommon`
-  when the duplication is still active and materially hurts maintainability
-
 - keep popup keyboard, hover-close, outside-click, and placement behavior
   consistent across modules
 

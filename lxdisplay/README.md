@@ -20,6 +20,10 @@ Internal:
   - `osd`
   - `util`
 
+The top-level startup preflight checks the effective brightness commands plus
+the configured redshift backend command when `lxdisplay` is enabled in
+`lxmodules.lxbar.order`.
+
 ## Features
 
 - compact top-level brightness widget

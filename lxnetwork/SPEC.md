@@ -11,9 +11,6 @@
   - inline actions for scan and WiFi enable/disable
 - Keep keyboard navigation and popup cycling support aligned with the shared
   `lxbar` popup model.
-- Improve popup readability without bloating rows with too much metadata.
-- Keep the WiFi capability marker/badge work small and visually subordinate to
-  the SSID text.
 - Continue splitting popup/session logic into dedicated files instead of
   regrowing a large `init.lua`.
 

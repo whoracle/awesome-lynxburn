@@ -50,6 +50,50 @@ documentation in the same contribution when practical.
 
 Avoid unrelated churn in the same patch.
 
+## Commit Format
+
+This repository now validates commit messages through commitizen and
+`pre-commit`.
+
+Use:
+
+`<type>: [<component>] <message>`
+
+Exception:
+
+`bump: <message>`
+
+Examples:
+
+- `feature: [lxmedia] add device popup keyboard shortcut`
+- `bugfix: [core] guard popup cycle teardown on missing dismiss state`
+- `docs: [theme] refresh lynxburn README`
+- `bump: version 1.0.0 → 1.1.0`
+
+Allowed types:
+
+- `feature`
+- `bugfix`
+- `refactor`
+- `docs`
+- `chore`
+- `break`
+- `bump`
+
+Allowed components:
+
+- `core`
+- `theme`
+- any current `lx*` module or shared package
+
+Version bump intent:
+
+- `break` -> major
+- `feature` -> minor
+- `bugfix` -> patch
+- `bump` -> patch
+- `refactor`, `docs`, `chore` -> no bump
+
 ## Licensing
 
 This repository has a mixed licensing situation. See [`LICENSE.md`](./LICENSE.md).

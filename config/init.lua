@@ -15,6 +15,7 @@ return {
     osd = require("config.osd"),
     keys = require("config.keys"),
     mouse = require("config.mouse"),
+    preflight = require("config.preflight"),
     rules = require("config.rules"),
     signals = require("config.signals"),
     screens = require("config.screens"),

@@ -143,4 +143,6 @@ actual side follows `lxmodules.lxbar.popup_side`.
 
 - `lxpower` currently targets Linux systems exposing the expected sysfs power
   and DRM state files
+- the top-level startup preflight checks `powerprofilesctl` when `lxpower` is
+  enabled in `lxmodules.lxbar.order`
 - no secrets or credentials are embedded in the module

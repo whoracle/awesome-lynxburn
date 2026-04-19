@@ -33,29 +33,96 @@ local function make_signal_bar(instance, signal)
     })
 end
 
+local function network_metadata(network)
+    local parts = {}
+
+    if network.active then
+        parts[#parts + 1] = "connected"
+    elseif network.known then
+        parts[#parts + 1] = "saved"
+    end
+
+    if network.security and network.security ~= "" and network.security ~= "--" then
+        parts[#parts + 1] = "secured"
+    else
+        parts[#parts + 1] = "open"
+    end
+
+    if network.standard then
+        parts[#parts + 1] = network.standard
+    end
+
+    return table.concat(parts, " • ")
+end
+
+local function make_section_header(instance, text)
+    return popup_common.make_info_line(string.format(
+        "<span foreground='%s'>%s</span>",
+        gears.string.xml_escape(instance:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999")),
+        gears.string.xml_escape(text)
+    ), {
+        top = 4,
+        bottom = 2,
+    })
+end
+
+local function make_status_line(instance, text, fg_key, fallback)
+    return popup_common.make_info_line(string.format(
+        "<span foreground='%s'>%s</span>",
+        gears.string.xml_escape(instance:_theme_value(fg_key, fallback)),
+        gears.string.xml_escape(text)
+    ))
+end
+
 local function make_network_row(instance, network, selected, onclick)
     local name = network.ssid
-    if network.standard then
-        name = string.format("%s [%s]", name, network.standard)
-    end
     if network.active then
         name = "● " .. name
     end
 
+    local signal = math.max(0, math.min(100, tonumber(network.signal) or 0))
+    local meta_fg = instance:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999")
     local row_content = wibox.widget({
         {
-            markup = gears.string.xml_escape(name),
-            ellipsize = "end",
-            widget = wibox.widget.textbox,
+            {
+                markup = gears.string.xml_escape(name),
+                ellipsize = "end",
+                widget = wibox.widget.textbox,
+            },
+            {
+                markup = string.format(
+                    "<span foreground='%s'>%s</span>",
+                    gears.string.xml_escape(meta_fg),
+                    gears.string.xml_escape(network_metadata(network))
+                ),
+                ellipsize = "end",
+                widget = wibox.widget.textbox,
+            },
+            spacing = 2,
+            layout = wibox.layout.fixed.vertical,
         },
         nil,
         {
             {
-                make_signal_bar(instance, network.signal),
-                right = 2,
-                widget = wibox.container.margin,
+                {
+                    markup = string.format(
+                        "<span foreground='%s'>%d%%</span>",
+                        gears.string.xml_escape(meta_fg),
+                        signal
+                    ),
+                    align = "right",
+                    widget = wibox.widget.textbox,
+                },
+                {
+                    make_signal_bar(instance, signal),
+                    top = 3,
+                    widget = wibox.container.margin,
+                },
+                spacing = 0,
+                layout = wibox.layout.fixed.vertical,
             },
             halign = "right",
+            valign = "center",
             widget = wibox.container.place,
         },
         expand = "inside",
@@ -79,34 +146,35 @@ function popup.extend(instance_methods)
         end
 
         local refs = self._popup_refs
-        refs.current_header.markup = string.format(
-            "<span foreground='%s'>Current</span>",
-            gears.string.xml_escape(self:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999"))
-        )
+        refs.current_header:reset()
+        refs.current_header:add(make_section_header(self, "Current"))
         refs.current_value_container:reset()
 
         if not self.state.enabled then
-            refs.current_value.markup = string.format(
-                "<span foreground='%s'>wifi disabled</span>",
-                gears.string.xml_escape(self:_theme_value("lxnetwork_widget_disabled_fg", beautiful.fg_minimize or "#888888"))
-            )
-            refs.current_value_container:add(refs.current_value)
+            refs.current_value_container:add(make_status_line(
+                self,
+                "wifi disabled",
+                "lxnetwork_widget_disabled_fg",
+                beautiful.fg_minimize or "#888888"
+            ))
         elseif self.state.scan_in_progress then
-            refs.current_value.markup = string.format(
-                "<span foreground='%s'>scanning...</span>",
-                gears.string.xml_escape(self:_theme_value("lxnetwork_widget_fg", beautiful.fg_normal or "#ffffff"))
-            )
-            refs.current_value_container:add(refs.current_value)
+            refs.current_value_container:add(make_status_line(
+                self,
+                "scanning...",
+                "lxnetwork_widget_fg",
+                beautiful.fg_normal or "#ffffff"
+            ))
         else
             local current_network = self:current_network_entry()
             if current_network then
                 refs.current_value_container:add(make_network_row(self, current_network, false, nil))
             else
-                refs.current_value.markup = string.format(
-                    "<span foreground='%s'>offline</span>",
-                    gears.string.xml_escape(self:_theme_value("lxnetwork_widget_fg", beautiful.fg_normal or "#ffffff"))
-                )
-                refs.current_value_container:add(refs.current_value)
+                refs.current_value_container:add(make_status_line(
+                    self,
+                    "offline",
+                    "lxnetwork_widget_fg",
+                    beautiful.fg_normal or "#ffffff"
+                ))
             end
         end
 
@@ -155,36 +223,32 @@ function popup.extend(instance_methods)
         end
 
         if known_count == 0 then
-            refs.known_list:add(popup_common.make_info_line(string.format(
-                "<span foreground='%s'>No visible known networks.</span>",
-                gears.string.xml_escape(self:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999"))
-            )))
+            refs.known_list:add(make_status_line(
+                self,
+                "No visible known networks.",
+                "lxnetwork_meta_fg",
+                beautiful.fg_minimize or "#999999"
+            ))
         end
 
         if available_count == 0 then
-            refs.available_list:add(popup_common.make_info_line(string.format(
-                "<span foreground='%s'>No additional networks.</span>",
-                gears.string.xml_escape(self:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999"))
-            )))
+            refs.available_list:add(make_status_line(
+                self,
+                "No additional networks.",
+                "lxnetwork_meta_fg",
+                beautiful.fg_minimize or "#999999"
+            ))
         end
     end
 
     function instance_methods:_build_popup()
-        local current_header = wibox.widget({
-            markup = "",
-            widget = wibox.widget.textbox,
-        })
-        local current_value = wibox.widget({
-            markup = "",
-            widget = wibox.widget.textbox,
-        })
+        local current_header = wibox.layout.fixed.vertical()
         local current_value_container = wibox.layout.fixed.vertical()
         local known_list = wibox.layout.fixed.vertical()
         local available_list = wibox.layout.fixed.vertical()
 
         self._popup_refs = {
             current_header = current_header,
-            current_value = current_value,
             current_value_container = current_value_container,
             known_list = known_list,
             available_list = available_list,
@@ -214,15 +278,9 @@ function popup.extend(instance_methods)
                 }),
                 current_header,
                 current_value_container,
-                popup_common.make_info_line(string.format(
-                    "<span foreground='%s'>Known</span>",
-                    gears.string.xml_escape(self:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999"))
-                )),
+                make_section_header(self, "Known"),
                 known_list,
-                popup_common.make_info_line(string.format(
-                    "<span foreground='%s'>Available</span>",
-                    gears.string.xml_escape(self:_theme_value("lxnetwork_meta_fg", beautiful.fg_minimize or "#999999"))
-                )),
+                make_section_header(self, "Available"),
                 available_list,
                 spacing = 8,
                 layout = wibox.layout.fixed.vertical,

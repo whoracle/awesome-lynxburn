@@ -3,7 +3,8 @@
 This file is temporary and only exists to get older machines from tag
 `migrate` onto the current config shape.
 
-Once all target machines are migrated, this file can be discarded.
+If every target machine already runs the current tree, this file can be
+discarded.
 
 ## Target Shape
 
@@ -87,7 +88,7 @@ For a notebook currently sitting on tag `migrate`:
 3. Move notebook-specific values into `config.lua`, especially:
    - `settings.monitors`
    - `screens`
-   - personal `commands` such as terminal, browser, launcher, and file browser
+   - personal `commands` such as terminal, launcher, and file browser
    - `commands.autostart_once` / `commands.autostart`
    - `commands.lain.*` mail settings
    - `lxmodules.lxdisplay.redshift.*`
@@ -102,6 +103,6 @@ For a notebook currently sitting on tag `migrate`:
 
 After the target machine works on the current config shape:
 
-- delete obsolete non-example files from `config/override/`
+- delete obsolete non-example files from `config/overrides/`
 - do not create new split override files
 - keep future machine-local state in top-level `config.lua`

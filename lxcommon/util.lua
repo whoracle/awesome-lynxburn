@@ -1,4 +1,5 @@
 local beautiful = require("beautiful")
+local gears = require("gears")
 
 local M = {}
 
@@ -103,6 +104,57 @@ function M.attach_hover_background(widget, normal_bg, hover_bg, press_bg)
     widget._lx_set_feedback_active = function(_, value)
         active = value and true or false
         sync_bg()
+    end
+end
+
+---Start a delayed hover-open timer for compact widget reveals.
+function M.start_delayed_hover(instance, opts)
+    opts = opts or {}
+
+    local timer_key = opts.timer_key or "_hover_open_timer"
+    local state_key = opts.state_key or "_widget_hovered"
+    local delay = tonumber(opts.delay) or 0
+    local on_change = opts.on_change or function() end
+
+    if instance[timer_key] then
+        instance[timer_key]:stop()
+        instance[timer_key] = nil
+    end
+
+    if instance[state_key] == true then
+        return
+    end
+
+    if delay <= 0 then
+        instance[state_key] = true
+        on_change()
+        return
+    end
+
+    instance[timer_key] = gears.timer.start_new(delay, function()
+        instance[timer_key] = nil
+        instance[state_key] = true
+        on_change()
+        return false
+    end)
+end
+
+---Cancel delayed hover-open state and hide the compact widget immediately.
+function M.stop_delayed_hover(instance, opts)
+    opts = opts or {}
+
+    local timer_key = opts.timer_key or "_hover_open_timer"
+    local state_key = opts.state_key or "_widget_hovered"
+    local on_change = opts.on_change or function() end
+
+    if instance[timer_key] then
+        instance[timer_key]:stop()
+        instance[timer_key] = nil
+    end
+
+    if instance[state_key] ~= false then
+        instance[state_key] = false
+        on_change()
     end
 end
 

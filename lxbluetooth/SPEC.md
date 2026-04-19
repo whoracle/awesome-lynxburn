@@ -13,7 +13,6 @@
   popup model.
 - Continue splitting popup/session logic into dedicated files instead of
   regrowing a large `init.lua`.
-- Improve visual readability only in ways that keep the popup compact.
 
 ## Unplanned
 

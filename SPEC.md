@@ -7,6 +7,27 @@ are linked below.
 
 ## Still Wanted
 
+### Next Session Priority Order
+
+Use this order for the next fresh session unless new bugs force a reprioritization:
+
+1. `lxbar` spacing/composition polish
+2. `themes/lynxburn` split / asset pruning / further ownership cleanup
+3. `lxdisplay` xrandr / display-profile handling
+4. future systray / non-`lx*` widget hosting in `lxbar`
+5. `lxnotify` browser/web-app action hardening
+
+Rationale:
+
+- `lxbar` polish is useful and visible, but still lower risk than larger
+  feature work
+- theme cleanup is mostly structural cleanup and later-stage polish
+- `lxdisplay` is useful QoL, but broader and more disruptive to test
+- systray/non-`lx*` hosting stays late because it is still underspecified and
+  likely to churn config surface
+- `lxnotify` hardening is intentionally deferred until after more daily-driver
+  time confirms whether it is a real problem
+
 ### Final Public Defaults Pass
 
 Finish separating public defaults from local/personal values cleanly.
@@ -24,37 +45,6 @@ Why this is top-level:
 - it affects the entire user-facing config model
 - it touches defaults, examples, documentation, and migration guidance together
 
-### Final Documentation Pass
-
-Finish the repository-wide docs so they match the current code shape.
-
-This includes:
-
-- top-level docs staying aligned with the current config/bootstrap flow
-- module and theme docs staying aligned with the current split files
-- removing stale historical wording from user-facing documentation
-
-Why this is top-level:
-
-- it affects the full repo rather than one module
-
-### Repository Scaffolding
-
-Add the lightweight repository scaffolding needed for more disciplined future
-work.
-
-Current likely scope:
-
-- `editorconfig`
-- `pre-commit`
-- commit-message tooling if it still feels worth the added friction
-- a top-level `CHANGELOG` once the scaffolding around change tracking is in
-  place
-
-Why this is top-level:
-
-- it affects the repository workflow rather than one module
-
 ### Documentation And Policy Polish
 
 Add any remaining repo-wide policy/documentation notices that should exist once
@@ -63,7 +53,7 @@ the project shape is more stable.
 Current candidate:
 
 - an explicit AI-use disclaimer in the top-level docs if it still feels useful
-  after the current documentation cleanup settles
+  after the current documentation cleanup
 
 Why this is top-level:
 
@@ -84,10 +74,6 @@ Examples of what counts here:
 - `lxbar` being able to host selected non-`lx*` widgets cleanly later on
 - later migration of remaining `lain` widget use into repo-owned widget/module
   surfaces where that still makes sense
-- shared visual polish such as smoother/delayed compact bar behavior across
-  modules like `lxmedia` and `lxdisplay`
-- dependency pre-flight checks with graceful fallback and user-visible failure
-  handling where that improves startup/runtime behavior
 
 Module-local features should stay in module `SPEC.md` files instead.
 
