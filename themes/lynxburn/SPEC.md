@@ -15,6 +15,11 @@ This file tracks what is still wanted from the theme layer.
   Why: the theme should own appearance and final composition, not accumulate
   unrelated business logic
 
+- prune unused inherited theme assets once the remaining old widget usage is
+  reduced or removed
+  Why: the theme tree still contains older bundled assets that should not live
+  forever if they no longer serve the current config
+
 - document the final top-level theme override story from `config.lua` in the
   top-level docs once the full repo docs pass is done
   Why: the code path is settled, but the user-facing explanation still belongs
