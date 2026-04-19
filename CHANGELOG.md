@@ -1,3 +1,27 @@
+## v1.2.0 (2026-04-19)
+
+### Features
+
+- [lxbluetooth] improve popup readability and device row hierarchy
+- [lxnetwork] improve popup row readability and network metadata display
+- [lxrunner] show unobtrusive timestamps for history rows
+
+### Bug Fixes
+
+- [lxrunner] revert history timestamp row metadata
+- [lxbluetooth] remove false dependency from preflight checks
+- [lxrunner] make timestamp more unobtrusive and aligned correctly
+
+### Refactors
+
+- [lxcommon] centralize shared popup controller session logic
+
+### Documentation
+
+- [core] remove completed roadmap items from markdown todos
+- [core] record next-session priorities and update lxcommon popup docs
+- [core] drop completed network and bluetooth readability work from specs
+
 ## v1.1.0 (2026-04-19)
 
 ### Features
