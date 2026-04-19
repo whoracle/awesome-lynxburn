@@ -1,3 +1,4 @@
+local awful = require("awful")
 local util = require("lxcommon.util")
 
 local M = {}
