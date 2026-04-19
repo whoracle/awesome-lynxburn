@@ -23,14 +23,12 @@ local runtime = config.runtime
 local settings = config_data.settings()
 local commands = config_data.commands()
 
--- Long-lived shared services are created after the theme is loaded so their
--- widgets read final `beautiful` values rather than partially initialized ones.
-local lxmedia = config.services.media()
+local lxmedia = nil
 local lxbar = nil
 local lxbluetooth = nil
 local lxdisplay = nil
 local lxnetwork = nil
-local lxnotify = config.services.notify()
+local lxnotify = nil
 local lxpower = nil
 local lxrunner = nil
 
@@ -38,12 +36,17 @@ config.helpers.setup_error_handling(awesome, naughty)
 
 config.theme.init(beautiful)
 
-lxrunner = config.services.runner()
-lxbar = config.services.bar()
-lxbluetooth = config.services.bluetooth()
-lxdisplay = config.services.display()
-lxnetwork = config.services.network()
-lxpower = config.services.power()
+-- Long-lived shared services are created only after the theme is loaded so
+-- their widgets read final `beautiful` values rather than partial defaults.
+local services = config.services.bootstrap()
+lxmedia = services.media
+lxnotify = services.notify
+lxrunner = services.runner
+lxbar = services.bar
+lxbluetooth = services.bluetooth
+lxdisplay = services.display
+lxnetwork = services.network
+lxpower = services.power
 
 local osd_handlers = config.osd.new(beautiful, {
     volume_step = settings.volume_step,
