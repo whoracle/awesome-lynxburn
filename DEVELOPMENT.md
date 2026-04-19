@@ -48,11 +48,69 @@ Top-level docs split:
   This file.
 - `SPEC.md`
   Top-level planned work.
+- `CHANGELOG.md`
+  Repository change history generated from commit metadata.
 - module/theme `README.md` and `SPEC.md`
   Module-local usage and plans.
 - `MIGRATE.md`
   Temporary machine migration notes for old checkouts still anchored on the
   `migrate` tag.
+
+## Tooling
+
+Repository scaffolding now includes:
+
+- `.editorconfig`
+  Shared whitespace and newline rules.
+- `.pre-commit-config.yaml`
+  File-hygiene hooks, `luacheck`, and commit-message validation.
+- `.cz.yaml`
+  Commitizen config for commit prompts, changelog generation, and version bump
+  rules.
+- `.luacheckrc`
+  Lua lint configuration for repo-owned Lua code.
+
+Typical setup:
+
+1. install `pre-commit`, `commitizen`, and `luacheck`
+2. run `pre-commit install`
+3. use `cz commit` if you want an interactive commit flow
+
+The enforced commit format is:
+
+`<type>: [<component>] <message>`
+
+Current allowed types:
+
+- `feature`
+- `bugfix`
+- `refactor`
+- `docs`
+- `chore`
+- `break`
+- `bump`
+
+Current allowed components:
+
+- `core`
+- `theme`
+- `lxbar`
+- `lxbluetooth`
+- `lxcommon`
+- `lxdisplay`
+- `lxmedia`
+- `lxnetwork`
+- `lxnotify`
+- `lxpower`
+- `lxrunner`
+
+Version/changelog rules currently are:
+
+- `break` -> major bump
+- `feature` -> minor bump
+- `bugfix` -> patch bump
+- `bump` -> patch bump
+- `refactor`, `docs`, `chore` -> no version bump
 
 ## Config Flow
 
