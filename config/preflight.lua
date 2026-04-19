@@ -111,6 +111,10 @@ local function nonempty_string(value)
     return type(value) == "string" and value ~= ""
 end
 
+local function is_overridden(user_table, key)
+    return type(user_table) == "table" and user_table[key] ~= nil
+end
+
 local function sorted_missing(grouped, group)
     local items = grouped[group]
     if not items then
@@ -163,7 +167,7 @@ local function build_report(grouped)
     return table.concat(lines, "\n")
 end
 
-local function collect_core_dependencies(grouped, commands)
+local function collect_core_dependencies(grouped, commands, user_commands)
     require_command(grouped, "core", commands.terminal)
     require_command(grouped, "core", commands.launcher)
     require_command(grouped, "core", commands.filebrowser)
@@ -171,6 +175,20 @@ local function collect_core_dependencies(grouped, commands)
 
     if nonempty_string(commands.browser) then
         require_command(grouped, "core", commands.browser)
+    end
+
+    if not is_overridden(user_commands, "scrotmouse") then
+        require_binary(grouped, "core", "scrot")
+    end
+
+    if not is_overridden(user_commands, "scrotedit") then
+        require_binary(grouped, "core", "scrot")
+        require_binary(grouped, "core", "xdg-open")
+    end
+
+    if not is_overridden(user_commands, "scrotwin") then
+        require_binary(grouped, "core", "scrot")
+        require_binary(grouped, "core", "xdg-open")
     end
 end
 
@@ -190,6 +208,7 @@ end
 
 local function collect_bluetooth_dependencies(grouped, commands)
     require_binary(grouped, "lxbluetooth", "bluetoothctl")
+    require_binary(grouped, "lxbluetooth", "bluetoothd")
     require_command(grouped, "lxbluetooth", commands.blueman_manager)
 end
 
@@ -216,14 +235,16 @@ local function collect_power_dependencies(grouped)
 end
 
 local function collect_runner_dependencies(grouped)
-    require_any(grouped, "lxrunner", { "xclip", "xsel" }, "xclip or xsel")
+    require_binary(grouped, "lxrunner", "find")
 end
 
 function M.collect()
     local grouped = {}
     local commands = config_data.commands()
+    local user_config = config_data.user_config()
+    local user_commands = user_config.commands or {}
 
-    collect_core_dependencies(grouped, commands)
+    collect_core_dependencies(grouped, commands, user_commands)
     collect_theme_dependencies(grouped, commands)
     collect_media_dependencies(grouped)
     collect_bluetooth_dependencies(grouped, commands)

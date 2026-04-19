@@ -189,4 +189,8 @@ function M.screens()
     return load_section("screens", merge_screens)
 end
 
+function M.user_config()
+    return load_user_config()
+end
+
 return M
