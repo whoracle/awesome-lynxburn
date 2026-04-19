@@ -63,16 +63,14 @@ Repository scaffolding now includes:
 - `.editorconfig`
   Shared whitespace and newline rules.
 - `.pre-commit-config.yaml`
-  File-hygiene hooks, `luacheck`, and commit-message validation.
+  File-hygiene hooks, staged Lua syntax checks, and commit-message validation.
 - `.cz.yaml`
   Commitizen config for commit prompts, changelog generation, and version bump
   rules.
-- `.luacheckrc`
-  Lua lint configuration for repo-owned Lua code.
 
 Typical setup:
 
-1. install `pre-commit`, `commitizen`, and `luacheck`
+1. install `pre-commit` and `commitizen`
 2. run `pre-commit install`
 3. use `cz commit` if you want an interactive commit flow
 

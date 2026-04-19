@@ -13,6 +13,10 @@ local function sync_bar_visibility(instance)
     end
 end
 
+local function hover_open_delay()
+    return tonumber(beautiful.lxmedia_bar_hover_open_delay) or 1
+end
+
 local function capture_anchor(instance, hit)
     if not (hit and hit.x and hit.y and hit.width and hit.height) then
         return
@@ -256,13 +260,20 @@ function M.build(instance)
 
     shell:connect_signal("mouse::enter", function(_, hit)
         capture_anchor(instance, hit)
-        instance._widget_hovered = true
-        sync_bar_visibility(instance)
+        require("lxcommon.util").start_delayed_hover(instance, {
+            delay = hover_open_delay(),
+            on_change = function()
+                sync_bar_visibility(instance)
+            end,
+        })
     end)
 
     shell:connect_signal("mouse::leave", function()
-        instance._widget_hovered = false
-        sync_bar_visibility(instance)
+        require("lxcommon.util").stop_delayed_hover(instance, {
+            on_change = function()
+                sync_bar_visibility(instance)
+            end,
+        })
     end)
 
     shell:buttons(gears.table.join(

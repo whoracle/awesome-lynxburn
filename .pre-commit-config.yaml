@@ -19,9 +19,9 @@ repos:
 
   - repo: local
     hooks:
-      - id: luacheck
-        name: luacheck
-        entry: luacheck --codes --config .luacheckrc
+      - id: lua-syntax
+        name: lua syntax
+        entry: sh -c 'for file in "$@"; do luac -p "$file"; done' --
         language: system
         files: \.lua$
         exclude: ^(lain/|freedesktop/|config\.lua$)

@@ -6,6 +6,10 @@ local helpers = require("lxdisplay.helpers")
 
 local theme = {}
 
+local function hover_open_delay()
+    return tonumber(beautiful.lxdisplay_bar_hover_open_delay) or 1
+end
+
 ---Attach widget and OSD helpers to the lxdisplay instance method table.
 function theme.extend(instance_methods)
     ---Show the shared OSD widget with the current brightness percentage.
@@ -153,13 +157,20 @@ function theme.extend(instance_methods)
         self:_attach_mouse_controls(shell)
 
         shell:connect_signal("mouse::enter", function()
-            self._widget_hovered = true
-            self:_sync_toplevel_bar_visibility()
+            common.util.start_delayed_hover(self, {
+                delay = hover_open_delay(),
+                on_change = function()
+                    self:_sync_toplevel_bar_visibility()
+                end,
+            })
         end)
 
         shell:connect_signal("mouse::leave", function()
-            self._widget_hovered = false
-            self:_sync_toplevel_bar_visibility()
+            common.util.stop_delayed_hover(self, {
+                on_change = function()
+                    self:_sync_toplevel_bar_visibility()
+                end,
+            })
         end)
 
         self._row = shell
