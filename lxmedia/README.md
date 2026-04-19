@@ -44,6 +44,8 @@ Notes:
 - `pactl` is used for compact-widget audio control plus popup stream/device enumeration.
 - `playerctl` is required for media-player discovery, metadata, artwork lookup, transport controls, and media-key integration through MPRIS players.
 - `pavucontrol` is required for the "Open pavucontrol" action in the devices popup.
+- the top-level startup preflight checks all three of these tools when `lxmedia`
+  is enabled in `lxmodules.lxbar.order`
 
 ## Installation
 

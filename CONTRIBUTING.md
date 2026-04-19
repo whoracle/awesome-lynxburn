@@ -59,11 +59,16 @@ Use:
 
 `<type>: [<component>] <message>`
 
+Exception:
+
+`bump: <message>`
+
 Examples:
 
 - `feature: [lxmedia] add device popup keyboard shortcut`
 - `bugfix: [core] guard popup cycle teardown on missing dismiss state`
 - `docs: [theme] refresh lynxburn README`
+- `bump: version 1.0.0 → 1.1.0`
 
 Allowed types:
 

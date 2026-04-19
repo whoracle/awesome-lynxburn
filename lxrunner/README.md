@@ -11,6 +11,7 @@ to become a Rofi clone.
 External:
 
 - AwesomeWM core libraries: `awful`, `gears`, `wibox`, `beautiful`
+- `find` for PATH command and desktop-entry discovery
 - optional `xclip` or `xsel` for middle-click primary-selection paste
 
 Internal:
@@ -158,4 +159,6 @@ Alias `type` values currently used:
 ## Notes
 
 - `lxrunner` stores launch history in `~/.lxrunner_history` by default
+- the top-level startup preflight checks `find` because command and
+  desktop-entry discovery depend on it
 - no secrets or credentials are embedded in the module

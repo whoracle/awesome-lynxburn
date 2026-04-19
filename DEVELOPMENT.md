@@ -78,6 +78,10 @@ The enforced commit format is:
 
 `<type>: [<component>] <message>`
 
+Exception:
+
+`bump: <message>`
+
 Current allowed types:
 
 - `feature`

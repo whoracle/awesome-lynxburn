@@ -140,4 +140,6 @@ actual side follows `lxmodules.lxbar.popup_side`.
 ## Notes
 
 - `lxnetwork` currently only handles WiFi state through `nmcli`
+- the top-level startup preflight checks `nmcli` when `lxnetwork` is enabled in
+  `lxmodules.lxbar.order`
 - no embedded secrets or machine-specific credentials are stored in the module

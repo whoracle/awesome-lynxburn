@@ -1,10 +1,22 @@
-# Changelog
+## Unreleased
 
-This file is intended to be maintained by commitizen from the commit history.
+### Features
 
-The current version baseline is `v1.0.0`.
+- [core] scope preflight checks to enabled modules and defer lain
+- [core] refine preflight inventory around local overrides and bluez
+- [core] add grouped startup preflight checks for missing dependencies
+- [theme] shorten compact bar hover reveal delay to 0.5s
+- [core] delay compact bar hover reveal for media and display widgets
 
-## v1.1.0 (2026-04-19)
+### Refactors
+
+- [lxmedia] drop wpctl and treat media tooling as required dependencies
+
+### Documentation
+
+- [core] document startup preflight checks across top-level and module docs
+
+## v1.0.0 (2026-04-19)
 
 ### Features
 
@@ -159,6 +171,7 @@ The current version baseline is `v1.0.0`.
 
 ### Chores
 
+- [core] commitizen
 - [core] switch lua pre-commit checks to luacheck
 - [theme] rename all occurences of lynxburn2 to lynxburn
 - [core] delete legacy overrides directory and contents

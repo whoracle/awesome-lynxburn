@@ -9,8 +9,8 @@ commitizen:
     bump_pattern: ^(break|feature|bugfix|bump)
     change_type_map:
       break: Breaking Changes
-      bump: Version Bumps
       bugfix: Bug Fixes
+      bump: Version Bumps
       chore: Chores
       docs: Documentation
       feature: Features
@@ -23,13 +23,13 @@ commitizen:
     - Refactors
     - Documentation
     - Chores
-    changelog_pattern: '^(feature|bugfix|docs|chore|refactor|break|bump): \[(core|theme|lx[a-z0-9_-]+)\]
-      .+$'
-    commit_parser: '^(?P<change_type>feature|bugfix|docs|chore|refactor|break|bump): (?P<message>\[(?P<component>core|theme|lx[a-z0-9_-]+)\]
-      .+)$'
+    changelog_pattern: '^(?:bump: .+|(feature|bugfix|docs|chore|refactor|break):
+      \[(core|theme|lx[a-z0-9_-]+)\] .+)$'
+    commit_parser: '^(?P<change_type>feature|bugfix|docs|chore|refactor|break|bump):
+      (?P<message>(?:\[(?P<component>core|theme|lx[a-z0-9_-]+)\] )?.+)$'
     example: 'feature: [lxmedia] add microphone activity bar toggle'
-    info: 'Use ''<type>: [<component>] <message>'' with components limited to lx modules,
-      core, or theme.'
+    info: 'Use ''<type>: [<component>] <message>'' for normal commits. `bump`
+      is the exception and uses ''bump: <message>'' without a component.'
     message_template: '{{change_type}}: [{{component}}] {{message}}'
     questions:
     - choices:
@@ -79,10 +79,12 @@ commitizen:
     - message: Write a short imperative summary
       name: message
       type: input
-    schema: '<type>: [<component>] <message>'
-    schema_pattern: '^(feature|bugfix|docs|chore|refactor|break|bump): \[(core|theme|lx[a-z0-9_-]+)\]
-      .+$'
+    schema: '<type>: [<component>] <message> | bump: <message>'
+    schema_pattern: '^(?:bump: .+|(feature|bugfix|docs|chore|refactor|break):
+      \[(core|theme|lx[a-z0-9_-]+)\] .+)$'
   name: cz_customize
+  annotated_tag: true
+  gpg_sign: true
   tag_format: v$version
   update_changelog_on_bump: true
   version: 1.0.0

@@ -13,6 +13,7 @@ External:
 
 - AwesomeWM core libraries: `awful`, `gears`, `wibox`, `beautiful`
 - `bluetoothctl`
+- `bluetoothd`
 - `blueman-manager` for the external full manager action
 
 Internal:
@@ -128,4 +129,7 @@ actual side follows `lxmodules.lxbar.popup_side`.
 
 - `lxbluetooth` currently works with paired devices exposed through
   `bluetoothctl`
+- the top-level startup preflight checks `bluetoothctl`, `bluetoothd`, and the
+  configured `blueman-manager` command when `lxbluetooth` is enabled in
+  `lxmodules.lxbar.order`
 - no secrets or credentials are embedded in the module

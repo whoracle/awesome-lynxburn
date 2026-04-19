@@ -45,6 +45,26 @@ Common desktop programs referenced by the defaults:
 This README intentionally does not include distro-specific installation steps
 yet.
 
+## Startup Preflight
+
+After Awesome has loaded successfully, the config runs a startup preflight pass
+for dependencies that would otherwise tend to fail silently or degrade module
+behavior in confusing ways.
+
+Current behavior:
+
+- missing tools are grouped by `core` or `lx*` module
+- the report is written to stderr, which typically means `~/.xsession-errors`
+- the same report is shown as a `naughty` notification
+- bar-module checks are only performed for modules currently enabled through
+  `lxmodules.lxbar.order`
+- shipped screenshot-command dependencies such as `scrot` / `xdg-open` are only
+  checked when those default commands are still in use rather than overridden
+  locally
+
+This is intentionally a concrete binary/command inventory, not a broader
+service-health or environment-diagnostics framework.
+
 ## Quickstart
 
 The user-facing config entrypoint is top-level `config.lua`.
@@ -135,6 +155,9 @@ General ownership rules:
 - put module behavior under `lxmodules.<module>`
 - put monitor, tag, and layout config under `screens`
 - put appearance overrides under `theme`
+
+Dependency and startup-check details for individual modules live in the module
+READMEs.
 
 ## Modules And Theme
 
