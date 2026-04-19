@@ -107,3 +107,9 @@ config.screens.setup(settings)
 for _, command in ipairs(commands.autostart) do
     awful.spawn(command)
 end
+
+gears.timer.delayed_call(function()
+    config.preflight.run({
+        naughty = naughty,
+    })
+end)
