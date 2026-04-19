@@ -1,346 +1,181 @@
-# AwesomeWM Configuration
+# LynxBurn AwesomeWM Config
 
-This repository contains a refactored AwesomeWM configuration centered around a
-small `config/` layer and a single theme directory. Third-party modules live in
-their own folders and are treated as vendored code.
+This repository contains an AwesomeWM configuration centered around a small
+top-level config surface, a bundled `lynxburn` theme, and a set of local
+`lx*` modules for the bar, popups, notifications, media, networking, power,
+display control, and launcher behavior.
 
-## Maintenance Boundary
+It is meant to be usable as a real daily-driver config, but it is still a
+personal config first rather than a polished general-purpose distribution.
 
-Files you are expected to edit directly:
+## What To Expect
 
-- `rc.lua`
-- `config/*.lua`
-- `lxbar/`
-- `lxcommon/`
-- `themes/lynxburn/theme.lua`
-- `themes/lynxburn/widgets.lua`
+- this repo is actively shaped around one real desktop setup
+- the config surface is intended to be reusable, but ongoing refactors and
+  feature work can still move things around
+- focused bug reports and targeted improvements are welcome
+- larger feature ideas should be discussed before implementation
+- there is no stability guarantee or support SLA
 
-Vendored / external code you generally should not edit here:
+## Dependencies
 
-- `lain/`
-- `freedesktop/`
-- `lxmedia/`
-- `lxbluetooth/`
-- `lxnetwork/`
-- `lxnotify/`
-- `lxrunner/`
-- `lxdisplay/`
-- `lxpower/`
+Core runtime:
 
-The `lx*` directories are local modules with their own ownership boundary and
-are intended to become submodules later.
+- AwesomeWM
+- the Lua libraries shipped with AwesomeWM, including `awful`, `beautiful`,
+  `gears`, `naughty`, and `wibox`
+- `lain`
 
-## Layout
+Common external commands used by the current config:
 
-### Top Level
-
-- `rc.lua`
-  Bootstraps Awesome, loads the theme, instantiates shared services, and wires
-  together layouts, keys, rules, signals, and screens.
-
-- `config/`
-  Main maintainable configuration split by responsibility.
-
-- `lxcommon/`
-  Shared building blocks for the `lx*` family: widget registry, popup manager,
-  popup placement helpers, and shared OSD primitives.
-
-- `lxbar/`
-  Unified top-level widget that renders registered `lx*` compact widgets and
-  exposes shared popup actions such as popup cycling.
-
-- `themes/lynxburn/theme.lua`
-  Theme values: colors, fonts, icon paths, widget settings, popup sizing, and
-  per-module theme knobs.
-
-- `themes/lynxburn/widgets.lua`
-  Wibar construction and theme-local widget composition.
-
-### `config/`
-
-- `init.lua`
-  Aggregates the maintainable config modules behind `require("config.init")`.
-
-- `defaults.lua`
-  Central default user-facing config values. This is the base layer merged with
-  top-level `config.lua`.
-
-- `config_data.lua`
-  Shared loader and merge layer for centralized config sections such as
-  `settings`, `commands`, `screens`, `theme`, and `lxmodules`.
-
-- `helpers.lua`
-  Small shared helpers such as startup error handling and run-once autostart.
-
-- `layouts.lua`
-  Layout list and Quake terminal setup.
-
-- `keys.lua`
-  Global and client keybindings. Most user interaction changes belong here.
-
-- `mouse.lua`
-  Root, taglist, tasklist, and client mouse bindings.
-
-- `rules.lua`
-  Application placement and behavior rules.
-
-- `signals.lua`
-  Client lifecycle signals, titlebar setup, and border behavior.
-
-- `screens.lua`
-  Per-screen initialization, wallpaper handling, layout defaults, and DPI.
-
-- `services.lua`
-  Shared singleton instances for the `lx*` modules plus registration into
-  `lxcommon.registry` and `lxcommon.popup_manager`.
-
-- `osd.lua`
-  Small config-owned OSD helpers outside the `lx*` family. The shared progress
-  and text OSD primitives used by `lxmedia` and `lxdisplay` now live in
-  `lxcommon/osd.lua`.
-
-## Startup Flow
-
-The high-level startup order is:
-
-1. `rc.lua` loads `config`
-2. startup error handling is installed
-3. the selected theme is loaded, then flat `theme = { ... }` overrides from
-   `config.lua` are applied onto `beautiful`
-4. long-lived service instances are created
-5. `lx*` widgets and popup handles are registered through `config/services.lua`
-6. layouts, keybindings, mouse bindings, rules, signals, and screens are wired
-7. `autostart_once` commands are launched via `run_once`
-8. plain `autostart` commands are spawned every startup
-
-This split is intentional:
-
-- theme values live in `theme.lua`
-- wibar structure lives in `widgets.lua`
-- service/module ownership lives in `config/services.lua`
-- user-editable behavior lives in top-level `config.lua`, merged over
-  `config/defaults.lua`
-- shared `lx*` composition and popup coordination live in `lxcommon/` and
-  `lxbar/`
-- bar composition now lives in `lxmodules.lxbar`
-- module behavior now lives in `lxmodules.<module>`
-
-## Central Config
-
-The intended user config entrypoint is top-level `config.lua` next to `rc.lua`.
-It is merged over `config/defaults.lua`.
-
-Centralized sections currently include:
-
-- `settings`
-- `commands`
-- `theme`
-- `screens`
-- `keys`
-- `rules`
-- `lxmodules`
-
-Within `lxmodules`:
-
-- `lxmodules.lxbar` owns bar composition such as order and cycle participation
-- `lxmodules.<module>` owns per-module behavior and backend wiring
-- `lxmodules.lxrunner.aliases` owns runner aliases
-
-Examples:
-
-- `commands.terminal`
-- `theme.name`
-- `screens.center.tags.primary.layout`
-- `lxmodules.lxbar.order`
-- `lxmodules.lxdisplay.redshift`
-- `lxmodules.lxrunner.aliases`
-
-Legacy `config/override/*.lua` files are migration-only scaffolding now and are
-no longer read by the runtime.
-
-## Theme Split
-
-The theme directory is deliberately split into:
-
-- `theme.lua`
-  Pure theme/config data
-
-- `widgets.lua`
-  Actual widget composition for the wibar and screen setup
-
-If you want to:
-
-- change colors, fonts, icon paths, widget sizing, or module-specific theme
-  values: edit `theme.lua`
-- reorder the classic theme widgets or change their wrapping/composition: edit
-  `widgets.lua`
-- change `lx*` module order/composition behavior: edit `lxmodules.lxbar` in
-  top-level `config.lua`
-- change `lx*` module behavior/backend config: edit `lxmodules.<module>` in
-  top-level `config.lua`
-
-Flat `theme = { ... }` overrides in top-level `config.lua` are appropriate for
-the routine user-facing knobs, for example:
-
-- wallpaper and wibar sizing
-- notification sizing
-- module popup widths, colors, and icons
-- runner sizing and colors
-
-Theme-authoring details such as titlebar asset paths, copycats-style icon file
-paths, and other theme-internal composition data should usually stay in
-`themes/lynxburn/theme.lua` unless you are actually reshaping the theme.
-
-## External Dependencies
-
-### Core Runtime
-
-Required to run this config at all:
-
-- `awesome`
-- Lua libraries shipped with Awesome (`awful`, `gears`, `wibox`, `naughty`)
-- the vendored module directories in this repo
-
-### Common External Commands Used By This Config
-
-Used directly by the current maintainable config:
-
-- `urxvt`
-- `thunar`
-- `vivaldi-stable`
 - `playerctl`
-- `xbacklight`
+- `xbacklight` or an equivalent brightness backend if you override it
 - `xset`
-- `redshift`
-- `i3lock`
+- `xrandr`
 - `scrot`
-- `secret-tool`
-- `numlockx`
+- `secret-tool` if you use the current IMAP password lookup flow
 
-Also referenced in program definitions or optional autostart commands:
+Common desktop programs referenced by the defaults:
 
-- `gimp`
-- `sxiv`
-- `conky`
-- `nm-applet`
-- `blueman-applet`
-- `pasystray`
-- `nextcloud`
-- `gromit-mpx`
+- a terminal emulator
+- a file browser
+- a browser
+- optional applets or tray tools such as network, Bluetooth, audio, or sync
+  applets if you add them to your own setup
 
-### Mail Password Lookup
+This README intentionally does not include distro-specific installation steps
+yet.
 
-The IMAP password is not stored directly in the theme code. It is configured
-through `commands.lain.imap_secret`, which currently uses `secret-tool` from
-GNOME Keyring.
+## Quickstart
 
-Current default lookup configured in `config/defaults.lua`:
+The user-facing config entrypoint is top-level `config.lua`.
 
-```sh
-secret-tool lookup service awesomewm-imap account anthrax@lynxcore.org
+1. Copy `config.example.lua` to `config.lua`.
+2. Adjust `commands` so the config points at programs that actually exist on
+   your system.
+3. Adjust `screens` so monitor indices, tag names, and per-tag layouts match
+   your setup.
+4. Adjust `lxmodules` to choose bar order, popup cycling participation, and
+   module-specific behavior.
+5. Adjust `theme` only for appearance-related overrides.
+
+Minimal example:
+
+```lua
+theme = {
+    wallpaper = os.getenv("HOME") .. "/.wallpaper",
+}
+
+commands = {
+    terminal = "alacritty",
+    filebrowser = "thunar",
+    browser = "firefox",
+}
+
+screens = {
+    tag_order = { "primary", "secondary", "tertiary" },
+    tag_defaults = {
+        primary = {
+            layout = "fair.horizontal",
+            layouts = { "fair.horizontal", "centerwork.horizontal", "floating" },
+        },
+        secondary = {
+            layout = "centerwork",
+            layouts = { "centerwork", "fair", "floating" },
+        },
+        tertiary = {
+            layout = "floating",
+            layouts = { "floating" },
+        },
+    },
+    center = {
+        dpi = 96,
+    },
+}
+
+lxmodules = {
+    lxbar = {
+        order = { "bluetooth", "network", "media", "notify", "display", "power" },
+        popup_side = "right",
+        modules = {
+            bluetooth = { cycle = false },
+        },
+    },
+    lxrunner = {
+        width = 640,
+        row_count = 10,
+    },
+}
 ```
 
-To store or update it:
+## Configuration Model
 
-```sh
-secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account anthrax@lynxcore.org
-```
+The current config layers are:
 
-## Notable Module Ownership
+- `config/defaults.lua`
+  Repository defaults
+- `config.example.lua`
+  Tracked example override file
+- `config.lua`
+  Your local machine-specific overrides
 
-### `lxmedia`
+The main top-level sections are:
 
-- owns the audio widget
-- owns audio state and popup content
-- keyboard volume calls request OSD explicitly
-- uses shared OSD primitives from `lxcommon.osd`
+- `commands`
+- `keys`
+- `lxmodules`
+- `rules`
+- `screens`
+- `settings`
+- `theme`
 
-### `lxdisplay`
+General ownership rules:
 
-- owns the display widget
-- owns brightness and redshift state
-- scroll brightness changes do not show OSD by default
-- keyboard brightness changes do request OSD explicitly
-- owns redshift control plumbing
-- uses shared OSD primitives from `lxcommon.osd`
+- put program/backend choices under `commands`
+- put user keybinding overrides under `keys`
+- put bar order and popup-cycle participation under `lxmodules.lxbar`
+- put module behavior under `lxmodules.<module>`
+- put monitor, tag, and layout config under `screens`
+- put appearance overrides under `theme`
 
-### `lxnotify`
+## Modules And Theme
 
-- owns notification aggregation and popup behavior
-- owns the compact bell-state contract and notification action/dismiss behavior
+Module-specific usage and configuration details live in their own READMEs.
 
-### `lxcommon`
+Core shared pieces:
 
-- owns shared `lx*` infrastructure rather than any one module's backend state
-- currently owns:
-  - registry for compact widgets
-  - popup handle registry / popup manager
-  - popup placement helpers
-  - shared OSD primitives
+- [`lxcommon`](./lxcommon/README.md)
+- [`lxbar`](./lxbar/README.md)
 
-### `lxbar`
+Modules:
 
-- owns shared top-level `lx*` composition in the wibar
-- renders registered module widgets in one container
-- exposes shared popup actions such as popup cycling in bar order
-- current default widget order is:
-  - network
-  - media
-  - notify
-  with additional bar modules opt-in/configured under `lxmodules.lxbar`
+- [`lxmedia`](./lxmedia/README.md)
+- [`lxnotify`](./lxnotify/README.md)
+- [`lxnetwork`](./lxnetwork/README.md)
+- [`lxbluetooth`](./lxbluetooth/README.md)
+- [`lxpower`](./lxpower/README.md)
+- [`lxdisplay`](./lxdisplay/README.md)
+- [`lxrunner`](./lxrunner/README.md)
 
-### `lxrunner`
+Theme:
 
-- owns the program launcher, alias handling, history, and runner UI
-- history is persisted in `~/.lxrunner_history`
-- history stores the canonical launched match label rather than the typed prefix
+- [`lynxburn`](./themes/lynxburn/README.md)
 
-## Common Edit Locations
+Planned work lives in the corresponding module/theme SPEC files plus the
+top-level [`SPEC.md`](./SPEC.md).
 
-If you want to change:
+## Screenshots
 
-- keybindings: `config/keys.lua`
-- app commands and tool paths: top-level `config.lua` under `commands`
-- monitor mapping / tag names / modifier keys: top-level `config.lua` under `settings`
-- client placement rules: `config/rules.lua`
-- screen-specific DPI and default layouts: top-level `config.lua` under `screens`
-- classic wibar order/layout: `themes/lynxburn/widgets.lua`
-- `lx*` bar composition: top-level `config.lua` under `lxmodules.lxbar`
-- `lx*` shared popup/runtime behavior: `config/services.lua`, `lxbar/init.lua`,
-  `lxcommon/*.lua`
-- colors, glyphs, popup sizes, per-widget theme settings: `themes/lynxburn/theme.lua`
-- `lxrunner` aliases and runner behavior: top-level `config.lua` under
-  `lxmodules.lxrunner`, plus `lxrunner/` for implementation
+- `[placeholder] full desktop overview`
+- `[placeholder] lxbar and compact widget row`
+- `[placeholder] popup stack and cycling flow`
+- `[placeholder] lxrunner`
 
-## Installation / Local Testing
+## Further Docs
 
-Typical local testing flow during refactors:
+- [`SPEC.md`](./SPEC.md): top-level planned work
+- [`MIGRATE.md`](./MIGRATE.md): temporary migration notes
+- [`REFACTOR.md`](./REFACTOR.md): deferred cleanup notes, if still applicable
 
-1. edit this repo in `~/tmp/awesome`
-2. replace the live config with it
-3. reload Awesome
-
-Example:
-
-```sh
-rm -rf ~/.config/awesome
-cp -r ~/tmp/awesome ~/.config/awesome
-awesome-client 'awesome.restart()'
-```
-
-If you prefer a safer copy step, replace the `rm -rf` with your own sync
-workflow.
-
-## Notes
-
-- This repo was intentionally modularized only far enough to make maintenance
-  reasonable. It is not trying to become a framework.
-- `lxcommon` and `lxbar` are the current shared architecture for the `lx*`
-  modules. They are intentionally small and should stay pragmatic.
-- The `config` aggregator exists so `rc.lua` can use `local config =
-  require("config.init")` and then address modules as `config.keys`,
-  `config.lxmodules`, and so on.
-- Top-level `config.lua` is the intended user config entrypoint, merged over
-  `config/defaults.lua`.
-- The current docs intentionally describe the repo-owned `lx*` behavior, not the
-  vendored upstream `lain` subtree.
+Developer-oriented documentation such as internal architecture and extension
+workflows will live in `DEVELOPMENT.md`.
