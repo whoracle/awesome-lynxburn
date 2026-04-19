@@ -6,10 +6,6 @@ This file only tracks what is still wanted for the module.
 
 ## Still Wanted
 
-- keep polishing alias/result presentation
-  Why: aliases now support glyphs and image icons, but the result list can
-  still become easier to scan
-
 - consider later result-row metadata such as a small source indicator or
   description when it clearly improves usability
   Why: useful, but lower priority than finishing broader repo work

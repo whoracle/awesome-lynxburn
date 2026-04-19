@@ -27,6 +27,7 @@ Internal:
 - alias support from `lxmodules.lxrunner.aliases`
 - alias decorations via icon or glyph
 - launch history with recency bias
+- unobtrusive right-aligned timestamp for recent history rows
 - tab completion
 - middle-click primary-selection paste in the input box
 
@@ -134,6 +135,10 @@ Alias `type` values currently used:
 - `lxrunner_row_bg`
 - `lxrunner_row_fg`
 - `lxrunner_row_font`
+- `lxrunner_row_meta_fg`
+- `lxrunner_row_meta_font`
+- `lxrunner_row_meta_selected_fg`
+- `lxrunner_row_meta_spacing`
 - `lxrunner_row_padding`
 - `lxrunner_row_selected_bg`
 - `lxrunner_row_selected_fg`
