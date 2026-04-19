@@ -64,10 +64,11 @@ Example layout:
     ├── init.lua
     ├── audio.lua
     ├── media.lua
+    ├── runtime.lua
+    ├── media_popup_controller.lua
+    ├── popup_controller.lua
     ├── popup_devices.lua
     ├── popup_media.lua
-    ├── popup_common.lua
-    ├── util.lua
     └── widget.lua
 ```
 
@@ -302,6 +303,12 @@ Fallbacks:
 - if a custom `lxmedia_*` theme variable is missing, the code falls back to common Awesome theme colors such as `fg_normal`, `bg_minimize`, `bg_focus`, and `fg_urgent`
 - if an icon variable is missing, built-in text icons are used
 
+## Screenshots
+
+- `[placeholder] compact widget`
+- `[placeholder] media popup`
+- `[placeholder] devices popup`
+
 ## Known Limitations And Edge Cases
 
 - AwesomeWM-only: this is not a general Lua library and expects the Awesome widget/runtime environment.
@@ -321,11 +328,12 @@ Fallbacks:
 
 ## File Overview
 
-- [init.lua](/home/anthrax/.config/awesome/lxmedia/init.lua): instance lifecycle, timers, refresh logic, popup management
-- [widget.lua](/home/anthrax/.config/awesome/lxmedia/widget.lua): compact bar widget and mouse bindings
-- [audio.lua](/home/anthrax/.config/awesome/lxmedia/audio.lua): sink/source/stream inspection and control via `pactl` and `wpctl`
-- [media.lua](/home/anthrax/.config/awesome/lxmedia/media.lua): MPRIS player lookup, metadata, artwork, and transport control via `playerctl`
-- [popup_media.lua](/home/anthrax/.config/awesome/lxmedia/popup_media.lua): playback streams popup
-- [popup_devices.lua](/home/anthrax/.config/awesome/lxmedia/popup_devices.lua): device selection popup
-- [popup_common.lua](/home/anthrax/.config/awesome/lxmedia/popup_common.lua): shared popup UI helpers
-- [util.lua](/home/anthrax/.config/awesome/lxmedia/util.lua): shared shell and text helpers
+- [init.lua](/home/anthrax/tmp/awesome/lxmedia/init.lua): constructor plus core volume/input actions
+- [runtime.lua](/home/anthrax/tmp/awesome/lxmedia/runtime.lua): widget rebuild, timer/subscription setup, refresh, and OSD helpers
+- [media_popup_controller.lua](/home/anthrax/tmp/awesome/lxmedia/media_popup_controller.lua): media-popup selection, player transport, and keyboard actions
+- [popup_controller.lua](/home/anthrax/tmp/awesome/lxmedia/popup_controller.lua): popup show/toggle/close flow and hover-close handling
+- [widget.lua](/home/anthrax/tmp/awesome/lxmedia/widget.lua): compact bar widget and mouse bindings
+- [audio.lua](/home/anthrax/tmp/awesome/lxmedia/audio.lua): sink/source/stream inspection and control via `pactl` and `wpctl`
+- [media.lua](/home/anthrax/tmp/awesome/lxmedia/media.lua): MPRIS player lookup, metadata, artwork, and transport control via `playerctl`
+- [popup_media.lua](/home/anthrax/tmp/awesome/lxmedia/popup_media.lua): playback streams popup
+- [popup_devices.lua](/home/anthrax/tmp/awesome/lxmedia/popup_devices.lua): device selection popup

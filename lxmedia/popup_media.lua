@@ -3,7 +3,8 @@ local gears = require("gears")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local gears_surface = require("gears.surface")
-local common = require("lxcommon.popup_shell")
+local popup_shell = require("lxcommon.popup_shell")
+local popup_ui = require("lxcommon.popup_ui")
 
 local M = {}
 
@@ -58,17 +59,17 @@ local function make_button(label, onclick)
 end
 
 local function make_info_line(text, opts)
-    return common.make_info_line(text, opts)
+    return popup_ui.make_info_line(text, opts)
 end
 
 local function make_click_container(child, onclick, opts)
     opts = opts or {}
     opts.hover_bg = opts.hover_bg or COLORS.hover
-    return common.make_click_container(child, onclick, opts)
+    return popup_ui.make_click_container(child, onclick, opts)
 end
 
 local function make_card(child)
-    return common.make_card(child)
+    return popup_ui.make_card(child)
 end
 
 local function make_volume_bar(value, muted)
@@ -704,15 +705,15 @@ local function build_widget(instance)
 end
 
 function M.rebuild(instance)
-    common.rebuild_popup(instance, "_media_popup", build_widget)
+    popup_shell.rebuild_popup(instance, "_media_popup", build_widget)
 end
 
 function M.show(instance, geo, opts)
-    common.show_popup(instance, "_media_popup", "_media_popup_geo", geo, build_widget, opts)
+    popup_shell.show_popup(instance, "_media_popup", "_media_popup_geo", geo, build_widget, opts)
 end
 
 function M.toggle(instance, geo, opts)
-    return common.toggle_popup(instance, "_media_popup", "_media_popup_geo", geo, build_widget, opts)
+    return popup_shell.toggle_popup(instance, "_media_popup", "_media_popup_geo", geo, build_widget, opts)
 end
 
 return M

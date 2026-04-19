@@ -1,6 +1,7 @@
 local wibox = require("wibox")
 local beautiful = require("beautiful")
-local common = require("lxcommon.popup_shell")
+local popup_shell = require("lxcommon.popup_shell")
+local popup_ui = require("lxcommon.popup_ui")
 
 local M = {}
 
@@ -9,7 +10,7 @@ local COLORS = {
 }
 
 local function make_card(child)
-    return common.make_card(child, {
+    return popup_ui.make_card(child, {
         margins = 10,
         radius = 8,
     })
@@ -21,7 +22,7 @@ local function make_info_line(text, opts)
         ellipsize = "end",
         valign = "center",
     }
-    return common.make_info_line(text, opts)
+    return popup_ui.make_info_line(text, opts)
 end
 
 local function make_click_row(text, onclick, opts)
@@ -31,7 +32,7 @@ local function make_click_row(text, onclick, opts)
         ellipsize = "end",
         valign = "center",
     }
-    return common.make_click_row(text, onclick, opts)
+    return popup_ui.make_click_row(text, onclick, opts)
 end
 
 local function build_header(default_sink_label, default_source_label)
@@ -347,15 +348,15 @@ local function build_widget(instance)
 end
 
 function M.rebuild(instance)
-    common.rebuild_popup(instance, "_devices_popup", build_widget)
+    popup_shell.rebuild_popup(instance, "_devices_popup", build_widget)
 end
 
 function M.show(instance, geo, opts)
-    common.show_popup(instance, "_devices_popup", "_devices_popup_geo", geo, build_widget, opts)
+    popup_shell.show_popup(instance, "_devices_popup", "_devices_popup_geo", geo, build_widget, opts)
 end
 
 function M.toggle(instance, geo, opts)
-    return common.toggle_popup(instance, "_devices_popup", "_devices_popup_geo", geo, build_widget, opts)
+    return popup_shell.toggle_popup(instance, "_devices_popup", "_devices_popup_geo", geo, build_widget, opts)
 end
 
 return M
