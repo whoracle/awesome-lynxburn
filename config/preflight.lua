@@ -14,7 +14,6 @@ local M = {}
 
 local GROUP_ORDER = {
     "core",
-    "theme",
     "lxmedia",
     "lxbluetooth",
     "lxnetwork",
@@ -192,14 +191,6 @@ local function collect_core_dependencies(grouped, commands, user_commands)
     end
 end
 
-local function collect_theme_dependencies(grouped, commands)
-    local lain_commands = commands.lain or {}
-
-    if nonempty_string(lain_commands.imap_secret) then
-        require_command(grouped, "theme", lain_commands.imap_secret)
-    end
-end
-
 local function collect_media_dependencies(grouped)
     require_binary(grouped, "lxmedia", "pactl")
     require_binary(grouped, "lxmedia", "playerctl")
@@ -245,12 +236,21 @@ function M.collect()
     local user_commands = user_config.commands or {}
 
     collect_core_dependencies(grouped, commands, user_commands)
-    collect_theme_dependencies(grouped, commands)
-    collect_media_dependencies(grouped)
-    collect_bluetooth_dependencies(grouped, commands)
-    collect_network_dependencies(grouped)
-    collect_display_dependencies(grouped)
-    collect_power_dependencies(grouped)
+    if module_config.enabled("media", false) then
+        collect_media_dependencies(grouped)
+    end
+    if module_config.enabled("bluetooth", false) then
+        collect_bluetooth_dependencies(grouped, commands)
+    end
+    if module_config.enabled("network", false) then
+        collect_network_dependencies(grouped)
+    end
+    if module_config.enabled("display", false) then
+        collect_display_dependencies(grouped)
+    end
+    if module_config.enabled("power", false) then
+        collect_power_dependencies(grouped)
+    end
     collect_runner_dependencies(grouped)
 
     return grouped
