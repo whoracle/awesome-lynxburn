@@ -4,7 +4,7 @@
 
 It owns the visual layer: colors, spacing, fonts, icon paths, Awesome core
 theme keys, and theme-scoped values consumed by the bundled `lx*` modules. It
- also provides the per-screen wibar assembly used by the current desktop.
+also provides the per-screen wibar assembly used by the current desktop.
 
 ## Dependencies
 

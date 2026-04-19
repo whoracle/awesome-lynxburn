@@ -174,8 +174,7 @@ top-level [`SPEC.md`](./SPEC.md).
 ## Further Docs
 
 - [`SPEC.md`](./SPEC.md): top-level planned work
+- [`DEVELOPMENT.md`](./DEVELOPMENT.md): internal architecture and extension notes
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md): contribution scope and expectations
 - [`MIGRATE.md`](./MIGRATE.md): temporary migration notes
-- [`REFACTOR.md`](./REFACTOR.md): deferred cleanup notes, if still applicable
-
-Developer-oriented documentation such as internal architecture and extension
-workflows will live in `DEVELOPMENT.md`.
+- [`LICENSE.md`](./LICENSE.md): repository licensing and third-party notices
