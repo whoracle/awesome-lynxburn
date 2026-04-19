@@ -199,7 +199,6 @@ end
 
 local function collect_bluetooth_dependencies(grouped, commands)
     require_binary(grouped, "lxbluetooth", "bluetoothctl")
-    require_binary(grouped, "lxbluetooth", "bluetoothd")
     require_command(grouped, "lxbluetooth", commands.blueman_manager)
 end
 
