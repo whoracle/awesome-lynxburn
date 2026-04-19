@@ -1,4 +1,2 @@
 config.lua
 !config.example.lua
-config/override/*.lua
-!config/override/*.example.lua

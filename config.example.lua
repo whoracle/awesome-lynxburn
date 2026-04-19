@@ -36,6 +36,7 @@ return {
     -- },
     -- commands = {
     --     terminal = "alacritty",
+    --     browser = "firefox",
     --     launcher = "rofi -show drun",
     --     filebrowser = "xdg-open",
     --     autostart_once = {
@@ -51,11 +52,17 @@ return {
     --     lxbar = {
     --         popup_side = "right",
     --         order = {
+    --             "bluetooth",
     --             "network",
     --             "media",
     --             "notify",
+    --             "display",
+    --             "power",
     --         },
     --         modules = {
+    --             bluetooth = {
+    --                 -- cycle = false,
+    --             },
     --             network = {
     --                 -- cycle = false,
     --             },
@@ -109,6 +116,7 @@ return {
     --         },
     --     },
     -- },
+    -- Keep machine-specific app placement in local `config.lua`.
     -- keys = {
     --     open_terminal = {
     --         scope = "global",

@@ -40,6 +40,7 @@ M.settings = {
 
 M.commands = {
     terminal = "alacritty",
+    browser = "firefox",
     scrlocker = "i3lock -c 000000",
     scrotedit = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -e 'xdg-open $f'",
     scrotmouse = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -s",
