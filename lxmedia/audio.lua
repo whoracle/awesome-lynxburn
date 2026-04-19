@@ -112,23 +112,8 @@ local function get_source_volume_percent(name)
     return parse_first_percent(out)
 end
 
--- Read widget-facing default output volume and mute state, preferring `wpctl`
--- when available but falling back to `pactl`.
+-- Read widget-facing default output volume and mute state from `pactl`.
 local function get_volume_info()
-    if util.command_exists("wpctl") then
-        local out = util.read_command("wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null")
-        if out and out ~= "" then
-            local num = out:match("Volume:%s*([%d%.]+)")
-            local muted = out:match("%[MUTED%]") ~= nil
-            local volume = tonumber(num or "0") or 0
-            volume = math.max(0, math.min(1, volume))
-            return {
-                volume = volume,
-                muted = muted,
-            }
-        end
-    end
-
     local sink = get_default_sink()
     if not sink then
         return { volume = 0, muted = false }
@@ -158,19 +143,6 @@ local function get_input_volume_info()
         if not source.muted then
             all_muted = false
             break
-        end
-    end
-
-    if util.command_exists("wpctl") then
-        local out = util.read_command("wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null")
-        if out and out ~= "" then
-            local num = out:match("Volume:%s*([%d%.]+)")
-            local volume = tonumber(num or "0") or 0
-            volume = math.max(0, math.min(1, volume))
-            return {
-                volume = volume,
-                muted = all_muted,
-            }
         end
     end
 
@@ -314,13 +286,9 @@ end
 
 -- Toggle mute on the current default sink.
 function M.toggle_mute()
-    if util.command_exists("wpctl") then
-        awful.spawn("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle", false)
-    else
-        local sink = get_default_sink()
-        if sink then
-            awful.spawn("pactl set-sink-mute " .. util.shell_escape(sink) .. " toggle", false)
-        end
+    local sink = get_default_sink()
+    if sink then
+        awful.spawn("pactl set-sink-mute " .. util.shell_escape(sink) .. " toggle", false)
     end
 end
 
@@ -329,15 +297,6 @@ function M.change_volume(delta)
     local step = math.floor(math.abs(delta) * 100 + 0.5)
     if step < 1 then
         step = 1
-    end
-
-    if util.command_exists("wpctl") then
-        if delta >= 0 then
-            awful.spawn("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ " .. step .. "%+", false)
-        else
-            awful.spawn("wpctl set-volume @DEFAULT_AUDIO_SINK@ " .. step .. "%-", false)
-        end
-        return
     end
 
     local sink = get_default_sink()
@@ -401,15 +360,6 @@ function M.change_input_volume(delta)
     local step = math.floor(math.abs(delta) * 100 + 0.5)
     if step < 1 then
         step = 1
-    end
-
-    if util.command_exists("wpctl") then
-        if delta >= 0 then
-            awful.spawn("wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SOURCE@ " .. step .. "%+", false)
-        else
-            awful.spawn("wpctl set-volume @DEFAULT_AUDIO_SOURCE@ " .. step .. "%-", false)
-        end
-        return
     end
 
     local source = get_default_source()

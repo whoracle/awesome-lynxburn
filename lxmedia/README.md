@@ -35,21 +35,15 @@ Required runtime dependencies:
 
 - AwesomeWM with Lua support
 - `pactl`
-- Awesome libraries used by the widget: `awful`, `gears`, `wibox`, `beautiful`
-
-Optional but recommended:
-
-- `wpctl`
-  Used for default sink volume and mute control when available.
 - `playerctl`
-  Enables player discovery, metadata, artwork lookup, and transport controls in the media popup.
 - `pavucontrol`
-  Used by the "Open pavucontrol" action in the devices popup.
+- Awesome libraries used by the widget: `awful`, `gears`, `wibox`, `beautiful`
 
 Notes:
 
-- `pactl` is still required even if `wpctl` is available, because stream and device enumeration is built around `pactl`.
-- The widget can still render without `playerctl`, but media-player matching and transport controls will be unavailable.
+- `pactl` is used for compact-widget audio control plus popup stream/device enumeration.
+- `playerctl` is required for media-player discovery, metadata, artwork lookup, transport controls, and media-key integration through MPRIS players.
+- `pavucontrol` is required for the "Open pavucontrol" action in the devices popup.
 
 ## Installation
 
@@ -312,7 +306,7 @@ Fallbacks:
 ## Known Limitations And Edge Cases
 
 - AwesomeWM-only: this is not a general Lua library and expects the Awesome widget/runtime environment.
-- Linux audio stack assumptions: the implementation is built around `pactl`, with optional `wpctl` and `playerctl`.
+- Linux audio stack assumptions: the implementation is built around `pactl` for audio control and `playerctl` for MPRIS integration.
 - Stream-to-player matching is heuristic-based: browser tabs, unusual player names, sandboxed apps, and custom MPRIS names may not match the expected media player.
 - Artwork support is limited to `file://` art URLs exposed by `playerctl`. Remote URLs are ignored.
 - Mic activity is inferred from active source outputs, not actual input level, so the mic icon and mic volume bar are shown based on recording activity rather than live signal amplitude.
@@ -324,8 +318,6 @@ Fallbacks:
 - The widget both polls and subscribes. That keeps it responsive, but it can still momentarily lag behind fast external changes depending on backend timing.
 - Hover-close behavior depends on pointer geometry and popup anchoring. On unusual layouts or rapid mouse movement, the close timing may feel slightly aggressive or slightly delayed.
 - Keyboard-invoked popups should usually be shown with `hover_close = false`; otherwise they may close immediately if the pointer is already outside the popup.
-- If `pavucontrol` is not installed, the advanced action in the devices popup will fail silently from the widget’s perspective.
-
 ## File Overview
 
 - [init.lua](/home/anthrax/tmp/awesome/lxmedia/init.lua): constructor plus core volume/input actions
@@ -333,7 +325,7 @@ Fallbacks:
 - [media_popup_controller.lua](/home/anthrax/tmp/awesome/lxmedia/media_popup_controller.lua): media-popup selection, player transport, and keyboard actions
 - [popup_controller.lua](/home/anthrax/tmp/awesome/lxmedia/popup_controller.lua): popup show/toggle/close flow and hover-close handling
 - [widget.lua](/home/anthrax/tmp/awesome/lxmedia/widget.lua): compact bar widget and mouse bindings
-- [audio.lua](/home/anthrax/tmp/awesome/lxmedia/audio.lua): sink/source/stream inspection and control via `pactl` and `wpctl`
+- [audio.lua](/home/anthrax/tmp/awesome/lxmedia/audio.lua): sink/source/stream inspection and control via `pactl`
 - [media.lua](/home/anthrax/tmp/awesome/lxmedia/media.lua): MPRIS player lookup, metadata, artwork, and transport control via `playerctl`
 - [popup_media.lua](/home/anthrax/tmp/awesome/lxmedia/popup_media.lua): playback streams popup
 - [popup_devices.lua](/home/anthrax/tmp/awesome/lxmedia/popup_devices.lua): device selection popup

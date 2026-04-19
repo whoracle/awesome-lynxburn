@@ -186,7 +186,6 @@ local function collect_media_dependencies(grouped)
     require_binary(grouped, "lxmedia", "pactl")
     require_binary(grouped, "lxmedia", "playerctl")
     require_binary(grouped, "lxmedia", "pavucontrol")
-    require_binary(grouped, "lxmedia", "wpctl")
 end
 
 local function collect_bluetooth_dependencies(grouped, commands)
