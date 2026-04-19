@@ -74,10 +74,6 @@ Examples of what counts here:
 - `lxbar` being able to host selected non-`lx*` widgets cleanly later on
 - later migration of remaining `lain` widget use into repo-owned widget/module
   surfaces where that still makes sense
-- shared visual polish such as smoother/delayed compact bar behavior across
-  modules like `lxmedia` and `lxdisplay`
-- dependency pre-flight checks with graceful fallback and user-visible failure
-  handling where that improves startup/runtime behavior
 
 Module-local features should stay in module `SPEC.md` files instead.
 
