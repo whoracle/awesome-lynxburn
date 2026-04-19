@@ -4,7 +4,7 @@ local gears = require("gears")
 local wibox = require("wibox")
 local keygrabber = require("awful.keygrabber")
 
-local util = require("lxmedia.util")
+local util = require("lxcommon.util")
 
 local password_prompt = {}
 

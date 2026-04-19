@@ -1,6 +1,6 @@
 local awful = require("awful")
 local gears = require("gears")
-local util = require("lxmedia.util")
+local util = require("lxcommon.util")
 
 local M = {}
 local subscription_pid = nil

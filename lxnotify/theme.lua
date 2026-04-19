@@ -2,7 +2,7 @@ local awful = require("awful")
 local beautiful = require("beautiful")
 
 local popup = require("lxnotify.popup")
-local util = require("lxnotify.util")
+local util = require("lxcommon.util")
 
 local theme = {}
 

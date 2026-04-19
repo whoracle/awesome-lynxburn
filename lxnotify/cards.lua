@@ -4,7 +4,7 @@ local gears = require("gears")
 local wibox = require("wibox")
 
 local actions = require("lxnotify.actions")
-local util = require("lxnotify.util")
+local util = require("lxcommon.util")
 
 local cards = {}
 

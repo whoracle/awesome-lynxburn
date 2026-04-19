@@ -243,7 +243,7 @@ function M.build(instance)
     })
     instance._feedback_widget = shell
 
-    require("lxmedia.popup_common").attach_button_feedback(shell, {
+    require("lxcommon.popup_ui").attach_button_feedback(shell, {
         idle_bg = nil,
         hover_bg = beautiful.lxmedia_bg_hover or beautiful.bg_focus or "#444444",
         press_bg = beautiful.lxmedia_button_hover or beautiful.bg_focus or "#666666",

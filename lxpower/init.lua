@@ -3,7 +3,7 @@ local beautiful = require("beautiful")
 local gears = require("gears")
 local wibox = require("wibox")
 
-local popup_common = require("lxmedia.popup_common")
+local popup_ui = require("lxcommon.popup_ui")
 local controller = require("lxpower.controller")
 local popup = require("lxpower.popup")
 local state = require("lxpower.state")
@@ -108,7 +108,7 @@ function M.new(opts)
         widget = wibox.container.background,
     })
 
-    popup_common.attach_button_feedback(self.widget, {
+    popup_ui.attach_button_feedback(self.widget, {
         idle_bg = nil,
         hover_bg = self:_theme_value("lxpower_widget_hover_bg", beautiful.bg_focus or "#444444"),
         press_bg = self:_theme_value("lxpower_widget_press_bg", self:_theme_value("lxpower_button_hover", beautiful.bg_focus or "#666666")),

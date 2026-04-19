@@ -2,7 +2,7 @@ local awful = require("awful")
 local gears = require("gears")
 local wibox = require("wibox")
 
-local util = require("lxnotify.util")
+local screen_util = require("lxcommon.screen")
 local popup_placement = require("lxcommon.popup_placement")
 
 local popup = {}
@@ -216,7 +216,7 @@ function popup.ensure(instance, target_screen)
 end
 
 function popup.show(instance, anchor)
-    local target_screen = util.resolve_screen(anchor)
+    local target_screen = screen_util.resolve_screen(anchor)
     local popup_widget = popup.ensure(instance, target_screen)
 
     apply_geometry(instance, popup_widget, target_screen)

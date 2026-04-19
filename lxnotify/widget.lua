@@ -26,7 +26,7 @@ function widget.new(instance)
         widget = wibox.container.background,
     })
 
-    require("lxnotify.util").attach_hover_background(
+    require("lxcommon.util").attach_hover_background(
         container,
         nil,
         beautiful.lxnotify_widget_hover_bg or beautiful.lxnotify_card_hover_bg or beautiful.bg_focus or "#444444",

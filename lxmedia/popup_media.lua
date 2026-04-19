@@ -3,7 +3,7 @@ local gears = require("gears")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local gears_surface = require("gears.surface")
-local common = require("lxmedia.popup_common")
+local common = require("lxcommon.popup_shell")
 
 local M = {}
 

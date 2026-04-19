@@ -8,8 +8,8 @@ local config_data = require("config.config_data")
 local popup_control = require("lxcommon.popup_control")
 local popup_common = require("lxcommon.popup_ui")
 local widget_feedback = require("lxcommon.widget_feedback")
-local util = require("lxmedia.util")
-local notify_util = require("lxnotify.util")
+local util = require("lxcommon.util")
+local screen_util = require("lxcommon.screen")
 local popup_placement = require("lxcommon.popup_placement")
 
 local M = {}
@@ -90,7 +90,7 @@ local function sort_devices(a, b)
 end
 
 local function apply_popup_geometry(instance, popup_widget, anchor)
-    local target_screen = notify_util.resolve_screen(anchor)
+    local target_screen = screen_util.resolve_screen(anchor)
     popup_placement.apply(
         popup_widget,
         target_screen,

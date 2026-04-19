@@ -1,6 +1,6 @@
 local wibox = require("wibox")
 local beautiful = require("beautiful")
-local common = require("lxmedia.popup_common")
+local common = require("lxcommon.popup_shell")
 
 local M = {}
 

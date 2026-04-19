@@ -18,9 +18,9 @@ Internal:
 - `lxcommon.popup_control`
 - `lxcommon.popup_placement`
 - `lxcommon.popup_ui`
+- `lxcommon.screen`
+- `lxcommon.util`
 - `lxcommon.widget_feedback`
-- `lxmedia.util`
-- `lxnotify.util`
 
 ## Features
 

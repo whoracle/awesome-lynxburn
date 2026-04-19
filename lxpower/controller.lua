@@ -1,5 +1,5 @@
 local popup_control = require("lxcommon.popup_control")
-local popup_common = require("lxmedia.popup_common")
+local popup_shell = require("lxcommon.popup_shell")
 local popup_placement = require("lxcommon.popup_placement")
 local widget_feedback = require("lxcommon.widget_feedback")
 
@@ -135,7 +135,7 @@ function controller.extend(instance_methods)
         self._popup_on_cycle_prev = opts.on_cycle_prev
         self._popup_on_cycle_next = opts.on_cycle_next
 
-        local visible = popup_common.toggle_popup(self, "_popup", "_popup_anchor", anchor, function()
+        local visible = popup_shell.toggle_popup(self, "_popup", "_popup_anchor", anchor, function()
             return self:_build_popup()
         end)
 
