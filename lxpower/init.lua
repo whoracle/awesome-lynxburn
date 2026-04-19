@@ -5,7 +5,8 @@ local wibox = require("wibox")
 local keygrabber = require("awful.keygrabber")
 
 local popup_control = require("lxcommon.popup_control")
-local popup_common = require("lxcommon.popup_ui")
+local popup_ui = require("lxcommon.popup_ui")
+local popup_common = require("lxmedia.popup_common")
 local widget_feedback = require("lxcommon.widget_feedback")
 local util = require("lxmedia.util")
 local popup_placement = require("lxcommon.popup_placement")
@@ -382,7 +383,7 @@ function M:_build_popup()
             label = self:_theme_value("lxpower_icon_pinned", "") .. " " .. label
         end
 
-        list:add(popup_common.make_selectable_click_row(label, function()
+        list:add(popup_ui.make_selectable_click_row(label, function()
             self:set_profile(profile_name)
         end, {
             selected = selected,
