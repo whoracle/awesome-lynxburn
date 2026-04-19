@@ -7,6 +7,27 @@ are linked below.
 
 ## Still Wanted
 
+### Next Session Priority Order
+
+Use this order for the next fresh session unless new bugs force a reprioritization:
+
+1. `lxbar` spacing/composition polish
+2. `themes/lynxburn` split / asset pruning / further ownership cleanup
+3. `lxdisplay` xrandr / display-profile handling
+4. future systray / non-`lx*` widget hosting in `lxbar`
+5. `lxnotify` browser/web-app action hardening
+
+Rationale:
+
+- `lxbar` polish is useful and visible, but still lower risk than larger
+  feature work
+- theme cleanup is mostly structural cleanup and later-stage polish
+- `lxdisplay` is useful QoL, but broader and more disruptive to test
+- systray/non-`lx*` hosting stays late because it is still underspecified and
+  likely to churn config surface
+- `lxnotify` hardening is intentionally deferred until after more daily-driver
+  time confirms whether it is a real problem
+
 ### Final Public Defaults Pass
 
 Finish separating public defaults from local/personal values cleanly.
@@ -24,23 +45,6 @@ Why this is top-level:
 - it affects the entire user-facing config model
 - it touches defaults, examples, documentation, and migration guidance together
 
-### Repository Scaffolding
-
-Add the lightweight repository scaffolding needed for more disciplined future
-work.
-
-Current likely scope:
-
-- `editorconfig`
-- `pre-commit`
-- commit-message tooling if it still feels worth the added friction
-- a top-level `CHANGELOG` once the scaffolding around change tracking is in
-  place
-
-Why this is top-level:
-
-- it affects the repository workflow rather than one module
-
 ### Documentation And Policy Polish
 
 Add any remaining repo-wide policy/documentation notices that should exist once
@@ -50,7 +54,6 @@ Current candidate:
 
 - an explicit AI-use disclaimer in the top-level docs if it still feels useful
   after the current documentation cleanup
-- a future `CHANGELOG` policy once release/versioning expectations are clearer
 
 Why this is top-level:
 
