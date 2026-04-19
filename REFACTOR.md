@@ -13,4 +13,12 @@ interrupt current feature work.
   Why: runtime no longer uses it, but the directory may still deserve cleanup or
   replacement once the documentation story is final
 
-- remove unused definitions from defaults.lua - e.g. conky
+- scan defaults/example/local config for unused definitions and remove them
+  later
+  Why: several config fields no longer have runtime consumers, for example
+  `conky`, and should be cleaned out during the final refactor pass
+
+- remove needless helper locals such as `imageviewer` / `imageeditor` wiring in
+  config defaults where literal values are enough
+  Why: some of that scaffolding is now just leftover indirection rather than
+  useful structure

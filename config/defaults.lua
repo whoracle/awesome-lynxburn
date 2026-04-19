@@ -2,8 +2,6 @@ local os = os
 local M = {}
 local default_keys = require("config.default_keys")
 
-local home = os.getenv("HOME")
-
 M.theme = {
     name = "lynxburn",
 }
@@ -42,24 +40,11 @@ M.settings = {
 
 M.commands = {
     terminal = "alacritty",
-    browser = "firefox",
-    gui_editor = "gedit",
-    imageeditor = "gimp",
-    imageviewer = "xdg-open",
-    numlock = "numlockx",
     scrlocker = "i3lock -c 000000",
     scrotedit = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -e 'xdg-open $f'",
     scrotmouse = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -s",
     scrotwin = "sleep 0.5 && scrot ~/screenshots/%y%m%d_%H%M%S.png -ue 'xdg-open $f'",
-    xrandr = "xrandr",
-    conky = "conky",
-    nmapplet = "nm-applet --sm-disable",
-    blueman = "blueman-applet",
     blueman_manager = "blueman-manager",
-    network_manager = "nm-connection-editor",
-    pulse = "pasystray",
-    nextcloud = "nextcloud",
-    screendrawer = "gromit-mpx",
     launcher = "rofi -show drun",
     filebrowser = "xdg-open",
     lain = {
