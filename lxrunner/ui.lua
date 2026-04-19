@@ -43,33 +43,11 @@ local function alias_decoration(instance, alias_name)
 end
 
 ---Build one result row with optional image or glyph decoration.
-local function format_history_timestamp(timestamp)
-    local ts = tonumber(timestamp)
-    if not ts or ts <= 0 then
-        return ""
-    end
-
-    local now = os.time()
-    local current = os.date("*t", now)
-    local previous = os.date("*t", ts)
-
-    if current and previous
-        and current.year == previous.year
-        and current.yday == previous.yday then
-        return "[" .. os.date("%H:%M", ts) .. "]"
-    end
-
-    return "[" .. os.date("%Y-%m-%d", ts) .. "]"
-end
-
-local function build_row(text, selected, decoration, metadata)
+local function build_row(text, selected, decoration)
     local fg = selected
         and (beautiful.lxrunner_row_selected_fg or beautiful.fg_focus or "#ffffff")
         or (beautiful.lxrunner_row_fg or beautiful.fg_normal or "#bbbbbb")
     local icon_size = beautiful.lxrunner_icon_size or 14
-    local metadata_fg = selected
-        and (beautiful.lxrunner_row_meta_selected_fg or beautiful.lxrunner_row_selected_fg or fg)
-        or (beautiful.lxrunner_row_meta_fg or beautiful.lxrunner_row_fg or fg)
 
     local icon_widget
     if decoration and decoration.icon then
@@ -103,60 +81,25 @@ local function build_row(text, selected, decoration, metadata)
         })
     end
 
-    local label_widget = wibox.widget({
-        text = text,
-        align = "left",
-        valign = "center",
-        font = beautiful.lxrunner_row_font or beautiful.font,
-        widget = wibox.widget.textbox,
-    })
-
-    local metadata_widget = wibox.widget({
-        markup = string.format(
-            '<span foreground="%s">%s</span>',
-            metadata_fg,
-            gears.string.xml_escape(metadata or "")
-        ),
-        align = "right",
-        valign = "center",
-        font = beautiful.lxrunner_row_meta_font or beautiful.lxrunner_row_font or beautiful.font,
-        widget = wibox.widget.textbox,
-    })
-
-    local content_widget
-    if metadata and metadata ~= "" then
-        content_widget = wibox.widget({
-            {
-                icon_widget,
-                label_widget,
-                spacing = beautiful.lxrunner_icon_text_spacing or 8,
-                layout = wibox.layout.fixed.horizontal,
-            },
-            metadata_widget,
-            expand = "inside",
-            spacing = beautiful.lxrunner_row_meta_spacing or 12,
-            layout = wibox.layout.align.horizontal,
-        })
-    else
-        content_widget = wibox.widget({
-            icon_widget,
-            label_widget,
-            spacing = beautiful.lxrunner_icon_text_spacing or 8,
-            layout = wibox.layout.fixed.horizontal,
-        })
-    end
-
     return wibox.widget({
         {
+            icon_widget,
             {
-                content_widget,
-                widget = wibox.container.place,
+                {
+                    text = text,
+                    align = "left",
+                    valign = "center",
+                    font = beautiful.lxrunner_row_font or beautiful.font,
+                    widget = wibox.widget.textbox,
+                },
+                left = beautiful.lxrunner_icon_text_spacing or 8,
+                widget = wibox.container.margin,
             },
             left = beautiful.lxrunner_row_padding or 10,
             right = beautiful.lxrunner_row_padding or 10,
             top = 4,
             bottom = 4,
-            widget = wibox.container.margin,
+            layout = wibox.layout.fixed.horizontal,
         },
         bg = selected
             and (beautiful.lxrunner_row_selected_bg or beautiful.bg_focus or "#444444")
@@ -240,12 +183,7 @@ function M.extend(instance_methods)
             for i = 1, self.opts.row_count do
                 local entry = self._history[i]
                 if entry then
-                    self._results:add(build_row(
-                        entry.name,
-                        i == self._selected_index,
-                        self:_decoration_for_entry(entry),
-                        format_history_timestamp(entry.last_used)
-                    ))
+                    self._results:add(build_row(entry.name, i == self._selected_index, self:_decoration_for_entry(entry)))
                 else
                     self._results:add(build_row("", false))
                 end
