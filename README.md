@@ -1,277 +1,180 @@
-# AwesomeWM Configuration
+# LynxBurn AwesomeWM Config
 
-This repository contains a refactored AwesomeWM configuration centered around a
-small `config/` layer and a single theme directory. Third-party modules live in
-their own folders and are treated as vendored code.
+This repository contains an AwesomeWM configuration centered around a small
+top-level config surface, a bundled `lynxburn` theme, and a set of local
+`lx*` modules for the bar, popups, notifications, media, networking, power,
+display control, and launcher behavior.
 
-## Maintenance Boundary
+It is meant to be usable as a real daily-driver config, but it is still a
+personal config first rather than a polished general-purpose distribution.
 
-Files you are expected to edit directly:
+## What To Expect
 
-- `rc.lua`
-- `config/*.lua`
-- `themes/lynxburn2/theme.lua`
-- `themes/lynxburn2/widgets.lua`
+- this repo is actively shaped around one real desktop setup
+- the config surface is intended to be reusable, but ongoing refactors and
+  feature work can still move things around
+- focused bug reports and targeted improvements are welcome
+- larger feature ideas should be discussed before implementation
+- there is no stability guarantee or support SLA
 
-Vendored / external code you generally should not edit here:
+## Dependencies
 
-- `lain/`
-- `freedesktop/`
-- `lxaudio/`
-- `lxnotify/`
-- `lxrunner/`
-- `lxdisplay/`
+Core runtime:
 
-The `lx*` directories are local modules with their own ownership boundary and
-are intended to become submodules later.
+- AwesomeWM
+- the Lua libraries shipped with AwesomeWM, including `awful`, `beautiful`,
+  `gears`, `naughty`, and `wibox`
+- `lain`
 
-## Layout
+Common external commands used by the current config:
 
-### Top Level
-
-- `rc.lua`
-  Bootstraps Awesome, loads the theme, instantiates shared services, and wires
-  together layouts, keys, rules, signals, and screens.
-
-- `config/`
-  Main maintainable configuration split by responsibility.
-
-- `themes/lynxburn2/theme.lua`
-  Theme values: colors, fonts, icon paths, widget settings, popup sizing, and
-  per-module theme knobs.
-
-- `themes/lynxburn2/widgets.lua`
-  Wibar construction and theme-local widget composition.
-
-### `config/`
-
-- `init.lua`
-  Aggregates the config modules behind `require("config")`.
-
-- `settings.lua`
-  Static user preferences such as mod keys, monitor mapping, workspace names,
-  and theme selection.
-
-- `programs.lua`
-  External command definitions and runtime command configuration. This is the
-  first place to look when changing launchers, screenshot commands, brightness,
-  or Redshift behavior.
-
-- `helpers.lua`
-  Small shared helpers such as startup error handling and run-once autostart.
-
-- `layouts.lua`
-  Layout list and Quake terminal setup.
-
-- `keys.lua`
-  Global and client keybindings. Most user interaction changes belong here.
-
-- `mouse.lua`
-  Root, taglist, tasklist, and client mouse bindings.
-
-- `rules.lua`
-  Application placement and behavior rules.
-
-- `signals.lua`
-  Client lifecycle signals, titlebar setup, and border behavior.
-
-- `screens.lua`
-  Per-screen initialization, wallpaper handling, layout defaults, and DPI.
-
-- `services.lua`
-  Shared singleton instances for `lxaudio`, `lxnotify`, `lxrunner`, and
-  `lxdisplay`.
-
-- `override/*.example.lua`
-  Templates for local machine-specific overrides that should not be committed.
-
-- `osd.lua`
-  Generic text-only OSD helpers that are still owned by the main config. Volume
-  and brightness OSD ownership now lives in `lxaudio` and `lxdisplay`
-  respectively.
-
-## Startup Flow
-
-The high-level startup order is:
-
-1. `rc.lua` loads `config`
-2. startup error handling is installed
-3. the selected theme is loaded with `beautiful.init(...)`
-4. long-lived service instances are created
-5. layouts, keybindings, mouse bindings, rules, signals, and screens are wired
-6. `autostart_once` commands are launched via `run_once`
-7. plain `autostart` commands are spawned every startup
-
-This split is intentional:
-
-- theme values live in `theme.lua`
-- wibar structure lives in `widgets.lua`
-- service/module ownership lives in `config/services.lua`
-- user-editable behavior lives in `config/*.lua`
-
-## Local Overrides
-
-Machine-specific changes can live in `config/override/*.lua` instead of
-changing the tracked defaults.
-
-Supported override files:
-
-- `config/override/settings.lua`
-- `config/override/programs.lua`
-- `config/override/theme.lua`
-- `config/override/screens.lua`
-- `config/override/keys.lua`
-- `config/override/lxrunner_aliases.lua`
-
-These files are git-ignored. The tracked `*.example.lua` files in the same
-directory show the expected structure.
-
-Override precedence is always:
-
-1. tracked default
-2. local override
-
-What each override is for:
-
-- `settings.lua`: modifier keys, monitor indices, workspace names, theme name
-- `programs.lua`: terminal/browser/launcher commands, autostart, Redshift
-- `theme.lua`: colors, wallpaper, theme-local module sizing and styling
-- `screens.lua`: per-monitor default layout and DPI
-- `keys.lua`: override named key specs or disable bindings
-- `lxrunner_aliases.lua`: override or add lxrunner aliases by alias name
-
-## Theme Split
-
-The theme directory is deliberately split into:
-
-- `theme.lua`
-  Pure theme/config data
-
-- `widgets.lua`
-  Actual widget composition for the wibar and screen setup
-
-If you want to:
-
-- change colors, fonts, icon paths, widget sizing, or module-specific theme
-  values: edit `theme.lua`
-- reorder widgets on the bar or change their wrapping/composition: edit
-  `widgets.lua`
-
-## External Dependencies
-
-### Core Runtime
-
-Required to run this config at all:
-
-- `awesome`
-- Lua libraries shipped with Awesome (`awful`, `gears`, `wibox`, `naughty`)
-- the vendored module directories in this repo
-
-### Common External Commands Used By This Config
-
-Used directly by the current maintainable config:
-
-- `urxvt`
-- `thunar`
-- `vivaldi-stable`
 - `playerctl`
-- `xbacklight`
+- `xbacklight` or an equivalent brightness backend if you override it
 - `xset`
-- `redshift`
-- `i3lock`
+- `xrandr`
 - `scrot`
-- `secret-tool`
-- `numlockx`
+- `secret-tool` if you use the current IMAP password lookup flow
 
-Also referenced in program definitions or optional autostart commands:
+Common desktop programs referenced by the defaults:
 
-- `gimp`
-- `sxiv`
-- `conky`
-- `nm-applet`
-- `blueman-applet`
-- `pasystray`
-- `nextcloud`
-- `gromit-mpx`
+- a terminal emulator
+- a file browser
+- a browser
+- optional applets or tray tools such as network, Bluetooth, audio, or sync
+  applets if you add them to your own setup
 
-### Mail Password Lookup
+This README intentionally does not include distro-specific installation steps
+yet.
 
-The IMAP password is not stored in Lua code. It is fetched through
-`secret-tool` from GNOME Keyring.
+## Quickstart
 
-Current lookup used by the theme widget:
+The user-facing config entrypoint is top-level `config.lua`.
 
-```sh
-secret-tool lookup service awesomewm-imap account anthrax@lynxcore.org
+1. Copy `config.example.lua` to `config.lua`.
+2. Adjust `commands` so the config points at programs that actually exist on
+   your system.
+3. Adjust `screens` so monitor indices, tag names, and per-tag layouts match
+   your setup.
+4. Adjust `lxmodules` to choose bar order, popup cycling participation, and
+   module-specific behavior.
+5. Adjust `theme` only for appearance-related overrides.
+
+Minimal example:
+
+```lua
+theme = {
+    wallpaper = os.getenv("HOME") .. "/.wallpaper",
+}
+
+commands = {
+    terminal = "alacritty",
+    filebrowser = "thunar",
+    browser = "firefox",
+}
+
+screens = {
+    tag_order = { "primary", "secondary", "tertiary" },
+    tag_defaults = {
+        primary = {
+            layout = "fair.horizontal",
+            layouts = { "fair.horizontal", "centerwork.horizontal", "floating" },
+        },
+        secondary = {
+            layout = "centerwork",
+            layouts = { "centerwork", "fair", "floating" },
+        },
+        tertiary = {
+            layout = "floating",
+            layouts = { "floating" },
+        },
+    },
+    center = {
+        dpi = 96,
+    },
+}
+
+lxmodules = {
+    lxbar = {
+        order = { "bluetooth", "network", "media", "notify", "display", "power" },
+        popup_side = "right",
+        modules = {
+            bluetooth = { cycle = false },
+        },
+    },
+    lxrunner = {
+        width = 640,
+        row_count = 10,
+    },
+}
 ```
 
-To store or update it:
+## Configuration Model
 
-```sh
-secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account anthrax@lynxcore.org
-```
+The current config layers are:
 
-## Notable Module Ownership
+- `config/defaults.lua`
+  Repository defaults
+- `config.example.lua`
+  Tracked example override file
+- `config.lua`
+  Your local machine-specific overrides
 
-### `lxaudio`
+The main top-level sections are:
 
-- owns the audio widget
-- owns volume and mute OSD
-- keyboard volume calls request OSD explicitly
+- `commands`
+- `keys`
+- `lxmodules`
+- `rules`
+- `screens`
+- `settings`
+- `theme`
 
-### `lxdisplay`
+General ownership rules:
 
-- owns the display widget
-- owns brightness OSD
-- scroll brightness changes do not show OSD by default
-- keyboard brightness changes do request OSD explicitly
-- owns Redshift control plumbing
+- put program/backend choices under `commands`
+- put user keybinding overrides under `keys`
+- put bar order and popup-cycle participation under `lxmodules.lxbar`
+- put module behavior under `lxmodules.<module>`
+- put monitor, tag, and layout config under `screens`
+- put appearance overrides under `theme`
 
-### `lxnotify`
+## Modules And Theme
 
-- owns notification aggregation and popup behavior
+Module-specific usage and configuration details live in their own READMEs.
 
-### `lxrunner`
+Core shared pieces:
 
-- owns the program launcher, alias handling, history, and runner UI
+- [`lxcommon`](./lxcommon/README.md)
+- [`lxbar`](./lxbar/README.md)
 
-## Common Edit Locations
+Modules:
 
-If you want to change:
+- [`lxmedia`](./lxmedia/README.md)
+- [`lxnotify`](./lxnotify/README.md)
+- [`lxnetwork`](./lxnetwork/README.md)
+- [`lxbluetooth`](./lxbluetooth/README.md)
+- [`lxpower`](./lxpower/README.md)
+- [`lxdisplay`](./lxdisplay/README.md)
+- [`lxrunner`](./lxrunner/README.md)
 
-- keybindings: `config/keys.lua`
-- app commands and tool paths: `config/programs.lua`
-- monitor mapping / workspace names / modifier keys: `config/settings.lua`
-- client placement rules: `config/rules.lua`
-- screen-specific DPI and default layouts: `config/screens.lua`
-- wibar order/layout: `themes/lynxburn2/widgets.lua`
-- colors, glyphs, popup sizes, per-widget theme settings: `themes/lynxburn2/theme.lua`
+Theme:
 
-## Installation / Local Testing
+- [`lynxburn`](./themes/lynxburn/README.md)
 
-Typical local testing flow during refactors:
+Planned work lives in the corresponding module/theme SPEC files plus the
+top-level [`SPEC.md`](./SPEC.md).
 
-1. edit this repo in `~/tmp/awesome`
-2. replace the live config with it
-3. reload Awesome
+## Screenshots
 
-Example:
+- `[placeholder] full desktop overview`
+- `[placeholder] lxbar and compact widget row`
+- `[placeholder] popup stack and cycling flow`
+- `[placeholder] lxrunner`
 
-```sh
-rm -rf ~/.config/awesome
-cp -r ~/tmp/awesome ~/.config/awesome
-awesome-client 'awesome.restart()'
-```
+## Further Docs
 
-If you prefer a safer copy step, replace the `rm -rf` with your own sync
-workflow.
-
-## Notes
-
-- This repo was intentionally modularized only far enough to make maintenance
-  reasonable. It is not trying to become a framework.
-- The `config` aggregator exists so `rc.lua` can use `local config =
-  require("config")` and then address modules as `config.keys`,
-  `config.programs`, and so on.
-- Some legacy commands and optional tools remain in `programs.lua` even if they
-  are not always enabled in autostart.
+- [`SPEC.md`](./SPEC.md): top-level planned work
+- [`DEVELOPMENT.md`](./DEVELOPMENT.md): internal architecture and extension notes
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md): contribution scope and expectations
+- [`MIGRATE.md`](./MIGRATE.md): temporary migration notes
+- [`LICENSE.md`](./LICENSE.md): repository licensing and third-party notices

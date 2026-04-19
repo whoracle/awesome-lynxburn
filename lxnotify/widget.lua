@@ -17,14 +17,21 @@ function widget.new(instance)
     local container = wibox.widget({
         {
             text_widget,
-            left = 8,
-            right = 8,
+            left = 2,
+            right = 2,
             top = 2,
             bottom = 2,
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,
     })
+
+    require("lxcommon.util").attach_hover_background(
+        container,
+        nil,
+        beautiful.lxnotify_widget_hover_bg or beautiful.lxnotify_card_hover_bg or beautiful.bg_focus or "#444444",
+        beautiful.lxnotify_widget_press_bg or beautiful.lxnotify_button_hover or beautiful.bg_focus or "#666666"
+    )
 
     container:buttons(gears.table.join(
         awful.button({}, 1, function()
@@ -34,6 +41,7 @@ function widget.new(instance)
             instance:toggle_daemon_pause()
         end),
         awful.button({}, 3, function()
+            instance:close_popups()
             instance:dismiss_all()
         end)
     ))

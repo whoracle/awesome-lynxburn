@@ -36,12 +36,6 @@ function actions.invoke(notification)
         return false
     end
 
-    local actions_list = notification.actions
-    if type(actions_list) == "table" and actions_list[1] and type(actions_list[1].invoke) == "function" then
-        actions_list[1]:invoke(notification)
-        return true
-    end
-
     if type(notification.get_clients) == "function" then
         local ok, clients = pcall(notification.get_clients, notification)
         if ok and type(clients) == "table" then
@@ -62,6 +56,12 @@ function actions.invoke(notification)
         local private = rawget(notification, "_private")
         local args = private and private.args or {}
         notification.callback(args)
+        return true
+    end
+
+    local actions_list = notification.actions
+    if type(actions_list) == "table" and actions_list[1] and type(actions_list[1].invoke) == "function" then
+        actions_list[1]:invoke(notification)
         return true
     end
 

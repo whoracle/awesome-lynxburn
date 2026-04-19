@@ -1,162 +1,103 @@
-# Desktop QoL Additions
+# Top-Level Roadmap
 
-This file records likely future `lx*` additions that would make the config feel
-more like a compact full desktop environment without drifting into a large,
-general-purpose settings shell.
+This file tracks only repo-wide planned work.
 
-The goal is not to clone KDE or GNOME feature-for-feature. The goal is to add
-small, high-value modules that fit the existing style:
+Module-specific and theme-specific plans belong in their own `SPEC.md` files and
+are linked below.
 
-- compact wibar widget
-- popup for real interaction
-- keyboard mode only where it clearly helps
-- integrated replacements for tray applets where that improves daily use
+## Still Wanted
 
-## Implemented
+### Final Public Defaults Pass
 
-These modules were implemented and are no longer tracked here as future work:
+Finish separating public defaults from local/personal values cleanly.
 
-- `lxbluetooth`
-- `lxnetwork`
-- `lxpowerprofiles`
+This still includes:
 
-## Explicit Non-Priorities
+- making `config/defaults.lua` read like sane shipped defaults rather than a
+  personal machine config
+- keeping `config.example.lua` as an example/override file rather than a second
+  defaults file
+- preserving top-level `config.lua` as gitignored local machine state
 
-These ideas were considered and rejected or deferred for now.
+Why this is top-level:
 
-### `lxscreenshot`
+- it affects the entire user-facing config model
+- it touches defaults, examples, documentation, and migration guidance together
 
-Existing screenshot tooling is already sufficient.
+### Final Documentation Pass
 
-### `lxclipboard`
+Finish the repository-wide docs so they match the current code shape.
 
-Not useful for the current workflow.
+This includes:
 
-### `lxmount`
+- top-level docs staying aligned with the current config/bootstrap flow
+- module and theme docs staying aligned with the current split files
+- removing stale historical wording from user-facing documentation
 
-Debatable, but not currently justified.
+Why this is top-level:
 
-Rationale:
+- it affects the full repo rather than one module
 
-- USB media is rarely inserted without immediately doing file-manager work.
-- Thunar already covers the relevant interaction well enough.
-- Existing "safe to unplug" notifications are sufficient.
+### Remaining Cross-Module Feature Work
 
-This can be revisited later, but it is not a priority now.
+Continue feature work only where the work clearly spans multiple modules or the
+top-level config shape.
 
-## Later Candidates
+Examples of what counts here:
 
-These are valid future ideas, but not current priorities.
+- features that require changes in both a module and shared popup/bar behavior
+- features that change the user-facing config surface across multiple areas
+- features that require coordinated updates in modules, theme, and top-level
+  docs
 
-### `lxcloud`
+Module-local features should stay in module `SPEC.md` files instead.
 
-Potential long-term candidate as a replacement for sync tray applets such as
-Nextcloud, with possible extension to other backends like Seafile later.
+### Final Repo-Wide Cleanup / Refactor Pass
 
-Potential scope:
+Do one later cleanup pass after the current feature set is in place.
 
-- sync state
-- account status
-- pause/resume sync
-- recent conflicts or errors
-- quick open of synced folders
+This pass should focus on:
 
-Design note:
+- removing stale glue and dead compatibility leftovers
+- pruning unused definitions in defaults/examples where they survived earlier
+  refactors
+- tightening module/config/theme boundaries if feature work exposed new drift
 
-- if this is ever built, start with one real backend first, most likely
-  Nextcloud
-- only introduce a generalized backend abstraction after the useful state and
-  actions are proven in practice
+Why this is top-level:
 
-## Product Direction
+- it is about the final shape of the repo as a whole, not one module
 
-For future `lx*` modules, prefer:
+## Explicit Non-Goals For Now
 
-- replacements for tray applets or fragmented workflows
-- modules with a clear daily-use interaction loop
-- modules that benefit from consistent popup behavior and theming
+- no generic plugin framework
+  Why: this repo is still a concrete Awesome config with local modules, not a
+  framework for arbitrary third-party extensions
 
-Avoid:
+- no broad settings-center or desktop-environment shell
+  Why: the intended direction is still compact Awesome-native modules, not a
+  larger control-center project
 
-- large settings-center style modules
-- low-value informational widgets
-- features that duplicate existing tools without improving the workflow
+- no distro-specific one-stop installation guide yet
+  Why: dependency and packaging guidance can come later, but it should not
+  distort the current documentation pass
 
-## Cleanup Notes
+## Module And Theme SPECs
 
-- Current MVP work reuses [lxaudio/popup_common.lua](/home/anthrax/tmp/awesome/lxaudio/popup_common.lua:1)
-  from non-audio modules.
-- That is acceptable for now to keep momentum, but it should not stay that way.
-- Follow-up options:
-  - duplicate the small shared popup helpers into each module if the overlap
-    stays tiny
-  - or extract them into a neutral `lxcommon` module if the shared surface keeps
-    growing
-- Preferred long-term direction: no direct inter-module dependency such as
-  `lxnetwork -> lxaudio` or `lxbluetooth -> lxaudio` just for popup helpers.
-- `lxnetwork` currently renders Wi-Fi generation hints as plain text suffixes
-  such as `[WiFi 6]` when multiple meaningful variants of the same SSID are
-  shown.
-- Follow-up: replace that plain suffix with a small styled tag/badge once the
-  network popup visuals are stabilized.
-- Future `lxcommon` should also own popup coordination so only one `lx*` popup
-  can be open at a time.
-- Preferred shape:
-  - each active module registers its popup handle(s) during init
-  - each handle exposes at least a stable `close()` callback and ideally an
-    `is_visible()` callback
-  - popup-open paths notify the shared manager before showing
-  - popup-close paths notify the shared manager when hidden
-- This should cover both single-popup modules and modules with multiple named
-  popups such as `lxaudio`.
-- `config/keys.lua` should eventually stop calling popup methods on individual
-  modules directly.
-- Preferred direction: keys trigger `lxcommon` popup-manager actions, and the
-  manager dispatches popup spawning/opening to the registered module popup
-  handles.
-- Optional later layer on top of that: an `lxpopup` controller that cycles
-  through registered popups with one shared keybind.
-- Proposed behavior:
-  - if no popup is open, open the first eligible popup
-  - repeated presses cycle forward through the registered popup order
-  - optional reverse cycle via `Shift`
-  - direct popup bindings can still remain for fast access
-- This should only be explored after the shared popup manager exists; otherwise
-  the interaction model will be too fragmented.
+Shared/core:
 
-## Open Source Config UX
+- [`lxcommon`](./lxcommon/SPEC.md)
+- [`lxbar`](./lxbar/SPEC.md)
 
-- For open sourcing, customization should become more discoverable than the
-  current split between hardcoded defaults and multiple override files.
-- Preferred direction:
-  - introduce one central declarative defaults file, likely `config/defaults.lua`
-  - introduce one obvious user-local override file, likely `config/user.lua`
-  - keep both files table-only and readable, not code-heavy
-  - load and deep-merge them through one shared config loader
-- Goal:
-  - common customization should not require understanding module internals
-  - users should have one obvious place to start and one obvious place to
-    override
-  - advanced logic should remain in Lua modules, not in the user-facing config
-- Good candidates for the central config surface:
-  - theme selection
-  - fonts, colors, icons, spacing
-  - widget enable/disable flags
-  - popup widths and timing
-  - program paths/binaries
-  - mod keys and workspace names
-  - monitor metadata
-  - keybinding data overrides
-  - module options such as audio/display/powerprofile behavior
-- Things that should remain in executable Lua rather than the declarative layer:
-  - derived command construction
-  - environment-sensitive fallback logic
-  - callbacks, runtime behavior, and event handling
-- Preferred migration path:
-  - add the central config layer first
-  - have existing modules consume the normalized merged config tree
-  - keep scattered `config.override.*` compatibility only temporarily
-  - later retire the old override pattern once the central config surface is
-    complete
-- YAML is not required for this goal; plain Lua tables are preferred because
-  they stay dependency-free while still being readable and easy to merge.
+Modules:
+
+- [`lxmedia`](./lxmedia/SPEC.md)
+- [`lxnotify`](./lxnotify/SPEC.md)
+- [`lxnetwork`](./lxnetwork/SPEC.md)
+- [`lxbluetooth`](./lxbluetooth/SPEC.md)
+- [`lxpower`](./lxpower/SPEC.md)
+- [`lxdisplay`](./lxdisplay/SPEC.md)
+- [`lxrunner`](./lxrunner/SPEC.md)
+
+Theme:
+
+- [`lynxburn`](./themes/lynxburn/SPEC.md)

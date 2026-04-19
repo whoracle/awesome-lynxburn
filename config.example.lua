@@ -1,0 +1,130 @@
+return {
+    -- settings = {
+    --     modkey = "Mod4",
+    --     monitors = {
+    --         center = 1,
+    --         left = 2,
+    --         right = 3,
+    --     },
+    -- },
+    -- theme = {
+    --     name = "lynxburn",
+    --     -- Flat keys override `beautiful.*` values after the theme loads.
+    --     wallpaper = os.getenv("HOME") .. "/Pictures/wallpaper.png",
+    --     wibar_height = 24,
+    --     notification_max_width = 640,
+    --     lxmedia_bar_fg = "#e0b56a",
+    --     lxmedia_popup_width_media = 420,
+    --     lxpower_popup_width = 420,
+    -- },
+    -- screens = {
+    --     tag_order = { "primary", "secondary", "tertiary" },
+    --     tag_defaults = {
+    --         primary = { layout = "fair", layouts = { "fair", "floating" } },
+    --         secondary = { layout = "centerwork", layouts = { "centerwork", "floating" } },
+    --         tertiary = { layout = "floating", layouts = { "floating" } },
+    --     },
+    --     center = {
+    --         dpi = 96,
+    --     },
+    --     left = {
+    --         dpi = 96,
+    --         tags = {
+    --             primary = { layout = "fair.horizontal" },
+    --         },
+    --     },
+    -- },
+    -- commands = {
+    --     terminal = "alacritty",
+    --     launcher = "rofi -show drun",
+    --     filebrowser = "xdg-open",
+    --     autostart_once = {
+    --         "nm-applet --sm-disable",
+    --     },
+    --     lain = {
+    --         imap_mail = "me@example.org",
+    --         imap_secret = "secret-tool lookup service awesomewm-imap account me@example.org",
+    --         imap_server = "mail.example.org",
+    --     },
+    -- },
+    -- lxmodules = {
+    --     lxbar = {
+    --         popup_side = "right",
+    --         order = {
+    --             "network",
+    --             "media",
+    --             "notify",
+    --         },
+    --         modules = {
+    --             network = {
+    --                 -- cycle = false,
+    --             },
+    --         },
+    --     },
+    --     lxmedia = {
+    --         refresh_interval = 2,
+    --         width = 60,
+    --         step = 0.02,
+    --     },
+    --     lxdisplay = {
+    --         refresh_interval = 10,
+    --         brightness = {
+    --             get = "brightnessctl g",
+    --             set = "brightnessctl s %d%%",
+    --             step = 5,
+    --             min = 10,
+    --             off = "xset dpms force off",
+    --         },
+    --         redshift = {
+    --             enabled = true,
+    --             latitude = 47.9990,
+    --             longitude = 7.8421,
+    --         },
+    --     },
+    --     lxnotify = {
+    --         notification_denylist = {
+    --             { app_name = "Volume OSD" },
+    --         },
+    --         notification_time_format = "%H:%M",
+    --         popup_visible_items = 10,
+    --     },
+    --     lxpower = {
+    --         refresh_interval = 10,
+    --         preferred_profiles = {
+    --             battery = "power-saver",
+    --             ac = "balanced",
+    --         },
+    --     },
+    --     lxrunner = {
+    --         width = 640,
+    --         row_count = 12,
+    --         history_limit = 20,
+    --         aliases = {
+    --             {
+    --                 name = "browser",
+    --                 type = "template",
+    --                 glyph = "󰖟",
+    --                 command = "firefox %s",
+    --             },
+    --         },
+    --     },
+    -- },
+    -- keys = {
+    --     open_terminal = {
+    --         scope = "global",
+    --         modifiers = { "modkey" },
+    --         key = "Return",
+    --     },
+    -- },
+    -- rules = function(context)
+    --     return {
+    --         {
+    --             rule = { class = "Firefox" },
+    --             properties = {
+    --                 screen = context.monitors.center,
+    --                 tag = "primary",
+    --             },
+    --         },
+    --     }
+    -- end,
+}

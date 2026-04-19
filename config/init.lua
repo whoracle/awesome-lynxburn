@@ -1,12 +1,16 @@
 ---Convenience aggregator for the maintainable Awesome config modules.
 ---
 ---This keeps `rc.lua` readable by allowing:
----`local config = require("config")`
----and then `config.keys`, `config.programs`, `config.services`, etc.
+---`local config = require("config.init")`
+---and then `config.keys`, `config.lxmodules`, `config.services`, etc.
 return {
-    settings = require("config.settings"),
-    programs = require("config.programs"),
+    config_data = require("config.config_data"),
+    defaults = require("config.defaults"),
     helpers = require("config.helpers"),
+    runtime = require("config.runtime"),
+    theme = require("config.theme"),
+    tags = require("config.tags"),
+    lxmodules = require("config.lxmodules"),
     layouts = require("config.layouts"),
     osd = require("config.osd"),
     keys = require("config.keys"),

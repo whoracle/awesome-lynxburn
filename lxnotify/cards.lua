@@ -4,7 +4,7 @@ local gears = require("gears")
 local wibox = require("wibox")
 
 local actions = require("lxnotify.actions")
-local util = require("lxnotify.util")
+local util = require("lxcommon.util")
 
 local cards = {}
 
@@ -170,7 +170,7 @@ function cards.build_notification_card(instance, entry, opts)
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,
-        bg = opts.selected and instance:notification_selected_border_color() or instance:popup_bg(),
+        bg = opts.selected and instance:notification_selected_bg() or instance:popup_bg(),
         shape = gears.shape.rounded_rect,
     })
 
@@ -190,13 +190,21 @@ function cards.build_notification_card(instance, entry, opts)
         return false
     end
 
+    local function select_card()
+        if opts.selection_index then
+            instance.popup_selected_index = opts.selection_index
+            instance:refresh_popup()
+        end
+
+        instance:focus_popup_keyboard_navigation()
+    end
+
     attach_buttons({card, card_inner}, {
         awful.button({}, 1, function()
-            instance:focus_popup_keyboard_navigation()
             dismiss()
         end),
         awful.button({}, 3, function()
-            instance:focus_popup_keyboard_navigation()
+            select_card()
             invoke()
         end),
         table.unpack(opts.extra_buttons or {})
@@ -331,7 +339,7 @@ function cards.build_group_card(instance, group, opts)
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,
-        bg = opts.selected and instance:notification_selected_border_color() or instance:popup_bg(),
+        bg = opts.selected and instance:notification_selected_bg() or instance:popup_bg(),
         shape = gears.shape.rounded_rect,
     })
 
@@ -341,9 +349,22 @@ function cards.build_group_card(instance, group, opts)
         instance:enter_group_detail(group.key)
     end
 
+    local function select_card()
+        if opts.selection_index then
+            instance.popup_selected_index = opts.selection_index
+            instance:refresh_popup()
+        end
+
+        instance:focus_popup_keyboard_navigation()
+    end
+
     attach_buttons({header_bg, header_inner}, {
         awful.button({}, 1, function()
-            instance:focus_popup_keyboard_navigation()
+            select_card()
+            enter_group()
+        end),
+        awful.button({}, 3, function()
+            select_card()
             enter_group()
         end),
         table.unpack(opts.extra_buttons or {})

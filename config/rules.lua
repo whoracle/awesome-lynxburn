@@ -1,5 +1,5 @@
 local awful = require("awful")
-local helpers = require("config.helpers")
+local config_data = require("config.config_data")
 
 local M = {}
 
@@ -7,13 +7,12 @@ local M = {}
 ---
 ---Per-application placement, floating/maximized defaults, and monitor/tag
 ---assignments belong here.
----@param context {beautiful:table,clientkeys:any,clientbuttons:any,monitors:table}
+---@param context {beautiful:table,clientkeys:any,clientbuttons:any,monitors:table,tags:string[]}
 ---@return table[]
 function M.build(context)
     local beautiful = context.beautiful
     local clientkeys = context.clientkeys
     local clientbuttons = context.clientbuttons
-    local monitors = context.monitors
     local rules = {
         {
             rule = {},
@@ -34,56 +33,9 @@ function M.build(context)
             rule_any = { type = { "dialog", "normal" } },
             properties = { titlebars_enabled = false },
         },
-        {
-            rule = { class = "Vivaldi" },
-            properties = { screen = monitors.center, tag = awful.util.tagnames[1], maximized = false },
-        },
-        {
-            rule = { class = "Sublime_text" },
-            properties = { screen = monitors.center, tag = awful.util.tagnames[1] },
-        },
-        {
-            rule_any = { class = { "vlc" } },
-            properties = {
-                titlebars_enabled = true,
-                floating = true,
-            },
-        },
-        {
-            rule_any = { class = { "xlax", "Gmrun" } },
-            properties = {
-                titlebars_enabled = true,
-                floating = true,
-                ontop = true,
-            },
-        },
-        {
-            rule_any = { class = { "xfreerdp", "rdesktop" } },
-            properties = {
-                titlebars_enabled = true,
-                floating = true,
-                maximized = true,
-            },
-        },
-        {
-            rule = { class = "Gimp", role = "gimp-image-window" },
-            properties = { maximized = true },
-        },
-        {
-            rule = { class = "steam_app_2344520" },
-            properties = {
-                titlebars_enabled = false,
-                floating = true,
-                maximized = true,
-            },
-        },
-        {
-            rule_any = { class = { "UnrealEditor" } },
-            properties = { focus = false },
-        },
     }
 
-    local override_rules = helpers.load_optional_module("config.override.rules", {})
+    local override_rules = config_data.rules()
 
     if type(override_rules) == "function" then
         override_rules = override_rules(context)

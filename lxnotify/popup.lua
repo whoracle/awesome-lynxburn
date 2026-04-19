@@ -2,7 +2,9 @@ local awful = require("awful")
 local gears = require("gears")
 local wibox = require("wibox")
 
-local util = require("lxnotify.util")
+local screen_util = require("lxcommon.screen")
+local popup_placement = require("lxcommon.popup_placement")
+local util = require("lxcommon.util")
 
 local popup = {}
 
@@ -15,27 +17,13 @@ local HEADER_LABELS = {
     resume_interception = "Resume Capture",
 }
 
-local function popup_geometry(instance, target_screen)
-    local workarea = target_screen.workarea
-    local width = math.min(instance:popup_width(), workarea.width)
-
-    return {
-        x = instance:popup_edge() == "left" and workarea.x or (workarea.x + workarea.width - width),
-        y = workarea.y,
-        width = width,
-        height = workarea.height,
-    }
-end
-
 local function apply_geometry(instance, popup_widget, target_screen)
-    local geometry = popup_geometry(instance, target_screen)
-
-    popup_widget.screen = target_screen
-    popup_widget.minimum_width = geometry.width
-    popup_widget.maximum_width = geometry.width
-    popup_widget.minimum_height = geometry.height
-    popup_widget.maximum_height = geometry.height
-    popup_widget:geometry(geometry)
+    popup_placement.apply(
+        popup_widget,
+        target_screen,
+        instance:popup_placement(),
+        { width = math.min(instance:popup_width(), target_screen.workarea.width) }
+    )
 end
 
 local function build_header_button(label)
@@ -229,7 +217,7 @@ function popup.ensure(instance, target_screen)
 end
 
 function popup.show(instance, anchor)
-    local target_screen = util.resolve_screen(anchor)
+    local target_screen = screen_util.resolve_screen(anchor)
     local popup_widget = popup.ensure(instance, target_screen)
 
     apply_geometry(instance, popup_widget, target_screen)

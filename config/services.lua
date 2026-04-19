@@ -1,108 +1,179 @@
 local M = {}
 
-local lxaudio_instance
-local lxbluetooth_instance
-local lxdisplay_instance
-local lxnetwork_instance
-local lxnotify_instance
-local lxpowerprofiles_instance
-local lxrunner_instance
+local module_config = require("config.lxmodules")
+local registry = require("config.services.registry")
+local state = require("config.services.state")
 
----Shared singleton accessors for the long-lived helper modules.
----
----Services are created lazily so theme initialization can complete before
----theme-driven widget options are read.
-function M.audio()
-    if not lxaudio_instance then
-        lxaudio_instance = require("lxaudio").new({
-            show_mic_activity = true,
-            refresh_interval = 5,
-            width = 50,
-        })
-    end
-
-    return lxaudio_instance
+local function popup_visible(instance, field_name)
+    return instance[field_name] and instance[field_name].visible or false
 end
 
+local function register_single_popup(module_id, instance, popup_id, popup_role, popup_field, open_fn, close_fn, opts)
+    registry.register_semantic_popup(module_id, popup_id, popup_role, {
+        hover_close = opts and opts.hover_close,
+        open = function(popup_opts)
+            open_fn(instance, popup_opts)
+        end,
+        close = function()
+            close_fn(instance)
+        end,
+        is_visible = function()
+            return popup_visible(instance, popup_field)
+        end,
+    })
+end
+
+local function runner_options()
+    local options = module_config.options("runner")
+
+    -- Aliases are loaded directly from config data inside lxrunner so the
+    -- service does not need to pass a duplicated copy.
+    options.aliases = nil
+
+    return options
+end
+
+---Return the shared lxmedia instance.
+---@return table
+function M.media()
+    return state.ensure("media", function()
+        local instance = require("lxmedia").new(module_config.options("media"))
+
+        registry.register_widget("media", instance.widget, 40)
+        register_single_popup("media", instance, "default", "primary", "_media_popup", function(service, popup_opts)
+            service:show_media_popup(nil, popup_opts)
+        end, function(service)
+            service:close_popups()
+        end, {
+            hover_close = false,
+        })
+        register_single_popup("media", instance, "devices", "secondary", "_devices_popup", function(service, popup_opts)
+            service:show_devices_popup(nil, popup_opts)
+        end, function(service)
+            service:close_popups()
+        end, {
+            hover_close = false,
+        })
+
+        return instance
+    end)
+end
+
+---Return the shared lxbar instance.
+---@return table
+function M.bar()
+    local bar = state.ensure("bar", function()
+        registry.configure_widget_registry()
+        return require("lxbar").new()
+    end)
+
+    bar:refresh()
+    return bar
+end
+
+---Return the shared lxbluetooth instance.
+---@return table
 function M.bluetooth()
-    local settings = require("config.settings")
-    if settings.widgets and settings.widgets.bluetooth == false then
-        return nil
-    end
+    return state.ensure("bluetooth", function()
+        local instance = require("lxbluetooth").new(module_config.options("bluetooth"))
 
-    if not lxbluetooth_instance then
-        lxbluetooth_instance = require("lxbluetooth").new()
-    end
+        registry.register_widget("bluetooth", instance.widget, 10)
+        register_single_popup("bluetooth", instance, "default", "primary", "_popup", function(service, popup_opts)
+            service:toggle_popup(nil, popup_opts)
+        end, function(service)
+            service:close_popup()
+        end)
 
-    return lxbluetooth_instance
+        return instance
+    end)
 end
 
 ---Return the shared lxnotify instance.
 ---@return table
 function M.notify()
-    if not lxnotify_instance then
-        lxnotify_instance = require("lxnotify").new({
-            notification_denylist = {
-                { app_name = "Volume OSD" },
-                { app_name = "Mute Indicator" },
-                { app_name = "Brightness OSD" },
-                { app_name = "Notification Indicator" },
-                { app_name = "Calendar" },
-            },
-        })
-    end
+    return state.ensure("notify", function()
+        local instance = require("lxnotify").new(module_config.options("notify"))
 
-    return lxnotify_instance
+        registry.register_widget("notify", instance.widget, 50)
+        register_single_popup("notify", instance, "default", "primary", "_popup", function(service, popup_opts)
+            service:show_notification_popup(popup_opts)
+        end, function(service)
+            service:close_popups()
+        end, {
+            hover_close = false,
+        })
+
+        return instance
+    end)
 end
 
 ---Return the shared lxdisplay instance.
 ---@return table
 function M.display()
-    if not lxdisplay_instance then
-        local programs = require("config.programs")
-        lxdisplay_instance = require("lxdisplay").new({
-            brightness = programs.brightness,
-            redshift = programs.redshift,
-        })
-    end
+    return state.ensure("display", function()
+        local instance = require("lxdisplay").new(module_config.options("display"))
 
-    return lxdisplay_instance
+        registry.register_widget("display", instance.widget, 60)
+
+        return instance
+    end)
 end
 
+---Return the shared lxnetwork instance.
+---@return table
 function M.network()
-    local settings = require("config.settings")
-    if settings.widgets and settings.widgets.network == false then
-        return nil
-    end
+    return state.ensure("network", function()
+        local instance = require("lxnetwork").new(module_config.options("network"))
 
-    if not lxnetwork_instance then
-        lxnetwork_instance = require("lxnetwork").new()
-    end
+        registry.register_widget("network", instance.widget, 20)
+        register_single_popup("network", instance, "default", "primary", "_popup", function(service, popup_opts)
+            service:toggle_popup(nil, popup_opts)
+        end, function(service)
+            service:close_popup()
+        end)
 
-    return lxnetwork_instance
+        return instance
+    end)
 end
 
 ---Return the shared lxrunner instance.
 ---@return table
 function M.runner()
-    if not lxrunner_instance then
-        lxrunner_instance = require("lxrunner").new()
-    end
-
-    return lxrunner_instance
+    return state.ensure("runner", function()
+        return require("lxrunner").new(runner_options())
+    end)
 end
 
-function M.powerprofiles()
-    local settings = require("config.settings")
-    if settings.widgets and settings.widgets.powerprofiles == false then
-        return nil
-    end
+---Return the shared lxpower instance.
+---@return table
+function M.power()
+    return state.ensure("power", function()
+        local instance = require("lxpower").new(module_config.options("power"))
 
-    if not lxpowerprofiles_instance then
-        lxpowerprofiles_instance = require("lxpowerprofiles").new()
-    end
+        registry.register_widget("power", instance.widget, 30)
+        register_single_popup("power", instance, "default", "secondary", "_popup", function(service, popup_opts)
+            service:toggle_popup(nil, popup_opts)
+        end, function(service)
+            service:close_popup()
+        end)
 
-    return lxpowerprofiles_instance
+        return instance
+    end)
+end
+
+---Build the standard set of long-lived services after theme initialization.
+---@return table
+function M.bootstrap()
+    return {
+        media = M.media(),
+        notify = M.notify(),
+        runner = M.runner(),
+        bar = M.bar(),
+        bluetooth = M.bluetooth(),
+        display = M.display(),
+        network = M.network(),
+        power = M.power(),
+    }
 end
 
 return M
