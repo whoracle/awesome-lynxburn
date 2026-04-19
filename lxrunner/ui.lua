@@ -56,10 +56,10 @@ local function format_history_timestamp(timestamp)
     if current and previous
         and current.year == previous.year
         and current.yday == previous.yday then
-        return os.date("%H:%M", ts)
+        return "[" .. os.date("%H:%M", ts) .. "]"
     end
 
-    return os.date("%Y-%m-%d", ts)
+    return "[" .. os.date("%Y-%m-%d", ts) .. "]"
 end
 
 local function build_row(text, selected, decoration, metadata)
@@ -103,39 +103,60 @@ local function build_row(text, selected, decoration, metadata)
         })
     end
 
-    local metadata_widget = wibox.widget({
-        text = metadata or "",
-        align = "right",
+    local label_widget = wibox.widget({
+        text = text,
+        align = "left",
         valign = "center",
-        font = beautiful.lxrunner_row_meta_font or beautiful.lxrunner_row_font or beautiful.font,
-        forced_width = beautiful.lxrunner_row_meta_width,
+        font = beautiful.lxrunner_row_font or beautiful.font,
         widget = wibox.widget.textbox,
     })
 
+    local metadata_widget = wibox.widget({
+        markup = string.format(
+            '<span foreground="%s">%s</span>',
+            metadata_fg,
+            gears.string.xml_escape(metadata or "")
+        ),
+        align = "right",
+        valign = "center",
+        font = beautiful.lxrunner_row_meta_font or beautiful.lxrunner_row_font or beautiful.font,
+        widget = wibox.widget.textbox,
+    })
+
+    local content_widget
+    if metadata and metadata ~= "" then
+        content_widget = wibox.widget({
+            {
+                icon_widget,
+                label_widget,
+                spacing = beautiful.lxrunner_icon_text_spacing or 8,
+                layout = wibox.layout.fixed.horizontal,
+            },
+            metadata_widget,
+            expand = "inside",
+            spacing = beautiful.lxrunner_row_meta_spacing or 12,
+            layout = wibox.layout.align.horizontal,
+        })
+    else
+        content_widget = wibox.widget({
+            icon_widget,
+            label_widget,
+            spacing = beautiful.lxrunner_icon_text_spacing or 8,
+            layout = wibox.layout.fixed.horizontal,
+        })
+    end
+
     return wibox.widget({
         {
-            icon_widget,
             {
-                {
-                    {
-                        text = text,
-                        align = "left",
-                        valign = "center",
-                        font = beautiful.lxrunner_row_font or beautiful.font,
-                        widget = wibox.widget.textbox,
-                    },
-                    metadata_widget,
-                    spacing = beautiful.lxrunner_row_meta_spacing or 12,
-                    layout = wibox.layout.align.horizontal,
-                },
-                left = beautiful.lxrunner_icon_text_spacing or 8,
-                widget = wibox.container.margin,
+                content_widget,
+                widget = wibox.container.place,
             },
             left = beautiful.lxrunner_row_padding or 10,
             right = beautiful.lxrunner_row_padding or 10,
             top = 4,
             bottom = 4,
-            layout = wibox.layout.fixed.horizontal,
+            widget = wibox.container.margin,
         },
         bg = selected
             and (beautiful.lxrunner_row_selected_bg or beautiful.bg_focus or "#444444")
