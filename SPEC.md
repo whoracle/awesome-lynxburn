@@ -1,321 +1,103 @@
-# Desktop QoL Additions
+# Top-Level Roadmap
 
-This file is the forward-looking design and task document for this config.
+This file tracks only repo-wide planned work.
 
-It should describe:
-
-- work that is still wanted
-- the intended shape of that work
-- constraints that should guide implementation
-- work that is explicitly deferred or rejected, with the reason
-
-It should not carry historical implementation notes or migration logs.
-
-## General Direction
-
-This repo should continue moving toward compact, Awesome-native modules rather
-than a large desktop-wide settings shell.
-
-The preferred shape remains:
-
-- top-level `config.lua` as the user-facing config entrypoint
-- `config/defaults.lua` for shipped defaults
-- `theme = { ... }` for flat theme overrides
-- `lxmodules.lxbar` for bar composition and popup-cycling participation
-- `lxmodules.<module>` for module-owned runtime behavior
-- flat `beautiful.<key>` theme contracts for visual/theme-facing values
-
-Design constraints that still matter for future work:
-
-- popup cycling follows `lxbar` widget order only
-- popup roles are semantic: `primary`, `secondary`, `tertiary`
-- non-popup actions must not participate in popup cycling
-- popup placement is `"center"` or `"side"` only
-- actual left/right side selection is global via `lxmodules.lxbar.popup_side`
-- module-private functionality should stay with that module instead of being
-  moved into generic global config buckets
+Module-specific and theme-specific plans belong in their own `SPEC.md` files and
+are linked below.
 
 ## Still Wanted
 
-### `lxnotify`
+### Final Public Defaults Pass
 
-#### Goal
+Finish separating public defaults from local/personal values cleanly.
 
-Make retained notification actions more reliable, especially for browsers and
- web-apps, without weakening the inbox semantics that already work for normal
- desktop applications.
+This still includes:
 
-#### Current Problem
+- making `config/defaults.lua` read like sane shipped defaults rather than a
+  personal machine config
+- keeping `config.example.lua` as an example/override file rather than a second
+  defaults file
+- preserving top-level `config.lua` as gitignored local machine state
 
-The brittle path is notification invocation, not basic storage/dismissal.
-Browser and web-app notifications often have less predictable action objects,
-client associations, or destroy semantics than native apps.
+Why this is top-level:
 
-#### Intended Direction
+- it affects the entire user-facing config model
+- it touches defaults, examples, documentation, and migration guidance together
 
-Action hardening should focus on:
+### Final Documentation Pass
 
-- invoking the intended action when one exists and is meaningful
-- avoiding accidental destructive side effects during dismiss paths
-- degrading safely when a notification is malformed or underspecified
-- preserving the distinction between:
-  - dismissing a retained inbox item
-  - invoking an application action
+Finish the repository-wide docs so they match the current code shape.
 
-#### Constraints
+This includes:
 
-- dismiss should stay safe when `naughty` is suspended
-- browser/web-app oddities should not crash Awesome
-- the inbox should prefer safe no-op fallback over surprising destructive
-  behavior
-- this should remain a compact inbox UI, not turn into a generic notification
-  debugger or analytics panel
+- top-level docs staying aligned with the current config/bootstrap flow
+- module and theme docs staying aligned with the current split files
+- removing stale historical wording from user-facing documentation
 
-#### Secondary Polish
+Why this is top-level:
 
-After action hardening, small visual polish is still wanted:
+- it affects the full repo rather than one module
 
-- keep the bell-only top-level widget compact
-- keep popup selection and hover visuals semantically named and consistent
-- avoid reintroducing generic/ambiguous notify theme keys
+### Remaining Cross-Module Feature Work
 
-### `lxnetwork`
+Continue feature work only where the work clearly spans multiple modules or the
+top-level config shape.
 
-#### Goal
+Examples of what counts here:
 
-Polish network popup readability without expanding the module into a larger
- network-management shell.
+- features that require changes in both a module and shared popup/bar behavior
+- features that change the user-facing config surface across multiple areas
+- features that require coordinated updates in modules, theme, and top-level
+  docs
 
-#### Intended Change
+Module-local features should stay in module `SPEC.md` files instead.
 
-Replace the current plain `[WiFi N]` suffix with a small styled capability
-badge or similarly compact visual marker.
+### Final Repo-Wide Cleanup / Refactor Pass
 
-#### Intended Shape
+Do one later cleanup pass after the current feature set is in place.
 
-The badge should:
+This pass should focus on:
 
-- be compact and easy to scan
-- read as supplementary metadata rather than part of the SSID text
-- fit the existing popup row layout
-- not make already-long network names harder to read
+- removing stale glue and dead compatibility leftovers
+- pruning unused definitions in defaults/examples where they survived earlier
+  refactors
+- tightening module/config/theme boundaries if feature work exposed new drift
 
-Likely targets for the first pass:
+Why this is top-level:
 
-- WiFi generation / standard
-- possibly VPN state styling if it can stay compact and visually distinct
+- it is about the final shape of the repo as a whole, not one module
 
-#### Constraints
+## Explicit Non-Goals For Now
 
-- do not bloat the row with too much secondary metadata
-- keep the main SSID text dominant
-- keep the popup keyboard/mouse behavior unchanged unless a clear improvement is
-  needed
+- no generic plugin framework
+  Why: this repo is still a concrete Awesome config with local modules, not a
+  framework for arbitrary third-party extensions
 
-### `lxrunner`
+- no broad settings-center or desktop-environment shell
+  Why: the intended direction is still compact Awesome-native modules, not a
+  larger control-center project
 
-#### Goal
+- no distro-specific one-stop installation guide yet
+  Why: dependency and packaging guidance can come later, but it should not
+  distort the current documentation pass
 
-Continue polishing `lxrunner` as a narrow Awesome-native launcher rather than a
-general-purpose clone of Rofi.
+## Module And Theme SPECs
 
-#### Intended Direction
+Shared/core:
 
-The most useful remaining work is presentation, not core capability:
+- [`lxcommon`](./lxcommon/SPEC.md)
+- [`lxbar`](./lxbar/SPEC.md)
 
-- make alias-backed results easier to scan
-- make glyph/image-decorated aliases feel intentional instead of bolted on
-- consider light source/description metadata only if it improves result clarity
+Modules:
 
-#### Preferred Shape
+- [`lxmedia`](./lxmedia/SPEC.md)
+- [`lxnotify`](./lxnotify/SPEC.md)
+- [`lxnetwork`](./lxnetwork/SPEC.md)
+- [`lxbluetooth`](./lxbluetooth/SPEC.md)
+- [`lxpower`](./lxpower/SPEC.md)
+- [`lxdisplay`](./lxdisplay/SPEC.md)
+- [`lxrunner`](./lxrunner/SPEC.md)
 
-Keep result rows simple:
+Theme:
 
-- strong primary label
-- optional small secondary cue later if needed
-- no heavy multi-column launcher UI
-
-Aliases should remain:
-
-- part of `lxmodules.lxrunner.aliases`
-- searchable alongside commands and desktop entries
-- narrow, local conveniences rather than a plugin ecosystem
-
-#### Constraints
-
-- no plugin system
-- no window switcher mode
-- no Rofi feature-parity chase
-- no result presentation that overwhelms the compact launcher layout
-
-### `lxdisplay`
-
-#### Goal
-
-Grow `lxdisplay` into the place for display-oriented QoL behavior, but stop
-short of turning it into a full display manager or desktop settings center.
-
-#### Current Intent
-
-The next meaningful expansion is not more brightness polish. It is optional
-display-profile / `xrandr` handling for common real-world workflows.
-
-#### Intended Feature Direction
-
-Add a later `xrandr` / profile layer inside `lxdisplay` that can cover cases
-such as:
-
-- notebook + newly plugged external display/projector
-- desktop gaming profile with only the primary display enabled
-- desktop drawing/tablet profile with a usually-disabled extra display
-
-#### Preferred Shape
-
-The first pass should be profile-oriented rather than a fully manual display
-arrangement UI.
-
-Expected model:
-
-- `lxdisplay` owns display hardware / connector handling
-- it exposes a compact popup or profile action surface
-- users can enable known outputs or apply known named layouts
-- output/layout management stays optional for users who do not want `lxdisplay`
-
-Likely first-pass operations:
-
-- enable a newly connected output
-- mirror
-- extend left / right
-- apply a named profile such as:
-  - `default`
-  - `gaming`
-  - `drawing`
-
-#### Config Ownership
-
-This work should live under `lxmodules.lxdisplay`, not under `screens`.
-
-Expected direction:
-
-- `screens`
-  stays about Awesome concepts:
-  - DPI
-  - tags
-  - per-screen tag layouts
-- `lxmodules.lxdisplay`
-  owns hardware/display profile config:
-  - connector naming
-  - profile definitions
-  - `xrandr` actions
-  - optional display presets
-
-#### Constraints
-
-- X11 / `xrandr` only for now
-- no giant settings-center UX
-- no attempt at full manual monitor arrangement in the first pass
-- no folding hardware layout state into `screens`
-- should degrade cleanly when users do not configure or use the feature
-
-### `lxbar` / `lxcommon`
-
-#### Goal
-
-Finish the shared interaction/popup cleanup without inventing abstraction for
-its own sake.
-
-#### Still Wanted
-
-- continue extracting repeated popup/controller code into `lxcommon` when the
-  duplication is still concrete and active
-- continue polishing compact top-level widget alignment and spacing across
-  modules
-- keep shared popup semantics centralized instead of letting modules drift into
-  inconsistent behavior again
-
-#### Areas Still Worth Watching
-
-- compact top-level spacing/alignment consistency
-- popup-open highlight behavior
-- small repeated controller patterns that may still remain outside `lxcommon`
-- debug / no-glyph fallback mode later, if it still feels useful after visual
-  polish
-
-#### Constraints
-
-- do not reintroduce a separate popup order surface
-- do not split shared code just because two modules happen to look similar once
-- prefer extraction only where it reduces real drift or maintenance cost
-
-### Theme / config cleanup
-
-#### Goal
-
-Finish the central config/theme shape cleanly before returning to broader
-feature expansion.
-
-#### Still Wanted
-
-- later split `themes/lynxburn/theme.lua` into:
-  - structure/config wiring
-  - palette/colors
-- replace the current personal defaults in `config/defaults.lua` with sane
-  public-facing defaults once the config surface stops moving
-
-#### Constraints
-
-- keep the runtime theme contract flat
-- keep `config.lua` as the user-facing override entrypoint
-- avoid reintroducing split runtime override files
-- do not prematurely optimize the theme structure before the feature surface is
-  stable
-
-### Repo docs / hygiene
-
-#### Still Wanted
-
-- rewrite the top-level `README.md` after the implementation settles
-- add or finalize licensing documentation
-
-#### Constraints
-
-- `README.md` should be rewritten only after the public-facing structure is
-  stable enough to avoid churn
-
-## Deferred / Not Doing For Now
-
-### Popup ordering and popup semantics
-
-- do not add popup ordering independent from `lxbar` widget order
-  Why: popup cycling should follow visible widget order exactly
-
-- do not let non-popup actions participate in popup cycling
-  Why: popup cycling is for popup navigation, not module side effects
-
-- do not expose per-popup left/right placement
-  Why: popup placement should stay `"center"` / `"side"` with global side
-  selection
-
-### Config shape
-
-- do not restore split runtime `config/override/*.lua` inputs
-  Why: top-level `config.lua` is the intended user override surface now
-
-- do not reintroduce a separate `widgets = { ... }` config surface
-  Why: bar composition belongs under `lxmodules.lxbar`
-
-- do not move module-private backend wiring into generic `commands`
-  Why: module-owned behavior such as brightness/redshift belongs under
-  `lxmodules.<module>`
-
-### Scope control
-
-- do not turn this config into a large desktop-wide settings center
-  Why: the target remains compact, high-value Awesome-native modules
-
-- do not do systray-in-`lxbar` work yet
-  Why: the idea is still underspecified and should wait until the rest of the
-  config and module shape is settled
-
-- do not fold hardware display-layout config into `screens`
-  Why: `screens` should stay about Awesome-side roles, DPI, tags, and layouts
+- [`lynxburn`](./themes/lynxburn/SPEC.md)
