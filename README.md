@@ -39,7 +39,6 @@ Common desktop programs referenced by the defaults:
 
 - a terminal emulator
 - a file browser
-- a browser
 - optional applets or tray tools such as network, Bluetooth, audio, or sync
   applets if you add them to your own setup
 
@@ -69,7 +68,6 @@ theme = {
 commands = {
     terminal = "alacritty",
     filebrowser = "thunar",
-    browser = "firefox",
 }
 
 screens = {

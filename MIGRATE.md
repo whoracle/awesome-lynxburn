@@ -88,7 +88,7 @@ For a notebook currently sitting on tag `migrate`:
 3. Move notebook-specific values into `config.lua`, especially:
    - `settings.monitors`
    - `screens`
-   - personal `commands` such as terminal, browser, launcher, and file browser
+   - personal `commands` such as terminal, launcher, and file browser
    - `commands.autostart_once` / `commands.autostart`
    - `commands.lain.*` mail settings
    - `lxmodules.lxdisplay.redshift.*`

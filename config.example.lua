@@ -36,7 +36,6 @@ return {
     -- },
     -- commands = {
     --     terminal = "alacritty",
-    --     browser = "firefox",
     --     launcher = "rofi -show drun",
     --     filebrowser = "xdg-open",
     --     autostart_once = {
