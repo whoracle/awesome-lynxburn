@@ -4,6 +4,7 @@ local M = {}
 -- small so modules can depend on lxcommon without knowing its file layout.
 M.osd = require("lxcommon.osd")
 M.popup_control = require("lxcommon.popup_control")
+M.popup_controller = require("lxcommon.popup_controller")
 M.popup_manager = require("lxcommon.popup_manager")
 M.popup_placement = require("lxcommon.popup_placement")
 M.popup_shell = require("lxcommon.popup_shell")
