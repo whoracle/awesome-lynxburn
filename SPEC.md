@@ -38,6 +38,38 @@ Why this is top-level:
 
 - it affects the full repo rather than one module
 
+### Repository Scaffolding
+
+Add the lightweight repository scaffolding needed for more disciplined future
+work.
+
+Current likely scope:
+
+- `editorconfig`
+- `pre-commit`
+- commit-message tooling if it still feels worth the added friction
+- a top-level `CHANGELOG` once the scaffolding around change tracking is in
+  place
+
+Why this is top-level:
+
+- it affects the repository workflow rather than one module
+
+### Documentation And Policy Polish
+
+Add any remaining repo-wide policy/documentation notices that should exist once
+the project shape is more stable.
+
+Current candidate:
+
+- an explicit AI-use disclaimer in the top-level docs if it still feels useful
+  after the current documentation cleanup settles
+
+Why this is top-level:
+
+- it affects repository-wide documentation and expectations rather than module
+  behavior
+
 ### Remaining Cross-Module Feature Work
 
 Continue feature work only where the work clearly spans multiple modules or the
@@ -49,6 +81,13 @@ Examples of what counts here:
 - features that change the user-facing config surface across multiple areas
 - features that require coordinated updates in modules, theme, and top-level
   docs
+- `lxbar` being able to host selected non-`lx*` widgets cleanly later on
+- later migration of remaining `lain` widget use into repo-owned widget/module
+  surfaces where that still makes sense
+- shared visual polish such as smoother/delayed compact bar behavior across
+  modules like `lxmedia` and `lxdisplay`
+- dependency pre-flight checks with graceful fallback and user-visible failure
+  handling where that improves startup/runtime behavior
 
 Module-local features should stay in module `SPEC.md` files instead.
 

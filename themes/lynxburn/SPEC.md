@@ -20,15 +20,11 @@ This file tracks what is still wanted from the theme layer.
   Why: the theme tree still contains older bundled assets that should not live
   forever if they no longer serve the current config
 
-- document the final top-level theme override story from `config.lua` in the
-  top-level docs once the full repo docs pass is done
-  Why: the code path is settled, but the user-facing explanation still belongs
-  in the repo-wide docs
-
 ## Explicit Non-Goals For Now
 
-- no theme refactor during this docs pass
-  Why: this pass is documenting the current code shape, not changing it
+- no theme refactor as part of documentation-only maintenance work
+  Why: documentation updates should track the current code shape, not quietly
+  change it
 
 - no multi-theme framework yet
   Why: there is one active bundled theme and broader feature work matters more
