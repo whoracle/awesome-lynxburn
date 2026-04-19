@@ -2,6 +2,7 @@ local beautiful = require("beautiful")
 local wibox = require("wibox")
 
 local common = require("lxcommon")
+local helpers = require("lxdisplay.helpers")
 
 local theme = {}
 
@@ -9,7 +10,7 @@ local theme = {}
 function theme.extend(instance_methods)
     ---Show the shared OSD widget with the current brightness percentage.
     function instance_methods:_show_brightness_osd(percent)
-        local value = common.util.clamp(percent, 0, 100)
+        local value = helpers.clamp(percent, 0, 100)
         self._osd:show_progress({
             value = value,
             icon = beautiful.lxdisplay_icon_brightness
@@ -26,7 +27,7 @@ function theme.extend(instance_methods)
 
     ---Refresh the top-level widget icon, tint, and compact bar state.
     function instance_methods:_update_widget(percent)
-        local value = common.util.clamp(percent, 0, 100)
+        local value = helpers.clamp(percent, 0, 100)
         local scheduled_temperature = self:_scheduled_redshift_temperature()
         local is_night = scheduled_temperature < self:_default_redshift_temperature()
         local active_icon = is_night
