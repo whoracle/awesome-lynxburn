@@ -17,7 +17,8 @@ Use this file when you want to:
 - modify an existing `lx*` module
 - understand how theme overrides and service bootstrap fit together
 
-Use the top-level `README.md` for user-facing setup/configuration.
+Use the top-level `README.md` for user-facing setup and configuration. Use the
+module/theme READMEs for module-local runtime behavior and exposed knobs.
 
 ## Repo Shape
 
@@ -49,6 +50,9 @@ Top-level docs split:
   Top-level planned work.
 - module/theme `README.md` and `SPEC.md`
   Module-local usage and plans.
+- `MIGRATE.md`
+  Temporary machine migration notes for old checkouts still anchored on the
+  `migrate` tag.
 
 ## Config Flow
 

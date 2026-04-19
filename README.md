@@ -1,12 +1,12 @@
 # LynxBurn AwesomeWM Config
 
-This repository contains an AwesomeWM configuration centered around a small
-top-level config surface, a bundled `lynxburn` theme, and a set of local
-`lx*` modules for the bar, popups, notifications, media, networking, power,
-display control, and launcher behavior.
+This repository contains an AwesomeWM configuration with a small top-level
+config surface, a bundled `lynxburn` theme, and a set of local `lx*` modules
+for the bar, popups, notifications, media, networking, power, display control,
+and launcher behavior.
 
-It is meant to be usable as a real daily-driver config, but it is still a
-personal config first rather than a polished general-purpose distribution.
+It is usable as a real daily-driver config, but it is still a personal config
+first rather than a polished general-purpose distribution.
 
 ## What To Expect
 
@@ -140,7 +140,8 @@ General ownership rules:
 
 ## Modules And Theme
 
-Module-specific usage and configuration details live in their own READMEs.
+Module-specific usage, feature lists, config knobs, and theme variables live in
+their own READMEs.
 
 Core shared pieces:
 
@@ -176,5 +177,5 @@ top-level [`SPEC.md`](./SPEC.md).
 - [`SPEC.md`](./SPEC.md): top-level planned work
 - [`DEVELOPMENT.md`](./DEVELOPMENT.md): internal architecture and extension notes
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md): contribution scope and expectations
-- [`MIGRATE.md`](./MIGRATE.md): temporary migration notes
+- [`MIGRATE.md`](./MIGRATE.md): temporary notes for older machines still moving from the `migrate` tag
 - [`LICENSE.md`](./LICENSE.md): repository licensing and third-party notices

@@ -24,20 +24,6 @@ Why this is top-level:
 - it affects the entire user-facing config model
 - it touches defaults, examples, documentation, and migration guidance together
 
-### Final Documentation Pass
-
-Finish the repository-wide docs so they match the current code shape.
-
-This includes:
-
-- top-level docs staying aligned with the current config/bootstrap flow
-- module and theme docs staying aligned with the current split files
-- removing stale historical wording from user-facing documentation
-
-Why this is top-level:
-
-- it affects the full repo rather than one module
-
 ### Repository Scaffolding
 
 Add the lightweight repository scaffolding needed for more disciplined future
@@ -63,7 +49,8 @@ the project shape is more stable.
 Current candidate:
 
 - an explicit AI-use disclaimer in the top-level docs if it still feels useful
-  after the current documentation cleanup settles
+  after the current documentation cleanup
+- a future `CHANGELOG` policy once release/versioning expectations are clearer
 
 Why this is top-level:
 
