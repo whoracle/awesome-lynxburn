@@ -4,6 +4,7 @@ local keygrabber = require("awful.keygrabber")
 
 local M = {}
 
+---Normalize the supported popup-helper call styles into one opts table.
 function M.normalize_popup_opts(arg1, arg2)
     if type(arg2) == "table" then
         return arg2
@@ -16,6 +17,7 @@ function M.normalize_popup_opts(arg1, arg2)
     return {}
 end
 
+---Normalize a popup toggle key description for equality-style matching.
 function M.normalize_popup_toggle_key(toggle_key, opts)
     opts = opts or {}
     local ignored_modifiers = opts.ignored_modifiers or {}
@@ -47,6 +49,7 @@ function M.normalize_popup_toggle_key(toggle_key, opts)
     return normalized
 end
 
+---Return true when the active modifier set exactly matches a popup toggle key.
 function M.popup_toggle_key_matches(toggle_key, modifiers, key, opts)
     opts = opts or {}
     local ignored_modifiers = opts.ignored_modifiers or {}
@@ -77,12 +80,14 @@ function M.popup_toggle_key_matches(toggle_key, modifiers, key, opts)
     return true
 end
 
+---Return true when a point falls inside a geometry table.
 function M.point_in_geometry(x, y, geo)
     return geo
         and x >= geo.x and x < (geo.x + geo.width)
         and y >= geo.y and y < (geo.y + geo.height)
 end
 
+---Shallow-copy Awesome button objects into a fresh array.
 function M.copy_button_list(buttons)
     local copied = {}
 
@@ -108,6 +113,7 @@ local function inside_any_geometry(x, y, geometry_providers)
     return false
 end
 
+---Disconnect and restore all outside-click-dismiss plumbing for one popup.
 function M.stop_outside_click_dismiss(instance, opts)
     opts = opts or {}
 
@@ -137,6 +143,9 @@ function M.stop_outside_click_dismiss(instance, opts)
     end
 end
 
+---Install outside-click dismissal hooks for the currently visible popup.
+---This augments root/client/drawin button handling so the popup can dismiss
+---when the user clicks outside any provided popup geometry.
 function M.start_outside_click_dismiss(instance, opts)
     opts = opts or {}
     M.stop_outside_click_dismiss(instance, opts)
@@ -180,6 +189,7 @@ function M.start_outside_click_dismiss(instance, opts)
     end
 end
 
+---Stop and clear a hover-close timer stored on an instance.
 function M.stop_hover_close_timer(instance, opts)
     opts = opts or {}
     local timer_key = opts.timer_key or "_hover_close_timer"
@@ -190,6 +200,7 @@ function M.stop_hover_close_timer(instance, opts)
     end
 end
 
+---Start a hover-close timer that dismisses once the pointer stays outside.
 function M.start_hover_close_timer(instance, opts)
     opts = opts or {}
     local timer_key = opts.timer_key or "_hover_close_timer"
@@ -230,6 +241,7 @@ function M.start_hover_close_timer(instance, opts)
     })
 end
 
+---Dispatch one popup keypress against cycle, close, and module-local actions.
 function M.dispatch_popup_keypress(opts)
     opts = opts or {}
 
@@ -282,6 +294,7 @@ function M.dispatch_popup_keypress(opts)
     return false
 end
 
+---Create or reuse a keygrabber stored on the popup-owning instance.
 function M.ensure_popup_keygrabber(instance, opts)
     opts = opts or {}
     local grabber_key = opts.grabber_key or "_popup_keygrabber"
@@ -305,6 +318,7 @@ function M.ensure_popup_keygrabber(instance, opts)
     return instance[grabber_key]
 end
 
+---Focus the popup keygrabber and start keyboard navigation if needed.
 function M.focus_popup_keygrabber(instance, opts)
     opts = opts or {}
     local grabber_key = opts.grabber_key or "_popup_keygrabber"
@@ -325,6 +339,7 @@ function M.focus_popup_keygrabber(instance, opts)
     return grabber
 end
 
+---Blur the popup keygrabber and stop keyboard navigation if active.
 function M.blur_popup_keygrabber(instance, opts)
     opts = opts or {}
     local grabber_key = opts.grabber_key or "_popup_keygrabber"

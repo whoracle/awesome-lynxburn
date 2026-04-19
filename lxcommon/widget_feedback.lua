@@ -24,6 +24,7 @@ local function resolve_widget(target)
     return nil
 end
 
+---Set active-state feedback on a widget or widget-owning object when supported.
 function M.set_active(target, value)
     local widget = resolve_widget(target)
     if widget and widget._lx_set_feedback_active then
@@ -31,6 +32,7 @@ function M.set_active(target, value)
     end
 end
 
+---Synchronize active-state feedback from either a boolean or predicate.
 function M.sync(target, active)
     if type(active) == "function" then
         M.set_active(target, active())

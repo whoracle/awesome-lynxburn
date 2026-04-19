@@ -3,6 +3,7 @@ local lxmodules = require("config.lxmodules")
 
 local M = {}
 
+---Normalize legacy placement aliases into the current center/side model.
 function M.normalize(value, default)
     if value == "side" or value == "center" then
         return value
@@ -15,6 +16,7 @@ function M.normalize(value, default)
     return default or "center"
 end
 
+---Resolve the concrete side only when the placement model is side-based.
 function M.resolve_side(placement)
     if M.normalize(placement, "center") ~= "side" then
         return nil
@@ -23,6 +25,7 @@ function M.resolve_side(placement)
     return lxmodules.popup_side()
 end
 
+---Apply shared popup geometry for either centered or side-docked popups.
 function M.apply(popup_widget, target_screen, placement, opts)
     opts = opts or {}
     placement = M.normalize(placement, opts.default)

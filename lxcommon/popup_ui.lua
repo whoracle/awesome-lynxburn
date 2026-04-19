@@ -21,6 +21,7 @@ function M.make_card(child, opts)
     })
 end
 
+---Create a textbox widget with shared lightweight defaults.
 function M.make_text(text, opts)
     opts = opts or {}
 
@@ -52,6 +53,7 @@ function M.make_info_line(text, opts)
     return row
 end
 
+---Attach hover/press/active-state feedback to a background widget.
 function M.attach_button_feedback(widget, opts)
     opts = opts or {}
 
@@ -155,11 +157,13 @@ function M.make_click_container(child, onclick, opts)
     return bg
 end
 
+---Build a clickable text row using the shared click-container helper.
 function M.make_click_row(text, onclick, opts)
     opts = opts or {}
     return M.make_click_container(M.make_text(text, opts.text_opts), onclick, opts)
 end
 
+---Build a clickable container with separate inner hover and outer selection bg.
 function M.make_selectable_click_container(child, onclick, opts)
     opts = opts or {}
 
@@ -188,6 +192,7 @@ function M.make_selectable_click_container(child, onclick, opts)
     })
 end
 
+---Build a selectable clickable text row using the shared popup primitives.
 function M.make_selectable_click_row(text, onclick, opts)
     opts = opts or {}
     return M.make_selectable_click_container(M.make_text(text, opts.text_opts), onclick, opts)

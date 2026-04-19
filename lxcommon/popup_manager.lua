@@ -33,10 +33,13 @@ local function popup_role_sort_key(popup_role)
     return POPUP_ROLE_ORDER[popup_role] or math.huge
 end
 
+---Register one popup handle for a module.
+---A handle may expose `open`, `close`, and `is_visible`, plus cycle metadata.
 function M.register(module_id, popup_id, handle, opts)
     ensure_module(module_id)[popup_id] = normalize_handle(handle, opts)
 end
 
+---Remove a previously registered popup handle.
 function M.unregister(module_id, popup_id)
     local module_popups = popups[module_id]
     if not module_popups then
@@ -46,6 +49,7 @@ function M.unregister(module_id, popup_id)
     module_popups[popup_id] = nil
 end
 
+---Fetch one popup handle by module id and popup id.
 function M.get(module_id, popup_id)
     local module_popups = popups[module_id]
     if not module_popups then
@@ -55,6 +59,7 @@ function M.get(module_id, popup_id)
     return module_popups[popup_id or "default"]
 end
 
+---List all popups for one module in a stable id-oriented order.
 function M.list_module(module_id)
     local module_popups = popups[module_id] or {}
     local ordered = {}
@@ -81,6 +86,9 @@ function M.list_module(module_id)
     return ordered
 end
 
+---List cycle-participating popups for one module in semantic role order.
+---This is the primary/secondary/tertiary ordering consumed by lxbar popup
+---cycling and should stay aligned with top-level widget semantics.
 function M.list_module_cycle(module_id)
     local ordered = {}
 
@@ -110,6 +118,7 @@ function M.list_module_cycle(module_id)
     return ordered
 end
 
+---Find the popup registered for one semantic popup role.
 function M.find_by_popup_role(module_id, popup_role)
     if not popup_role then
         return nil
@@ -128,6 +137,7 @@ function M.find_by_popup_role(module_id, popup_role)
     return nil
 end
 
+---Close every registered popup that exposes a close handler.
 function M.close_all()
     for _, module_popups in pairs(popups) do
         for _, handle in pairs(module_popups) do
@@ -138,6 +148,7 @@ function M.close_all()
     end
 end
 
+---Return the first popup handle currently reporting itself as visible.
 function M.current_visible()
     for module_id, module_popups in pairs(popups) do
         for popup_id, handle in pairs(module_popups) do
@@ -154,6 +165,7 @@ function M.current_visible()
     return nil
 end
 
+---Show one popup and close every other registered popup first.
 function M.show(module_id, popup_id, opts)
     local handle = M.get(module_id, popup_id)
     if not (handle and type(handle.open) == "function") then
@@ -165,6 +177,7 @@ function M.show(module_id, popup_id, opts)
     return true
 end
 
+---Toggle one popup, treating it as exclusive with every other registered popup.
 function M.toggle(module_id, popup_id, opts)
     local visible = M.current_visible()
 
@@ -178,6 +191,7 @@ function M.toggle(module_id, popup_id, opts)
     return M.show(module_id, popup_id, opts)
 end
 
+---Show the popup registered for one semantic popup role.
 function M.show_by_popup_role(module_id, popup_role, opts)
     local entry = M.find_by_popup_role(module_id, popup_role)
     if not entry then
@@ -187,6 +201,7 @@ function M.show_by_popup_role(module_id, popup_role, opts)
     return M.show(module_id, entry.popup_id, opts)
 end
 
+---Toggle the popup registered for one semantic popup role.
 function M.toggle_by_popup_role(module_id, popup_role, opts)
     local entry = M.find_by_popup_role(module_id, popup_role)
     if not entry then
