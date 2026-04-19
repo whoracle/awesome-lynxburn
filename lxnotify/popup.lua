@@ -4,6 +4,7 @@ local wibox = require("wibox")
 
 local screen_util = require("lxcommon.screen")
 local popup_placement = require("lxcommon.popup_placement")
+local util = require("lxcommon.util")
 
 local popup = {}
 
