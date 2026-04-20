@@ -207,7 +207,7 @@ function displays.extend(instance_methods)
         return table.concat(fragments, ", ")
     end
 
-    function instance_methods:_profile_spatial_summary(profile)
+    function instance_methods:_profile_spatial_rows(profile)
         local outputs = (profile or {}).outputs or {}
         local output_names = self:_profile_output_names(profile)
         if #output_names == 0 then
@@ -293,18 +293,22 @@ function displays.extend(instance_methods)
                 for col = 1, #x_order do
                     local output_name = occupancy[row] and occupancy[row][col]
                     if output_name then
-                        local label = self:_profile_output_label(profile, output_name)
-                        local text = cell_text(label)
-                        parts[#parts + 1] = text .. string.rep(" ", column_widths[col] - #text)
+                        parts[#parts + 1] = {
+                            label = self:_profile_output_label(profile, output_name),
+                            off = self:_profile_output_is_off(profile, output_name),
+                            width = column_widths[col],
+                        }
                     else
-                        parts[#parts + 1] = string.rep(" ", column_widths[col])
+                        parts[#parts + 1] = {
+                            width = column_widths[col],
+                        }
                     end
                 end
 
-                lines[#lines + 1] = trim_right_spaces(table.concat(parts, " "))
+                lines[#lines + 1] = parts
             end
 
-            return table.concat(lines, "\n")
+            return lines
         end
 
         local relation_of = {}
@@ -435,17 +439,41 @@ function displays.extend(instance_methods)
                 local output_name = occupancy[y] and occupancy[y][x]
                 if output_name then
                     local label = self:_profile_output_label(profile, output_name)
-                    if self:_profile_output_optional(profile, output_name)
-                        and self:_profile_output_initial_state(profile, output_name) == "off" then
-                        label = label .. "!"
-                    end
-                    local text = cell_text(label)
-                    parts[#parts + 1] = text .. string.rep(" ", column_widths[x] - #text)
+                    parts[#parts + 1] = {
+                        label = label,
+                        off = self:_profile_output_is_off(profile, output_name),
+                        width = column_widths[x],
+                    }
                 else
-                    parts[#parts + 1] = string.rep(" ", column_widths[x])
+                    parts[#parts + 1] = {
+                        width = column_widths[x],
+                    }
                 end
             end
 
+            lines[#lines + 1] = parts
+        end
+
+        return lines
+    end
+
+    function instance_methods:_profile_spatial_summary(profile)
+        local rows = self:_profile_spatial_rows(profile)
+        if not rows then
+            return nil
+        end
+
+        local lines = {}
+        for _, row in ipairs(rows) do
+            local parts = {}
+            for _, cell in ipairs(row) do
+                if cell.label then
+                    local text = cell_text(cell.label)
+                    parts[#parts + 1] = text .. string.rep(" ", cell.width - #text)
+                else
+                    parts[#parts + 1] = string.rep(" ", cell.width)
+                end
+            end
             lines[#lines + 1] = trim_right_spaces(table.concat(parts, " "))
         end
 

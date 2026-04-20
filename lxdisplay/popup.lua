@@ -128,29 +128,41 @@ local function bracket_summary_markup(self, profile, meta_fg, optional_fg)
 end
 
 local function spatial_summary_markup(self, profile, meta_fg, optional_fg)
-    local summary = self:_profile_spatial_summary(profile)
-    if not summary then
+    local rows = self:_profile_spatial_rows(profile)
+    if not rows then
         return nil, nil
     end
 
-    local markup = summary:gsub("%[([^%]]+)%]", function(content)
-        local fg = meta_fg
-        local label = content
+    local markup_lines = {}
+    local plain_lines = {}
 
-        if label:sub(-1) == "!" then
-            fg = optional_fg
-            label = label:sub(1, -2)
+    for _, row in ipairs(rows) do
+        local markup_parts = {}
+        local plain_parts = {}
+
+        for _, cell in ipairs(row) do
+            if cell.label then
+                local text = string.format("[%s]", cell.label)
+                local padded = text .. string.rep(" ", cell.width - #text)
+                local fg = cell.off and optional_fg or meta_fg
+                markup_parts[#markup_parts + 1] = string.format(
+                    "<span size='x-small' foreground='%s'>%s</span>",
+                    fg,
+                    gears.string.xml_escape(padded)
+                )
+                plain_parts[#plain_parts + 1] = padded
+            else
+                local blanks = string.rep(" ", cell.width)
+                markup_parts[#markup_parts + 1] = gears.string.xml_escape(blanks)
+                plain_parts[#plain_parts + 1] = blanks
+            end
         end
 
-        return string.format(
-            "<span size='x-small' foreground='%s'>[%s]</span>",
-            fg,
-            gears.string.xml_escape(label)
-        )
-    end)
+        markup_lines[#markup_lines + 1] = table.concat(markup_parts, " ")
+        plain_lines[#plain_lines + 1] = table.concat(plain_parts, " "):gsub("%s+$", "")
+    end
 
-    local plain = summary:gsub("%!", "")
-    return markup, plain
+    return table.concat(markup_lines, "\n"), table.concat(plain_lines, "\n")
 end
 
 local function profile_card(self, profile, selection_index, profile_index)
