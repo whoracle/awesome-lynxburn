@@ -237,8 +237,6 @@ function M.build(instance)
             spacing = 6,
             layout = wibox.layout.fixed.horizontal,
         },
-        left = 2,
-        right = 2,
         widget = wibox.container.margin,
     }
     local shell = wibox.widget({

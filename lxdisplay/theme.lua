@@ -140,8 +140,6 @@ function theme.extend(instance_methods)
 
         local row = wibox.widget({
             content,
-            left = 2,
-            right = 2,
             widget = wibox.container.margin,
         })
         local shell = wibox.widget({

@@ -101,8 +101,6 @@ function M.new(opts)
                 spacing = 8,
                 layout = wibox.layout.fixed.horizontal,
             },
-            left = 2,
-            right = 2,
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,

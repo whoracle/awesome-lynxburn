@@ -17,8 +17,6 @@ function widget.new(instance)
     local container = wibox.widget({
         {
             text_widget,
-            left = 2,
-            right = 2,
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,
