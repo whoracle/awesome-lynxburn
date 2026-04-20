@@ -191,13 +191,14 @@ function cards.build_notification_card(instance, entry, opts)
     end
 
     local function select_card()
-        if opts.selection_index then
+        if opts.selection_index and instance.popup_selected_index ~= opts.selection_index then
             instance.popup_selected_index = opts.selection_index
             instance:refresh_popup()
         end
-
-        instance:focus_popup_keyboard_navigation()
     end
+
+    card:connect_signal("mouse::enter", select_card)
+    card_inner:connect_signal("mouse::enter", select_card)
 
     attach_buttons({card, card_inner}, {
         awful.button({}, 1, function()
@@ -350,13 +351,14 @@ function cards.build_group_card(instance, group, opts)
     end
 
     local function select_card()
-        if opts.selection_index then
+        if opts.selection_index and instance.popup_selected_index ~= opts.selection_index then
             instance.popup_selected_index = opts.selection_index
             instance:refresh_popup()
         end
-
-        instance:focus_popup_keyboard_navigation()
     end
+
+    header_bg:connect_signal("mouse::enter", select_card)
+    header_inner:connect_signal("mouse::enter", select_card)
 
     attach_buttons({header_bg, header_inner}, {
         awful.button({}, 1, function()
