@@ -182,7 +182,11 @@ function M.build(instance)
     instance._refs.mic_bar = mic_bar
 
     local output_bar_slot = wibox.widget {
-        bar,
+        {
+            bar,
+            right = 1,
+            widget = wibox.container.margin,
+        },
         valign = "center",
         widget = wibox.container.place,
     }
@@ -210,7 +214,11 @@ function M.build(instance)
     }
 
     local mic_bar_slot = wibox.widget {
-        mic_bar,
+        {
+            mic_bar,
+            right = 1,
+            widget = wibox.container.margin,
+        },
         valign = "center",
         widget = wibox.container.place,
     }

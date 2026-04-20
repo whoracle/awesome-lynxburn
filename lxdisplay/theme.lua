@@ -131,14 +131,18 @@ function theme.extend(instance_methods)
         })
 
         self._bar_slot = wibox.widget({
-            self._bar,
+            {
+                self._bar,
+                right = 1,
+                widget = wibox.container.margin,
+            },
             valign = "center",
             widget = wibox.container.place,
         })
 
         self._bar_margin = wibox.widget({
             self._bar_slot,
-            left = beautiful.lxdisplay_bar_spacing or 8,
+            left = beautiful.lxdisplay_bar_spacing or 6,
             widget = wibox.container.margin,
         })
         table.insert(content, 2, self._bar_margin)
