@@ -252,6 +252,9 @@ when the hardware is absent:
   profile
 - `initial_state = "on" | "off"` controls whether a connected optional output
   is enabled or forced off when the profile is applied
+- optional outputs stay visible in the popup layout summary even when off
+- optional outputs that are currently off are rendered with the optional-output
+  theme color instead of disappearing from the layout summary
 
 ## Theme Variables
 
@@ -277,6 +280,7 @@ when the hardware is absent:
 - `lxdisplay_button_hover`
 - `lxdisplay_selected_bg`
 - `lxdisplay_meta_fg`
+- `lxdisplay_optional_fg`
 - `lxdisplay_widget_hover_bg`
 - `lxdisplay_widget_press_bg`
 - `lxdisplay_osd_bar_bg`
