@@ -27,6 +27,7 @@ function M.new(opts)
     self._opts = opts
     self._profiles_enabled = type(opts.profiles) == "table"
     self._profiles = self:_normalize_profiles(opts.profiles)
+    self._startup_auto_apply = opts.auto_apply ~= false
     self._detected = {
         extend_relative_to = ((opts.detected or {}).extend_relative_to) or "profile-primary",
         extend_direction = ((opts.detected or {}).extend_direction) or "left",
@@ -73,6 +74,7 @@ function M.new(opts)
     self:_setup_shutdown_hook()
     self:_initialize_redshift()
     self:refresh_display_state()
+    self:auto_apply_startup_profile()
 
     return self
 end

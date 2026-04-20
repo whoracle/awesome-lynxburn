@@ -71,12 +71,23 @@ function displays.extend(instance_methods)
             if type(profile) == "table" and type(profile.outputs) == "table" then
                 normalized[#normalized + 1] = {
                     name = profile.name or ("Profile " .. tostring(#normalized + 1)),
+                    default = profile.default == true,
                     outputs = clone_table(profile.outputs),
                 }
             end
         end
 
         return normalized
+    end
+
+    function instance_methods:_notify_display_warning(message)
+        io.stderr:write("[lxdisplay] " .. tostring(message) .. "\n")
+        naughty.notify({
+            app_name = "lxdisplay",
+            title = "Display configuration warning",
+            text = tostring(message),
+            urgency = "normal",
+        })
     end
 
     function instance_methods:_profile_primary_output(profile)
@@ -144,6 +155,41 @@ function displays.extend(instance_methods)
             text = tostring(message),
             urgency = "critical",
         })
+    end
+
+    function instance_methods:_panic_mirror_all_outputs(state, callback)
+        local outputs = state and state.output_names or {}
+        if #outputs == 0 then
+            if callback then
+                callback(false)
+            end
+            return
+        end
+
+        local args = { preferred_xrandr_command(self) }
+        local primary = state.primary_output or outputs[1]
+
+        for _, output_name in ipairs(outputs) do
+            args[#args + 1] = "--output"
+            args[#args + 1] = output_name
+            args[#args + 1] = "--auto"
+
+            if output_name == primary then
+                args[#args + 1] = "--primary"
+            else
+                args[#args + 1] = "--same-as"
+                args[#args + 1] = primary
+            end
+        end
+
+        self:_notify_display_warning(
+            "Falling back to panic display mode: all connected outputs active, auto, mirrored."
+        )
+        self:_apply_xrandr_argv(args, function()
+            if callback then
+                callback(true)
+            end
+        end)
     end
 
     function instance_methods:_query_xrandr_state(callback)
@@ -299,16 +345,80 @@ function displays.extend(instance_methods)
     end
 
     function instance_methods:_apply_xrandr_argv(args, callback)
-        awful.spawn.easy_async(args, function()
-            self:refresh_display_state(callback)
+        awful.spawn.easy_async(args, function(_, _, _, exit_code)
+            local ok = exit_code == 0
+            self:refresh_display_state(function(state)
+                if callback then
+                    callback(ok, state)
+                end
+            end)
         end)
     end
 
-    function instance_methods:activate_profile(index)
-        if not self:xrandr_enabled() then
-            return
+    function instance_methods:_resolve_startup_profile_index()
+        local count = #self._profiles
+        if count == 0 then
+            return nil
         end
 
+        if count == 1 then
+            return 1
+        end
+
+        local defaults = {}
+        for index, profile in ipairs(self._profiles) do
+            if profile.default == true then
+                defaults[#defaults + 1] = {
+                    index = index,
+                    name = profile.name or ("Profile " .. tostring(index)),
+                }
+            end
+        end
+
+        if #defaults == 1 then
+            return defaults[1].index
+        end
+
+        local fallback_name = self._profiles[1].name or "Profile 1"
+        if #defaults == 0 then
+            self:_notify_display_warning(
+                "Multiple lxdisplay profiles are configured but none is marked default. "
+                    .. "Using '" .. fallback_name .. "' automatically."
+            )
+            return 1
+        end
+
+        self:_notify_display_warning(
+            "Multiple lxdisplay profiles are marked default. Using '" .. fallback_name .. "' automatically."
+        )
+        return 1
+    end
+
+    function instance_methods:_build_profile_argv(profile, state)
+        local missing = self:_profile_missing_outputs(profile, state.output_set or {})
+        if #missing > 0 then
+            return nil, missing
+        end
+
+        local args = { preferred_xrandr_command(self) }
+
+        for _, output_name in ipairs(state.output_names or {}) do
+            local output_opts = profile.outputs[output_name]
+
+            if output_opts then
+                self:_append_output_args(args, output_name, output_opts)
+            else
+                args[#args + 1] = "--output"
+                args[#args + 1] = output_name
+                args[#args + 1] = "--off"
+            end
+        end
+
+        return args, nil
+    end
+
+    function instance_methods:_apply_profile_index(index, opts)
+        opts = opts or {}
         local profile = self._profiles[index]
         if not profile then
             return
@@ -317,38 +427,69 @@ function displays.extend(instance_methods)
         self:_query_xrandr_state(function(state)
             self:_remember_inventory(state)
 
-            local missing = self:_profile_missing_outputs(profile, state.output_set or {})
-            if #missing > 0 then
-                self:_notify_display_error(string.format(
+            local args, missing = self:_build_profile_argv(profile, state)
+            if not args then
+                local message = string.format(
                     "Profile '%s' references missing outputs: %s",
                     profile.name or "unnamed profile",
-                    table.concat(missing, ", ")
-                ))
-                self:_refresh_detected_outputs(state)
-                if self._refresh_popup then
-                    self:_refresh_popup()
+                    table.concat(missing or {}, ", ")
+                )
+
+                if opts.allow_panic_fallback then
+                    self:_notify_display_error(message)
+                    self:_panic_mirror_all_outputs(state)
+                else
+                    self:_notify_display_error(message)
+                    self:_refresh_detected_outputs(state)
+                    if self._refresh_popup then
+                        self:_refresh_popup()
+                    end
                 end
                 return
             end
 
-            local args = { preferred_xrandr_command(self) }
-
-            for _, output_name in ipairs(state.output_names or {}) do
-                local output_opts = profile.outputs[output_name]
-
-                if output_opts then
-                    self:_append_output_args(args, output_name, output_opts)
-                else
-                    args[#args + 1] = "--output"
-                    args[#args + 1] = output_name
-                    args[#args + 1] = "--off"
-                end
-            end
-
             self.state.active_profile_index = index
             self._active_profile_missing_signature = nil
-            self:_apply_xrandr_argv(args)
+            self:_apply_xrandr_argv(args, function(ok, refreshed_state)
+                if ok then
+                    return
+                end
+
+                self:_notify_display_error(string.format(
+                    "Applying profile '%s' failed.",
+                    profile.name or "unnamed profile"
+                ))
+
+                if opts.allow_panic_fallback then
+                    self:_panic_mirror_all_outputs(refreshed_state or state)
+                end
+            end)
         end)
+    end
+
+    function instance_methods:activate_profile(index)
+        if not self:xrandr_enabled() then
+            return
+        end
+
+        if not self._profiles[index] then
+            return
+        end
+
+        self:_apply_profile_index(index, { allow_panic_fallback = false })
+    end
+
+    function instance_methods:auto_apply_startup_profile()
+        if not self:xrandr_enabled() or self._startup_auto_apply == false then
+            return
+        end
+
+        local index = self:_resolve_startup_profile_index()
+        if index == nil then
+            return
+        end
+
+        self:_apply_profile_index(index, { allow_panic_fallback = true })
     end
 
     function instance_methods:_resolve_detect_extend_reference(state)

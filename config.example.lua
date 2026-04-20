@@ -73,10 +73,12 @@ return {
     --         step = 0.02,
     --     },
     --     lxdisplay = {
+    --         auto_apply = false,
     --         refresh_interval = 10,
     --         profiles = {
     --             {
     --                 name = "Roadwarrior (Mobile)",
+    --                 default = true,
     --                 outputs = {
     --                     ["eDP-1"] = {
     --                         mode = "auto",

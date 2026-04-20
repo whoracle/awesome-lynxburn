@@ -91,6 +91,7 @@ M.lxmodules = {
         refresh_interval = 15,
     },
     lxdisplay = {
+        auto_apply = true,
         refresh_interval = 15,
         enable_osd = true,
         osd_width = 260,

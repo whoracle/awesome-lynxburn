@@ -11,6 +11,9 @@ full display manager.
 If `lxmodules.lxdisplay.profiles` is unset, the display-management popup is
 disabled and the module stays in brightness/redshift-only mode.
 
+If profiles are configured, `lxdisplay` auto-applies one on startup by default.
+Set `auto_apply = false` to disable that behavior while debugging.
+
 ## Dependencies
 
 External:
@@ -42,6 +45,7 @@ when `lxdisplay` is enabled in `lxmodules.lxbar.order`.
 - middle-click suspend/resume for redshift behavior
 - config-driven `xrandr` display profiles with passthrough output arguments
 - one-shot detection for transient displays outside the active profile
+- startup auto-apply for one chosen profile, with a panic mirror fallback
 
 ## Example Usage
 
@@ -60,10 +64,12 @@ Config example:
 ```lua
 lxmodules = {
     lxdisplay = {
+        auto_apply = false,
         refresh_interval = 15,
         profiles = {
             {
                 name = "Roadwarrior (Mobile)",
+                default = true,
                 outputs = {
                     ["eDP-1"] = {
                         mode = "auto",
@@ -119,6 +125,7 @@ Programmatic actions:
 ```lua
 lxmodules = {
     lxdisplay = {
+        auto_apply = true,
         refresh_interval = 15,
         enable_osd = true,
         osd_width = 260,
@@ -127,6 +134,7 @@ lxmodules = {
         profiles = {
             {
                 name = "Battlestation (Home)",
+                default = true,
                 outputs = {
                     ["eDP-1"] = {
                         mode = "auto",
@@ -172,12 +180,14 @@ lxmodules = {
 Supported knobs:
 
 - `refresh_interval`
+- `auto_apply`
 - `enable_osd`
 - `osd_width`
 - `osd_height`
 - `osd_margin`
 - `profiles`
 - `profiles[].name`
+- `profiles[].default`
 - `profiles[].outputs`
 - `profiles[].outputs.<output>.mode`
 - `profiles[].outputs.<output>.*`
@@ -204,6 +214,18 @@ Supported knobs:
 
 If `profiles` is `nil` or omitted, `lxdisplay` does not register a popup and
 does not perform display-profile or transient-display actions.
+
+Startup profile selection works like this:
+
+- no profiles: do nothing
+- one profile: use it automatically
+- multiple profiles with exactly one `default = true`: use that one
+- multiple profiles with no default or multiple defaults: notify, then fall back
+  to the first profile
+
+If startup profile application fails, `lxdisplay` falls back to a hardcoded
+panic layout that enables all connected outputs with `--auto` and mirrors them
+to the primary output so some screen stays usable.
 
 `profiles[].outputs.<output>.mode` is special-cased:
 

@@ -103,11 +103,18 @@ local function profile_card(self, profile, selection_index, profile_index)
     local meta_fg = gears.string.xml_escape(theme_value(self, "lxdisplay_meta_fg", beautiful.fg_minimize or "#999999"))
     local tag_text = nil
 
-    if self.state.active_profile_index == profile_index then
-        tag_text = "active"
-    elseif #missing > 0 then
-        tag_text = "missing: " .. table.concat(missing, ", ")
+    local tags = {}
+
+    if profile.default == true then
+        tags[#tags + 1] = "default"
     end
+    if self.state.active_profile_index == profile_index then
+        tags[#tags + 1] = "active"
+    end
+    if #missing > 0 then
+        tags[#tags + 1] = "missing: " .. table.concat(missing, ", ")
+    end
+    tag_text = #tags > 0 and table.concat(tags, " ") or nil
 
     local card = wibox.widget({
         {
