@@ -19,8 +19,6 @@ function widget.new(instance)
             text_widget,
             left = 2,
             right = 2,
-            top = 2,
-            bottom = 2,
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,
