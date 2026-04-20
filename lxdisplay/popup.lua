@@ -97,7 +97,9 @@ end
 
 local function profile_card(self, profile, selection_index, profile_index)
     local outputs_line = self:_profile_output_summary(profile)
-    local topology_line = self:_profile_topology_summary(profile) or "single-output layout"
+    local topology_line = self:_profile_spatial_summary(profile)
+        or self:_profile_topology_summary(profile)
+        or "single-output layout"
     local missing = self:_profile_missing_outputs(profile, self.state.connected_output_set or {})
     local meta_fg = gears.string.xml_escape(theme_value(self, "lxdisplay_meta_fg", beautiful.fg_minimize or "#999999"))
     local tag_text = nil
@@ -158,6 +160,7 @@ local function profile_card(self, profile, selection_index, profile_index)
                 gears.string.xml_escape(topology_line)
             ),
             ellipsize = "end",
+            valign = "top",
             widget = wibox.widget.textbox,
         },
         spacing = 2,

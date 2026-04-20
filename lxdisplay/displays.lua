@@ -63,6 +63,14 @@ local function active_profile_signature(profile, missing)
     }, "|")
 end
 
+local function cell_text(label)
+    return "[" .. label .. "]"
+end
+
+local function trim_right_spaces(value)
+    return (tostring(value or ""):gsub("%s+$", ""))
+end
+
 function displays.extend(instance_methods)
     function instance_methods:xrandr_enabled()
         return self._profiles_enabled == true
@@ -160,6 +168,148 @@ function displays.extend(instance_methods)
         end
 
         return table.concat(fragments, ", ")
+    end
+
+    function instance_methods:_profile_spatial_summary(profile)
+        local outputs = (profile or {}).outputs or {}
+        local output_names = self:_profile_output_names(profile)
+        if #output_names == 0 then
+            return nil
+        end
+
+        local relation_of = {}
+        local dependents = {}
+        local roots = {}
+
+        for _, output_name in ipairs(output_names) do
+            local opts = outputs[output_name] or {}
+            local relation_key = nil
+            local relation_target = nil
+
+            for _, key in ipairs({ "left_of", "right_of", "above", "below" }) do
+                if type(opts[key]) == "string" and opts[key] ~= "" then
+                    if relation_key ~= nil then
+                        return nil
+                    end
+
+                    relation_key = key
+                    relation_target = opts[key]
+                end
+            end
+
+            if opts.same_as ~= nil then
+                return nil
+            end
+
+            if relation_key == nil then
+                roots[#roots + 1] = output_name
+            else
+                relation_of[output_name] = {
+                    key = relation_key,
+                    target = relation_target,
+                }
+                dependents[relation_target] = dependents[relation_target] or {}
+                dependents[relation_target][#dependents[relation_target] + 1] = output_name
+            end
+        end
+
+        if #roots == 0 then
+            local primary = self:_profile_primary_output(profile)
+            if primary then
+                roots[1] = primary
+            else
+                return nil
+            end
+        elseif #roots > 1 then
+            return nil
+        end
+
+        local coords = {}
+        local queue = { roots[1] }
+        coords[roots[1]] = { x = 0, y = 0 }
+
+        while #queue > 0 do
+            local current = table.remove(queue, 1)
+            local current_coord = coords[current]
+
+            for _, child in ipairs(dependents[current] or {}) do
+                if coords[child] then
+                    return nil
+                end
+
+                local relation = relation_of[child]
+                local x = current_coord.x
+                local y = current_coord.y
+
+                if relation.key == "right_of" then
+                    x = x + 1
+                elseif relation.key == "left_of" then
+                    x = x - 1
+                elseif relation.key == "below" then
+                    y = y + 1
+                elseif relation.key == "above" then
+                    y = y - 1
+                else
+                    return nil
+                end
+
+                coords[child] = { x = x, y = y }
+                queue[#queue + 1] = child
+            end
+        end
+
+        for _, output_name in ipairs(output_names) do
+            if not coords[output_name] then
+                return nil
+            end
+        end
+
+        local occupancy = {}
+        local min_x, max_x, min_y, max_y
+
+        for _, output_name in ipairs(output_names) do
+            local coord = coords[output_name]
+            occupancy[coord.y] = occupancy[coord.y] or {}
+            if occupancy[coord.y][coord.x] then
+                return nil
+            end
+            occupancy[coord.y][coord.x] = output_name
+
+            min_x = min_x and math.min(min_x, coord.x) or coord.x
+            max_x = max_x and math.max(max_x, coord.x) or coord.x
+            min_y = min_y and math.min(min_y, coord.y) or coord.y
+            max_y = max_y and math.max(max_y, coord.y) or coord.y
+        end
+
+        local column_widths = {}
+        for x = min_x, max_x do
+            local width = 0
+            for y = min_y, max_y do
+                local output_name = occupancy[y] and occupancy[y][x]
+                if output_name then
+                    width = math.max(width, #cell_text(self:_profile_output_label(profile, output_name)))
+                end
+            end
+            column_widths[x] = width
+        end
+
+        local lines = {}
+        for y = min_y, max_y do
+            local parts = {}
+            for x = min_x, max_x do
+                local output_name = occupancy[y] and occupancy[y][x]
+                if output_name then
+                    local text = cell_text(self:_profile_output_label(profile, output_name))
+                    parts[#parts + 1] = text .. string.rep(" ", column_widths[x] - #text)
+                else
+                    parts[#parts + 1] = string.rep(" ", column_widths[x])
+                end
+            end
+
+            lines[#lines + 1] = trim_right_spaces(table.concat(parts, " "))
+        end
+
+        return table.concat(lines, "\n")
     end
 
     function instance_methods:_profile_missing_outputs(profile, connected_set)
