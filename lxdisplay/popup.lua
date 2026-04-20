@@ -10,6 +10,8 @@ local util = require("lxcommon.util")
 
 local popup = {}
 
+local NBSP = "\194\160"
+
 local function theme_value(self, key, fallback)
     local value = beautiful[key]
     if value ~= nil then
@@ -17,6 +19,10 @@ local function theme_value(self, key, fallback)
     end
 
     return fallback
+end
+
+local function preserve_spaces(text)
+    return gears.string.xml_escape(tostring(text or "")):gsub(" ", NBSP)
 end
 
 local function apply_popup_geometry(self, popup_widget, anchor)
@@ -148,12 +154,12 @@ local function spatial_summary_markup(self, profile, meta_fg, optional_fg)
                 markup_parts[#markup_parts + 1] = string.format(
                     "<span size='x-small' foreground='%s'>%s</span>",
                     fg,
-                    gears.string.xml_escape(padded)
+                    preserve_spaces(padded)
                 )
                 plain_parts[#plain_parts + 1] = padded
             else
                 local blanks = string.rep(" ", cell.width)
-                markup_parts[#markup_parts + 1] = gears.string.xml_escape(blanks)
+                markup_parts[#markup_parts + 1] = preserve_spaces(blanks)
                 plain_parts[#plain_parts + 1] = blanks
             end
         end
