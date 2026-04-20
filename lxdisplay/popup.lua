@@ -127,16 +127,43 @@ local function bracket_summary_markup(self, profile, meta_fg, optional_fg)
     return table.concat(parts, " ")
 end
 
+local function spatial_summary_markup(self, profile, meta_fg, optional_fg)
+    local summary = self:_profile_spatial_summary(profile)
+    if not summary then
+        return nil, nil
+    end
+
+    local markup = summary:gsub("%[([^%]]+)%]", function(content)
+        local fg = meta_fg
+        local label = content
+
+        if label:sub(-1) == "!" then
+            fg = optional_fg
+            label = label:sub(1, -2)
+        end
+
+        return string.format(
+            "<span size='x-small' foreground='%s'>[%s]</span>",
+            fg,
+            gears.string.xml_escape(label)
+        )
+    end)
+
+    local plain = summary:gsub("%!", "")
+    return markup, plain
+end
+
 local function profile_card(self, profile, selection_index, profile_index)
-    local topology_line = self:_profile_spatial_summary(profile)
-        or self:_profile_topology_summary(profile)
-        or "single-output layout"
     local missing = self:_profile_missing_outputs(profile, self.state.connected_output_set or {})
     local meta_fg = gears.string.xml_escape(theme_value(self, "lxdisplay_meta_fg", beautiful.fg_minimize or "#999999"))
     local optional_fg = gears.string.xml_escape(theme_value(self, "lxdisplay_optional_fg", beautiful.fg_urgent or "#d97777"))
+    local spatial_markup, spatial_plain = spatial_summary_markup(self, profile, meta_fg, optional_fg)
+    local topology_line = self:_profile_topology_summary(profile) or "single-output layout"
     local summary_plain = bracket_summary_plain(self, profile)
     local summary_markup = bracket_summary_markup(self, profile, meta_fg, optional_fg)
-    local show_topology = topology_line ~= nil and topology_line ~= "" and topology_line ~= summary_plain
+    local primary_markup = spatial_markup or summary_markup
+    local primary_plain = spatial_plain or summary_plain
+    local show_topology = spatial_markup == nil and topology_line ~= nil and topology_line ~= "" and topology_line ~= primary_plain
     local tag_text = nil
 
     local tags = {}
@@ -180,7 +207,7 @@ local function profile_card(self, profile, selection_index, profile_index)
             layout = wibox.layout.align.horizontal,
         },
         {
-            markup = summary_markup,
+            markup = primary_markup,
             valign = "top",
             wrap = "word_char",
             widget = wibox.widget.textbox,
