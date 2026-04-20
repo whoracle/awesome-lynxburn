@@ -31,7 +31,6 @@ local palette = {
     critical = "#d97777",
 }
 
---local font = "Terminus 8"
 local font = "Hack Nerd Font Mono 9"
 local padding = 2
 local theme_dir = os.getenv("HOME") .. "/.config/awesome/themes/lynxburn"
@@ -183,9 +182,6 @@ local theme = {
     lxnotify_button_bg = roles.raised_bg,
     lxnotify_button_hover = roles.hover_bg,
     lxnotify_popup_width = 360,
-    lxbluetooth_popup_width = 360,
-    lxnetwork_popup_width = 360,
-    lxpower_popup_width = 360,
     lxnotify_popup_placement = "side",
     lxnotify_notification_icon_size = 32,
     lxnotify_group_icon_size = 20,
@@ -219,19 +215,24 @@ local theme = {
     lxbluetooth_icon = "",
     lxbluetooth_popup_placement = "side",
     lxbluetooth_icon_width = 24,
+    lxbluetooth_popup_width = 360,
     lxbluetooth_widget_hover_bg = roles.panel_bg,
     lxbluetooth_widget_press_bg = roles.hover_bg,
+
     lxnetwork_icon = "",
     lxnetwork_icon_disabled = "󰖪",
     lxnetwork_popup_placement = "side",
+    lxnetwork_popup_width = 360,
     lxnetwork_icon_font = icon_font,
-    lxnetwork_icon_width = 32,
+    lxnetwork_icon_width = 34,
     lxnetwork_widget_hover_bg = roles.panel_bg,
     lxnetwork_widget_press_bg = roles.hover_bg,
     lxnetwork_widget_vpn_fg = palette.critical,
+
     lxpower_icon_ac = "",
     lxpower_icon_battery = "",
     lxpower_popup_placement = "center",
+    lxpower_popup_width = 360,
     lxpower_icon_pinned = "",
     lxpower_icon_font = icon_font_large,
     lxpower_icon_width = 26,
