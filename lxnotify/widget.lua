@@ -14,9 +14,21 @@ function widget.new(instance)
         widget = wibox.widget.textbox,
     })
 
-    local container = wibox.widget({
+    local text_slot = wibox.widget({
         {
             text_widget,
+            halign = "center",
+            valign = "center",
+            widget = wibox.container.place,
+        },
+        forced_width = beautiful.lxnotify_icon_width or 20,
+        strategy = "exact",
+        widget = wibox.container.constraint,
+    })
+
+    local container = wibox.widget({
+        {
+            text_slot,
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,
