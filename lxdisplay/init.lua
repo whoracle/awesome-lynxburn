@@ -2,8 +2,11 @@ local beautiful = require("beautiful")
 local wibox = require("wibox")
 
 local brightness = require("lxdisplay.brightness")
+local displays = require("lxdisplay.displays")
+local popup = require("lxdisplay.popup")
 local redshift = require("lxdisplay.redshift")
 local theme = require("lxdisplay.theme")
+local popup_controller = require("lxcommon.popup_controller")
 
 local M = {}
 M.__index = M
@@ -11,6 +14,9 @@ M.__index = M
 theme.extend(M)
 redshift.extend(M)
 brightness.extend(M)
+displays.extend(M)
+popup.extend(M)
+popup_controller.extend(M)
 
 ---Create a new lxdisplay instance with brightness, redshift, and widget state.
 function M.new(opts)
@@ -19,6 +25,13 @@ function M.new(opts)
     local brightness_opts = opts.brightness or {}
     local redshift_opts = opts.redshift or {}
     self._opts = opts
+    self._profiles_enabled = type(opts.profiles) == "table"
+    self._profiles = self:_normalize_profiles(opts.profiles)
+    self._startup_auto_apply = opts.auto_apply ~= false
+    self._detected = {
+        extend_relative_to = ((opts.detected or {}).extend_relative_to) or "profile-primary",
+        extend_direction = ((opts.detected or {}).extend_direction) or "left",
+    }
 
     self._commands = {
         get = brightness_opts.get or "xbacklight -get",
@@ -44,6 +57,14 @@ function M.new(opts)
         night_start = redshift_opts.night_start,
     }
     self._redshift_suspended = not self._redshift.autostart
+    self.state = {
+        active_profile_index = nil,
+        connected_outputs = {},
+        connected_output_set = {},
+        current_primary_output = nil,
+        detected_outputs = {},
+    }
+    self._popup_selected_index = 1
 
     self.widget = wibox.container.place()
     self:_build_widget()
@@ -52,6 +73,8 @@ function M.new(opts)
     self:_start_redshift_timer()
     self:_setup_shutdown_hook()
     self:_initialize_redshift()
+    self:refresh_display_state()
+    self:auto_apply_startup_profile()
 
     return self
 end

@@ -144,7 +144,7 @@ function M.build(instance)
         value            = instance.state.volume or 0,
         forced_width     = instance.opts.width,
         forced_height    = 8,
-        paddings         = 0,
+        paddings         = beautiful.lxmedia_bar_padding or 2,
         border_width     = 0,
         background_color = beautiful.lxmedia_bar_bg or beautiful.bg_minimize or "#140c0b",
         color            = output_fg,
@@ -168,7 +168,7 @@ function M.build(instance)
         value            = instance.state.mic_volume or 0,
         forced_width     = instance.opts.width,
         forced_height    = 8,
-        paddings         = 0,
+        paddings         = beautiful.lxmedia_bar_padding or 2,
         border_width     = 0,
         background_color = beautiful.lxmedia_mic_bar_bg or beautiful.lxmedia_bar_bg or beautiful.bg_minimize or "#140c0b",
         color            = mic_fg,
@@ -182,7 +182,11 @@ function M.build(instance)
     instance._refs.mic_bar = mic_bar
 
     local output_bar_slot = wibox.widget {
-        bar,
+        {
+            bar,
+            right = 1,
+            widget = wibox.container.margin,
+        },
         valign = "center",
         widget = wibox.container.place,
     }
@@ -210,7 +214,11 @@ function M.build(instance)
     }
 
     local mic_bar_slot = wibox.widget {
-        mic_bar,
+        {
+            mic_bar,
+            right = 1,
+            widget = wibox.container.margin,
+        },
         valign = "center",
         widget = wibox.container.place,
     }

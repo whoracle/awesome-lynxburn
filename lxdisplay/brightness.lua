@@ -95,12 +95,34 @@ function brightness.extend(instance_methods)
         awful.spawn.easy_async_with_shell(self._commands.off, function() end)
     end
 
+    ---Set brightness from a bar-relative click position.
+    function instance_methods:_set_brightness_from_bar_click(local_x, width)
+        if not width or width <= 0 then
+            return
+        end
+
+        local relative_x = helpers.clamp(local_x or 0, 0, width)
+        local ratio = relative_x / width
+        local target = helpers.round(helpers.lerp(
+            self._commands.min or 0,
+            self._commands.max or 100,
+            ratio
+        ))
+
+        self:_set_brightness(target, { show_osd = false })
+    end
+
     ---Bind widget-local mouse controls for brightness and redshift toggle.
     function instance_methods:_attach_mouse_controls(widget)
         widget:buttons(gears.table.join(
             awful.button({}, 2, function()
                 if self.redshift_toggle then
                     self:redshift_toggle()
+                end
+            end),
+            awful.button({}, 3, function()
+                if self.xrandr_enabled and self:xrandr_enabled() then
+                    self:toggle_popup(mouse.current_widget_geometry)
                 end
             end),
             awful.button({}, 4, function()

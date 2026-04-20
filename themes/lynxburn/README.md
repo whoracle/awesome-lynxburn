@@ -225,8 +225,16 @@ Layout label values:
 - `lxdisplay_bar_width`
 - `lxdisplay_bar_height`
 - `lxdisplay_bar_spacing`
+- `lxdisplay_bar_padding`
+- `lxdisplay_bar_end_margin`
 - `lxdisplay_bar_bg`
 - `lxdisplay_bar_fg`
+- `lxdisplay_popup_width`
+- `lxdisplay_popup_placement`
+- `lxdisplay_popup_bg`
+- `lxdisplay_button_hover`
+- `lxdisplay_selected_bg`
+- `lxdisplay_meta_fg`
 - `lxdisplay_widget_hover_bg`
 - `lxdisplay_widget_press_bg`
 - `lxdisplay_osd_bar_bg`

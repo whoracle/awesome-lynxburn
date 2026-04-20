@@ -91,11 +91,16 @@ M.lxmodules = {
         refresh_interval = 15,
     },
     lxdisplay = {
+        auto_apply = true,
         refresh_interval = 15,
         enable_osd = true,
         osd_width = 260,
         osd_height = 18,
         osd_margin = 16,
+        detected = {
+            extend_relative_to = "profile-primary",
+            extend_direction = "left",
+        },
         brightness = {
             get = "xbacklight -get",
             set = "xbacklight -set %d",

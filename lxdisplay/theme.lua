@@ -117,7 +117,7 @@ function theme.extend(instance_methods)
             value = 0,
             forced_width = beautiful.lxdisplay_bar_width or 40,
             forced_height = beautiful.lxdisplay_bar_height or 8,
-            paddings = 0,
+            paddings = beautiful.lxdisplay_bar_padding or beautiful.lxmedia_bar_padding or 2,
             border_width = 0,
             background_color = beautiful.lxdisplay_bar_bg
                 or beautiful.lxmedia_bar_bg
@@ -130,15 +130,30 @@ function theme.extend(instance_methods)
             widget = wibox.widget.progressbar,
         })
 
-        self._bar_slot = wibox.widget({
+        self._bar_click_area = wibox.widget({
             self._bar,
+            right = beautiful.lxdisplay_bar_end_margin or 4,
+            widget = wibox.container.margin,
+        })
+
+        self._bar_click_area:connect_signal("button::press", function(_, lx, _, button, _, hit)
+            if button ~= 1 then
+                return
+            end
+
+            local width = hit and hit.width or nil
+            self:_set_brightness_from_bar_click(lx, width)
+        end)
+
+        self._bar_slot = wibox.widget({
+            self._bar_click_area,
             valign = "center",
             widget = wibox.container.place,
         })
 
         self._bar_margin = wibox.widget({
             self._bar_slot,
-            left = beautiful.lxdisplay_bar_spacing or 8,
+            left = beautiful.lxdisplay_bar_spacing or 6,
             widget = wibox.container.margin,
         })
         table.insert(content, 2, self._bar_margin)
