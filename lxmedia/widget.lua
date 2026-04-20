@@ -133,6 +133,7 @@ function M.build(instance)
         fg = instance.state.muted
             and (beautiful.lxmedia_widget_muted_fg or beautiful.fg_minimize or "#888888")
             or (beautiful.lxmedia_widget_fg or beautiful.fg_normal or "#ffffff"),
+        font = beautiful.lxmedia_icon_font or beautiful.font,
         align = "center",
         valign = "center",
         widget = wibox.widget.textbox,
@@ -155,6 +156,7 @@ function M.build(instance)
         fg = instance.state.mic_muted
             and (beautiful.lxmedia_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
             or (beautiful.lxmedia_widget_mic_fg or beautiful.fg_urgent or "#ff6666"),
+        font = beautiful.lxmedia_icon_font or beautiful.font,
         visible = mic_visible,
         align = "center",
         valign = "center",
