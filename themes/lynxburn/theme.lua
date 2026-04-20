@@ -217,6 +217,7 @@ local theme = {
     lxbluetooth_widget_hover_bg = roles.raised_bg,
     lxbluetooth_widget_press_bg = roles.hover_bg,
     lxnetwork_icon = "",
+    lxnetwork_icon_disabled = "󰖪",
     lxnetwork_popup_placement = "side",
     lxnetwork_icon_width = 30,
     lxnetwork_widget_hover_bg = roles.raised_bg,

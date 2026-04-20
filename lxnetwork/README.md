@@ -100,6 +100,7 @@ Supported knobs:
 `lxnetwork` reads these `beautiful` keys:
 
 - `lxnetwork_icon`
+- `lxnetwork_icon_disabled`
 - `lxnetwork_icon_font`
 - `lxnetwork_icon_width`
 - `lxnetwork_widget_fg`

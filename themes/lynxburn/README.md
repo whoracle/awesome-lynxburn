@@ -247,6 +247,7 @@ Layout label values:
 `lxnetwork` values:
 
 - `lxnetwork_icon`
+- `lxnetwork_icon_disabled`
 - `lxnetwork_popup_placement`
 - `lxnetwork_icon_width`
 - `lxnetwork_widget_hover_bg`
