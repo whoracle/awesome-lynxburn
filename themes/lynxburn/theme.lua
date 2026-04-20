@@ -55,6 +55,7 @@ local roles = {
 
 local icon_font = "Hack Nerd Font Mono 10"
 local icon_font_large = "Hack Nerd Font Mono 11"
+local icon_font_very_large = "Hack Nerd Font Mono 12"
 
 local theme = {
     dir = theme_dir,
@@ -223,8 +224,8 @@ local theme = {
     lxnetwork_icon_disabled = "󰖪",
     lxnetwork_popup_placement = "side",
     lxnetwork_popup_width = 360,
-    lxnetwork_icon_font = icon_font,
-    lxnetwork_icon_width = 34,
+    lxnetwork_icon_font = icon_font_very_large,
+    lxnetwork_icon_width = 32,
     lxnetwork_widget_hover_bg = roles.panel_bg,
     lxnetwork_widget_press_bg = roles.hover_bg,
     lxnetwork_widget_vpn_fg = palette.critical,
