@@ -1,3 +1,38 @@
+## v1.3.0 (2026-04-20)
+
+### Features
+
+- [lxnetwork] add dedicated disabled wifi glyph for widget state
+
+### Bug Fixes
+
+- [theme] increase top-level icon presence for smaller lxmodule glyphs
+- [theme] align lxbar horizontal shell with other panel widgets
+- [lxpower] remove hidden top-level spacing when compact label is absent
+- [lxpower] collapse empty compact label to remove trailing gap
+- [lxbar] align widget hover and outer spacing with wibar surface
+- [core] normalize top-level widget width and hidden bar spacing
+- [core] remove glyph and hidden-spacing bias from top-level widgets
+- [lxnetwork] make vpn state override widget color consistently
+- [lxcommon] stop treating anchor geometry as popup options
+- [lxcommon] sync popup hover with keyboard selection state
+
+### Refactors
+
+- [core] remove widget-local horizontal padding from top-level modules
+- [core] remove widget-local vertical padding from top-level modules
+
+### Documentation
+
+- [core] note glyph-capable font requirement in user README
+
+### Chores
+
+- [theme] tweak lxnotify icon width
+- [theme] adjust icon sizes to their final size
+- [theme] adjust icon sizes some more
+- [theme] adjust icon sizes
+
 ## v1.2.0 (2026-04-19)
 
 ### Features
