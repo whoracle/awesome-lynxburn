@@ -25,6 +25,8 @@ Core runtime:
 - the Lua libraries shipped with AwesomeWM, including `awful`, `beautiful`,
   `gears`, `naughty`, and `wibox`
 - `lain`
+- a font with broad glyph coverage for the bar and popup icons, ideally
+  something like `Hack Nerd Font Mono`
 
 Common external commands used by the current config:
 
