@@ -132,7 +132,7 @@ local function profile_card(self, profile, selection_index, profile_index)
         },
         {
             markup = string.format(
-                "<span size='small' foreground='%s'>%s</span>",
+                "<span size='x-small' foreground='%s'>%s</span>",
                 meta_fg,
                 gears.string.xml_escape(outputs_line ~= "" and outputs_line or "no outputs configured")
             ),
@@ -141,7 +141,7 @@ local function profile_card(self, profile, selection_index, profile_index)
         },
         {
             markup = string.format(
-                "<span size='small' foreground='%s'>%s</span>",
+                "<span size='x-small' foreground='%s'>%s</span>",
                 meta_fg,
                 gears.string.xml_escape(topology_line)
             ),
@@ -239,6 +239,9 @@ function popup.extend(instance_methods)
             if item.widget and item.widget._lx_set_selected then
                 item.widget:_lx_set_selected(item_index == index)
             end
+            if item.widget and item.widget._lx_set_feedback_active then
+                item.widget:_lx_set_feedback_active(item_index == index)
+            end
         end
     end
 
@@ -268,6 +271,13 @@ function popup.extend(instance_methods)
             end
         end
 
+        self._popup_items[#self._popup_items + 1] = {
+            widget = refs.detect_action,
+            on_enter = function()
+                self:detect_displays()
+            end,
+        }
+
         if #(self.state.detected_outputs or {}) == 0 then
             refs.detected:add(status_line(self, "No unassigned displays detected."))
         else
@@ -280,6 +290,9 @@ function popup.extend(instance_methods)
         for item_index, item in ipairs(self._popup_items) do
             if item.widget and item.widget._lx_set_selected then
                 item.widget:_lx_set_selected(item_index == self._popup_selected_index)
+            end
+            if item.widget and item.widget._lx_set_feedback_active then
+                item.widget:_lx_set_feedback_active(item_index == self._popup_selected_index)
             end
         end
     end
