@@ -19,7 +19,7 @@ function theme.extend(instance_methods)
             and self:_theme_value("lxnetwork_widget_fg", beautiful.fg_normal or "#ffffff")
             or self:_theme_value("lxnetwork_widget_disabled_fg", beautiful.fg_minimize or "#888888")
 
-        if self.state.enabled and self.state.vpn_active then
+        if self.state.vpn_active then
             fg = self:_theme_value("lxnetwork_widget_vpn_fg", beautiful.fg_urgent or "#d97777")
         end
 
