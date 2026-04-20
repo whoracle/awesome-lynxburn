@@ -170,7 +170,7 @@ local theme = {
 
     lxnotify_icon_suspended = "󰂛",
     lxnotify_icon_idle = "󰂚",
-    lxnotify_icon_width = 20,
+    lxnotify_icon_width = 26,
     lxnotify_widget_font = "Hack Nerd Font Mono 9",
     lxnotify_widget_fg = "#e8d7b6",
     lxnotify_widget_suspended_fg = roles.text_muted,
