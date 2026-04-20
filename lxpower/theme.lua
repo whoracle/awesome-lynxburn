@@ -63,8 +63,14 @@ function theme.extend(instance_methods)
             gears.string.xml_escape(compact_text)
         )
 
+        local show_label = compact_text ~= ""
+
         if self._refs.label_slot then
-            self._refs.label_slot.visible = compact_text ~= ""
+            self._refs.label_slot.visible = show_label
+        end
+
+        if self._refs.label_margin then
+            self._refs.label_margin.visible = show_label
         end
     end
 
