@@ -190,6 +190,9 @@ Supported knobs:
 - `profiles[].default`
 - `profiles[].outputs`
 - `profiles[].outputs.<output>.mode`
+- `profiles[].outputs.<output>.friendly_name`
+- `profiles[].outputs.<output>.optional`
+- `profiles[].outputs.<output>.initial_state`
 - `profiles[].outputs.<output>.*`
 - `detected.extend_relative_to`
 - `detected.extend_direction`
@@ -239,6 +242,20 @@ into dashes and prefixing `--`. Examples:
 - `rotate = "left"` becomes `--rotate left`
 - `primary = true` becomes `--primary`
 
+`friendly_name` is display-only metadata for the popup/profile summaries and is
+not passed through to `xrandr`.
+
+Optional outputs stay attached to a profile without making the profile fail
+when the hardware is absent:
+
+- `optional = true` means that output may be missing without invalidating the
+  profile
+- `initial_state = "on" | "off"` controls whether a connected optional output
+  is enabled or forced off when the profile is applied
+- optional outputs stay visible in the popup layout summary even when off
+- optional outputs that are currently off are rendered with the optional-output
+  theme color instead of disappearing from the layout summary
+
 ## Theme Variables
 
 `lxdisplay` reads these `beautiful` keys:
@@ -263,6 +280,7 @@ into dashes and prefixing `--`. Examples:
 - `lxdisplay_button_hover`
 - `lxdisplay_selected_bg`
 - `lxdisplay_meta_fg`
+- `lxdisplay_optional_fg`
 - `lxdisplay_widget_hover_bg`
 - `lxdisplay_widget_press_bg`
 - `lxdisplay_osd_bar_bg`

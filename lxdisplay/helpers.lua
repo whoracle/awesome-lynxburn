@@ -64,6 +64,7 @@ function helpers.parse_xrandr_outputs(stdout)
             outputs[#outputs + 1] = {
                 name = name,
                 primary = tostring(suffix or ""):match("%sprimary%s") ~= nil,
+                active = tostring(suffix or ""):match("%s%d+x%d+[%+%-]%d+[%+%-]%d+") ~= nil,
             }
         end
     end

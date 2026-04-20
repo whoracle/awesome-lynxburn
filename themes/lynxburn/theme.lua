@@ -213,6 +213,7 @@ local theme = {
     lxdisplay_button_hover = roles.hover_bg,
     lxdisplay_selected_bg = roles.text_accent,
     lxdisplay_meta_fg = roles.text_meta,
+    lxdisplay_optional_fg = palette.critical,
     lxdisplay_widget_hover_bg = roles.panel_bg,
     lxdisplay_widget_press_bg = roles.hover_bg,
     lxdisplay_osd_bar_bg = roles.bar_bg,

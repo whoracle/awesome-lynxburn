@@ -235,6 +235,7 @@ Layout label values:
 - `lxdisplay_button_hover`
 - `lxdisplay_selected_bg`
 - `lxdisplay_meta_fg`
+- `lxdisplay_optional_fg`
 - `lxdisplay_widget_hover_bg`
 - `lxdisplay_widget_press_bg`
 - `lxdisplay_osd_bar_bg`

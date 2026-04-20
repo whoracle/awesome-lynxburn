@@ -95,12 +95,124 @@ local function selectable_card(self, child, selected, index, onclick)
     })
 end
 
+local function bracket_summary_plain(self, profile)
+    local parts = {}
+
+    for _, output_name in ipairs(self:_profile_output_names(profile)) do
+        local label = self:_profile_output_label(profile, output_name)
+        parts[#parts + 1] = string.format("[%s]", label)
+    end
+
+    return table.concat(parts, " ")
+end
+
+local function summary_textbox(markup)
+    return wibox.widget({
+        markup = markup,
+        valign = "top",
+        wrap = "word_char",
+        widget = wibox.widget.textbox,
+    })
+end
+
+local function bracket_summary_widget(self, profile, meta_fg, optional_fg)
+    local row = wibox.layout.fixed.horizontal()
+    row.spacing = 6
+
+    for _, output_name in ipairs(self:_profile_output_names(profile)) do
+        local fg = self:_profile_output_is_off(profile, output_name) and optional_fg or meta_fg
+        row:add(summary_textbox(string.format(
+            "<span size='x-small' foreground='%s'>%s</span>",
+            fg,
+            gears.string.xml_escape(string.format("[%s]", self:_profile_output_label(profile, output_name)))
+        )))
+    end
+
+    return row
+end
+
+local function measure_text_width(widget, screen)
+    local width = widget:get_preferred_size(screen)
+    return width or 0
+end
+
+local function spatial_summary_widget(self, profile, meta_fg, optional_fg)
+    local rows = self:_profile_spatial_rows(profile)
+    if not rows then
+        return nil
+    end
+
+    local screen = screen_util.resolve_screen(self._popup_anchor)
+    local space_probe = summary_textbox("<span size='x-small'> </span>")
+    local spacing = measure_text_width(space_probe, screen)
+    local column_widths = {}
+
+    for _, row in ipairs(rows) do
+        for column_index, cell in ipairs(row) do
+            local width = 0
+
+            if cell.label then
+                local probe = summary_textbox(string.format(
+                    "<span size='x-small'>%s</span>",
+                    gears.string.xml_escape(string.format("[%s]", cell.label))
+                ))
+                width = measure_text_width(probe, screen)
+            end
+
+            column_widths[column_index] = math.max(column_widths[column_index] or 0, width)
+        end
+    end
+
+    local layout = wibox.layout.fixed.vertical()
+    layout.spacing = 1
+
+    for _, row in ipairs(rows) do
+        local line = wibox.layout.fixed.horizontal()
+        line.spacing = spacing
+
+        for column_index, cell in ipairs(row) do
+            local child
+
+            if cell.label then
+                local fg = cell.off and optional_fg or meta_fg
+                child = summary_textbox(string.format(
+                    "<span size='x-small' foreground='%s'>%s</span>",
+                    fg,
+                    gears.string.xml_escape(string.format("[%s]", cell.label))
+                ))
+            else
+                child = wibox.widget({
+                    text = "",
+                    widget = wibox.widget.textbox,
+                })
+            end
+
+            local container = wibox.widget({
+                child,
+                forced_width = column_widths[column_index] or 0,
+                halign = "left",
+                widget = wibox.container.place,
+            })
+
+            line:add(container)
+        end
+
+        layout:add(line)
+    end
+
+    return layout
+end
+
 local function profile_card(self, profile, selection_index, profile_index)
-    local output_names = self:_profile_output_names(profile)
-    local outputs_line = table.concat(output_names, " + ")
-    local topology_line = self:_profile_topology_summary(profile) or "single-output layout"
     local missing = self:_profile_missing_outputs(profile, self.state.connected_output_set or {})
     local meta_fg = gears.string.xml_escape(theme_value(self, "lxdisplay_meta_fg", beautiful.fg_minimize or "#999999"))
+    local optional_fg = gears.string.xml_escape(theme_value(self, "lxdisplay_optional_fg", beautiful.fg_urgent or "#d97777"))
+    local spatial_widget = spatial_summary_widget(self, profile, meta_fg, optional_fg)
+    local topology_line = self:_profile_topology_summary(profile) or "single-output layout"
+    local summary_plain = bracket_summary_plain(self, profile)
+    local summary_widget = bracket_summary_widget(self, profile, meta_fg, optional_fg)
+    local primary_widget = spatial_widget or summary_widget
+    local show_topology = spatial_widget == nil and topology_line ~= nil and topology_line ~= "" and topology_line ~= summary_plain
     local tag_text = nil
 
     local tags = {}
@@ -144,21 +256,18 @@ local function profile_card(self, profile, selection_index, profile_index)
             layout = wibox.layout.align.horizontal,
         },
         {
-            markup = string.format(
-                "<span size='x-small' foreground='%s'>%s</span>",
-                meta_fg,
-                gears.string.xml_escape(outputs_line ~= "" and outputs_line or "no outputs configured")
-            ),
-            ellipsize = "end",
-            widget = wibox.widget.textbox,
+            primary_widget,
+            widget = wibox.container.margin,
         },
         {
             markup = string.format(
                 "<span size='x-small' foreground='%s'>%s</span>",
-                meta_fg,
+                topology_line:find("!", 1, true) and optional_fg or meta_fg,
                 gears.string.xml_escape(topology_line)
             ),
             ellipsize = "end",
+            valign = "top",
+            visible = show_topology,
             widget = wibox.widget.textbox,
         },
         spacing = 2,
@@ -372,6 +481,8 @@ function popup.extend(instance_methods)
     end
 
     function instance_methods:_ensure_popup(anchor)
+        self._popup_anchor = anchor
+
         if not self._popup then
             self._popup = awful.popup({
                 visible = false,
