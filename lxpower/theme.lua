@@ -62,6 +62,10 @@ function theme.extend(instance_methods)
             gears.string.xml_escape(fg),
             gears.string.xml_escape(compact_text)
         )
+
+        if self._refs.label_slot then
+            self._refs.label_slot.visible = compact_text ~= ""
+        end
     end
 
     function instance_methods:hover_close_timeout()
