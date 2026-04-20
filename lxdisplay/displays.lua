@@ -15,6 +15,8 @@ local POSITION_KEYS = {
 
 local NON_XRANDR_OUTPUT_KEYS = {
     friendly_name = true,
+    optional = true,
+    initial_state = true,
 }
 
 local function clone_table(source)
@@ -81,10 +83,19 @@ function displays.extend(instance_methods)
 
         for _, profile in ipairs(profiles or {}) do
             if type(profile) == "table" and type(profile.outputs) == "table" then
+                local outputs = clone_table(profile.outputs)
+
+                for _, output_opts in pairs(outputs) do
+                    if type(output_opts) == "table" then
+                        output_opts.optional = output_opts.optional == true
+                        output_opts.initial_state = output_opts.initial_state == "off" and "off" or "on"
+                    end
+                end
+
                 normalized[#normalized + 1] = {
                     name = profile.name or ("Profile " .. tostring(#normalized + 1)),
                     default = profile.default == true,
-                    outputs = clone_table(profile.outputs),
+                    outputs = outputs,
                 }
             end
         end
@@ -128,6 +139,16 @@ function displays.extend(instance_methods)
         return output_name
     end
 
+    function instance_methods:_profile_output_optional(profile, output_name)
+        local output_opts = ((profile or {}).outputs or {})[output_name] or {}
+        return output_opts.optional == true
+    end
+
+    function instance_methods:_profile_output_initial_state(profile, output_name)
+        local output_opts = ((profile or {}).outputs or {})[output_name] or {}
+        return output_opts.initial_state == "off" and "off" or "on"
+    end
+
     function instance_methods:_profile_output_summary(profile)
         local labels = {}
 
@@ -145,6 +166,11 @@ function displays.extend(instance_methods)
             local opts = (profile.outputs or {})[output_name] or {}
             local relationship
             local display_name = self:_profile_output_label(profile, output_name)
+
+            if self:_profile_output_optional(profile, output_name)
+                and self:_profile_output_initial_state(profile, output_name) == "off" then
+                display_name = display_name .. " optional-off"
+            end
 
             for key, _ in pairs(POSITION_KEYS) do
                 if type(opts[key]) == "string" and opts[key] ~= "" then
@@ -287,7 +313,12 @@ function displays.extend(instance_methods)
             for y = min_y, max_y do
                 local output_name = occupancy[y] and occupancy[y][x]
                 if output_name then
-                    width = math.max(width, #cell_text(self:_profile_output_label(profile, output_name)))
+                    local label = self:_profile_output_label(profile, output_name)
+                    if self:_profile_output_optional(profile, output_name)
+                        and self:_profile_output_initial_state(profile, output_name) == "off" then
+                        label = label .. "!"
+                    end
+                    width = math.max(width, #cell_text(label))
                 end
             end
             column_widths[x] = width
@@ -299,7 +330,12 @@ function displays.extend(instance_methods)
             for x = min_x, max_x do
                 local output_name = occupancy[y] and occupancy[y][x]
                 if output_name then
-                    local text = cell_text(self:_profile_output_label(profile, output_name))
+                    local label = self:_profile_output_label(profile, output_name)
+                    if self:_profile_output_optional(profile, output_name)
+                        and self:_profile_output_initial_state(profile, output_name) == "off" then
+                        label = label .. "!"
+                    end
+                    local text = cell_text(label)
                     parts[#parts + 1] = text .. string.rep(" ", column_widths[x] - #text)
                 else
                     parts[#parts + 1] = string.rep(" ", column_widths[x])
@@ -316,7 +352,7 @@ function displays.extend(instance_methods)
         local missing = {}
 
         for _, output_name in ipairs(self:_profile_output_names(profile)) do
-            if not connected_set[output_name] then
+            if not connected_set[output_name] and not self:_profile_output_optional(profile, output_name) then
                 missing[#missing + 1] = output_name
             end
         end
@@ -586,7 +622,13 @@ function displays.extend(instance_methods)
             local output_opts = profile.outputs[output_name]
 
             if output_opts then
-                self:_append_output_args(args, output_name, output_opts)
+                if self:_profile_output_initial_state(profile, output_name) == "off" then
+                    args[#args + 1] = "--output"
+                    args[#args + 1] = output_name
+                    args[#args + 1] = "--off"
+                else
+                    self:_append_output_args(args, output_name, output_opts)
+                end
             else
                 args[#args + 1] = "--output"
                 args[#args + 1] = output_name

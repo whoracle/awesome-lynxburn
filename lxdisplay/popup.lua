@@ -96,12 +96,12 @@ local function selectable_card(self, child, selected, index, onclick)
 end
 
 local function profile_card(self, profile, selection_index, profile_index)
-    local outputs_line = self:_profile_output_summary(profile)
     local topology_line = self:_profile_spatial_summary(profile)
         or self:_profile_topology_summary(profile)
         or "single-output layout"
     local missing = self:_profile_missing_outputs(profile, self.state.connected_output_set or {})
     local meta_fg = gears.string.xml_escape(theme_value(self, "lxdisplay_meta_fg", beautiful.fg_minimize or "#999999"))
+    local optional_fg = gears.string.xml_escape(theme_value(self, "lxdisplay_optional_fg", beautiful.fg_urgent or "#d97777"))
     local tag_text = nil
 
     local tags = {}
@@ -147,16 +147,7 @@ local function profile_card(self, profile, selection_index, profile_index)
         {
             markup = string.format(
                 "<span size='x-small' foreground='%s'>%s</span>",
-                meta_fg,
-                gears.string.xml_escape(outputs_line ~= "" and outputs_line or "no outputs configured")
-            ),
-            ellipsize = "end",
-            widget = wibox.widget.textbox,
-        },
-        {
-            markup = string.format(
-                "<span size='x-small' foreground='%s'>%s</span>",
-                meta_fg,
+                topology_line:find("!", 1, true) and optional_fg or meta_fg,
                 gears.string.xml_escape(topology_line)
             ),
             ellipsize = "end",

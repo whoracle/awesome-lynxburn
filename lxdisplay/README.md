@@ -191,6 +191,8 @@ Supported knobs:
 - `profiles[].outputs`
 - `profiles[].outputs.<output>.mode`
 - `profiles[].outputs.<output>.friendly_name`
+- `profiles[].outputs.<output>.optional`
+- `profiles[].outputs.<output>.initial_state`
 - `profiles[].outputs.<output>.*`
 - `detected.extend_relative_to`
 - `detected.extend_direction`
@@ -242,6 +244,14 @@ into dashes and prefixing `--`. Examples:
 
 `friendly_name` is display-only metadata for the popup/profile summaries and is
 not passed through to `xrandr`.
+
+Optional outputs stay attached to a profile without making the profile fail
+when the hardware is absent:
+
+- `optional = true` means that output may be missing without invalidating the
+  profile
+- `initial_state = "on" | "off"` controls whether a connected optional output
+  is enabled or forced off when the profile is applied
 
 ## Theme Variables
 
