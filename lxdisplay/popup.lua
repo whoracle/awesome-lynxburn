@@ -95,6 +95,39 @@ local function selectable_card(self, child, selected, index, onclick)
     })
 end
 
+local function bracket_summary_plain(self, profile)
+    local parts = {}
+
+    for _, output_name in ipairs(self:_profile_output_names(profile)) do
+        local label = self:_profile_output_label(profile, output_name)
+        parts[#parts + 1] = string.format("[%s]", label)
+    end
+
+    return table.concat(parts, " ")
+end
+
+local function bracket_summary_markup(self, profile, meta_fg, optional_fg)
+    local parts = {}
+
+    for _, output_name in ipairs(self:_profile_output_names(profile)) do
+        local label = string.format("[%s]", self:_profile_output_label(profile, output_name))
+        local fg = meta_fg
+
+        if self:_profile_output_optional(profile, output_name)
+            and self:_profile_output_initial_state(profile, output_name) == "off" then
+            fg = optional_fg
+        end
+
+        parts[#parts + 1] = string.format(
+            "<span size='x-small' foreground='%s'>%s</span>",
+            fg,
+            gears.string.xml_escape(label)
+        )
+    end
+
+    return table.concat(parts, " ")
+end
+
 local function profile_card(self, profile, selection_index, profile_index)
     local topology_line = self:_profile_spatial_summary(profile)
         or self:_profile_topology_summary(profile)
@@ -102,6 +135,9 @@ local function profile_card(self, profile, selection_index, profile_index)
     local missing = self:_profile_missing_outputs(profile, self.state.connected_output_set or {})
     local meta_fg = gears.string.xml_escape(theme_value(self, "lxdisplay_meta_fg", beautiful.fg_minimize or "#999999"))
     local optional_fg = gears.string.xml_escape(theme_value(self, "lxdisplay_optional_fg", beautiful.fg_urgent or "#d97777"))
+    local summary_plain = bracket_summary_plain(self, profile)
+    local summary_markup = bracket_summary_markup(self, profile, meta_fg, optional_fg)
+    local show_topology = topology_line ~= nil and topology_line ~= "" and topology_line ~= summary_plain
     local tag_text = nil
 
     local tags = {}
@@ -145,6 +181,12 @@ local function profile_card(self, profile, selection_index, profile_index)
             layout = wibox.layout.align.horizontal,
         },
         {
+            markup = summary_markup,
+            ellipsize = "end",
+            valign = "top",
+            widget = wibox.widget.textbox,
+        },
+        {
             markup = string.format(
                 "<span size='x-small' foreground='%s'>%s</span>",
                 topology_line:find("!", 1, true) and optional_fg or meta_fg,
@@ -152,6 +194,7 @@ local function profile_card(self, profile, selection_index, profile_index)
             ),
             ellipsize = "end",
             valign = "top",
+            visible = show_topology,
             widget = wibox.widget.textbox,
         },
         spacing = 2,
