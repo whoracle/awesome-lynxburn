@@ -117,7 +117,7 @@ function theme.extend(instance_methods)
             value = 0,
             forced_width = beautiful.lxdisplay_bar_width or 40,
             forced_height = beautiful.lxdisplay_bar_height or 8,
-            paddings = 0,
+            paddings = beautiful.lxdisplay_bar_padding or beautiful.lxmedia_bar_padding or 2,
             border_width = 0,
             background_color = beautiful.lxdisplay_bar_bg
                 or beautiful.lxmedia_bar_bg
