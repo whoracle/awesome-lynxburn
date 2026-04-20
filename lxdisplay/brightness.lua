@@ -120,6 +120,9 @@ function brightness.extend(instance_methods)
                     self:redshift_toggle()
                 end
             end),
+            awful.button({}, 3, function()
+                self:toggle_popup(mouse.current_widget_geometry)
+            end),
             awful.button({}, 4, function()
                 self:brightness_up(nil, { show_osd = false })
             end),

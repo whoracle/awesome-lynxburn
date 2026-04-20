@@ -210,14 +210,12 @@ local function collect_display_dependencies(grouped)
     local opts = module_config.options("display")
     local brightness = opts.brightness or {}
     local redshift = opts.redshift or {}
+    local xrandr_command = redshift.command or "xrandr"
 
     require_command(grouped, "lxdisplay", brightness.get or "xbacklight -get")
     require_command(grouped, "lxdisplay", brightness.set or "xbacklight -set %d")
     require_command(grouped, "lxdisplay", brightness.off or "xset dpms force off")
-
-    if redshift.enabled ~= false then
-        require_command(grouped, "lxdisplay", redshift.command or "xrandr")
-    end
+    require_command(grouped, "lxdisplay", xrandr_command)
 end
 
 local function collect_power_dependencies(grouped)

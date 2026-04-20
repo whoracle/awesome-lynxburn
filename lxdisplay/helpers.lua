@@ -54,6 +54,37 @@ function helpers.parse_connected_outputs(stdout)
     return outputs
 end
 
+---Parse connected xrandr outputs and retain ordering plus `primary` state.
+function helpers.parse_xrandr_outputs(stdout)
+    local outputs = {}
+
+    for line in tostring(stdout or ""):gmatch("[^\r\n]+") do
+        local name, suffix = line:match("^(%S+)%s+connected(.*)$")
+        if name then
+            outputs[#outputs + 1] = {
+                name = name,
+                primary = tostring(suffix or ""):match("%sprimary%s") ~= nil,
+            }
+        end
+    end
+
+    return outputs
+end
+
+---Return an ordered set-like table keyed by output name.
+function helpers.output_name_set(outputs)
+    local set = {}
+
+    for _, output in ipairs(outputs or {}) do
+        local name = type(output) == "table" and output.name or output
+        if type(name) == "string" and name ~= "" then
+            set[name] = true
+        end
+    end
+
+    return set
+end
+
 ---Format a gamma channel value for xrandr.
 function helpers.format_gamma(value)
     return string.format("%.4f", helpers.clamp(value, 0.0001, 1))

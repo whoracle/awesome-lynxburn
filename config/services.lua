@@ -114,6 +114,11 @@ function M.display()
         local instance = require("lxdisplay").new(module_config.options("display"))
 
         registry.register_widget("display", instance.widget, 60)
+        register_single_popup("display", instance, "default", "secondary", "_popup", function(service, popup_opts)
+            service:toggle_popup(nil, popup_opts)
+        end, function(service)
+            service:close_popup()
+        end)
 
         return instance
     end)
