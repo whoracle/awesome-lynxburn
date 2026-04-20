@@ -114,7 +114,13 @@ local function profile_card(self, profile, selection_index, profile_index)
     if #missing > 0 then
         tags[#tags + 1] = "missing: " .. table.concat(missing, ", ")
     end
-    tag_text = #tags > 0 and table.concat(tags, " ") or nil
+    if #tags > 0 then
+        local parts = {}
+        for _, tag in ipairs(tags) do
+            parts[#parts + 1] = string.format("[%s]", tag)
+        end
+        tag_text = table.concat(parts, "")
+    end
 
     local card = wibox.widget({
         {
@@ -126,7 +132,7 @@ local function profile_card(self, profile, selection_index, profile_index)
             nil,
             {
                 markup = tag_text and string.format(
-                    "<span size='small' foreground='%s'>[%s]</span>",
+                    "<span size='small' foreground='%s'>%s</span>",
                     meta_fg,
                     gears.string.xml_escape(tag_text)
                 ) or "",

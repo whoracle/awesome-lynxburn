@@ -10,9 +10,10 @@ This file only tracks the remaining intended work.
   Why: this module owns display-side QoL behavior and should stay boring in the
   good sense
 
-- refine the new profile popup after real use
-  Why: profile summaries, detected-display actions, and activation feedback
-  should be validated against daily-driving before broadening the feature set
+- refine profile/detected-display UX only after daily-driving reveals a real
+  need
+  Why: the current popup and startup behavior are intentionally complete enough
+  for regular use, and further expansion should be driven by actual friction
 
 - expand transient-display behavior only if needed
   Why: the first pass intentionally keeps temporary display actions narrow
