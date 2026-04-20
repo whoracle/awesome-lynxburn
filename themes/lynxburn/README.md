@@ -192,6 +192,7 @@ Layout label values:
 
 - `lxnotify_icon_suspended`
 - `lxnotify_icon_idle`
+- `lxnotify_icon_width`
 - `lxnotify_widget_font`
 - `lxnotify_widget_fg`
 - `lxnotify_widget_suspended_fg`
@@ -247,6 +248,7 @@ Layout label values:
 `lxnetwork` values:
 
 - `lxnetwork_icon`
+- `lxnetwork_icon_disabled`
 - `lxnetwork_popup_placement`
 - `lxnetwork_icon_width`
 - `lxnetwork_widget_hover_bg`

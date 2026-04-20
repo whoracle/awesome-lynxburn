@@ -26,14 +26,16 @@ local mail_server = lain_commands.imap_server
 local mail_login_options = lain_commands.imap_login_options or "AUTH=LOGIN"
 local mail_timeout = tonumber(lain_commands.imap_timeout) or 60
 
-local function wrap_widget(theme, widget, background)
+local function wrap_widget(theme, widget, background, opts)
+    opts = opts or {}
+
     return wibox.widget({
         {
             widget,
-            left = theme.widget_padding_left,
-            top = theme.widget_padding_top,
-            bottom = theme.widget_padding_bottom,
-            right = theme.widget_padding_right,
+            left = opts.left ~= nil and opts.left or theme.widget_padding_left,
+            top = opts.top ~= nil and opts.top or theme.widget_padding_top,
+            bottom = opts.bottom ~= nil and opts.bottom or theme.widget_padding_bottom,
+            right = opts.right ~= nil and opts.right or theme.widget_padding_right,
             color = theme.tasklist_bg_normal,
             draw_empty = false,
             widget = wibox.container.margin,

@@ -4,13 +4,21 @@ local keygrabber = require("awful.keygrabber")
 
 local M = {}
 
+local function looks_like_geometry(value)
+    return type(value) == "table"
+        and type(value.x) == "number"
+        and type(value.y) == "number"
+        and type(value.width) == "number"
+        and type(value.height) == "number"
+end
+
 ---Normalize the supported popup-helper call styles into one opts table.
 function M.normalize_popup_opts(arg1, arg2)
     if type(arg2) == "table" then
         return arg2
     end
 
-    if type(arg1) == "table" then
+    if type(arg1) == "table" and not looks_like_geometry(arg1) then
         return arg1
     end
 

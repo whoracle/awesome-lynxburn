@@ -140,6 +140,21 @@ end
 
 ---Attach popup rendering and selection-state methods to the lxnetwork instance.
 function popup.extend(instance_methods)
+    function instance_methods:_set_popup_selection(index)
+        local items = self._popup_items or {}
+        if index == nil or index < 1 or index > #items or self._popup_selected_index == index then
+            return
+        end
+
+        self._popup_selected_index = index
+
+        for item_index, item in ipairs(items) do
+            if item.widget and item.widget._lx_set_selected then
+                item.widget:_lx_set_selected(item_index == index)
+            end
+        end
+    end
+
     function instance_methods:_refresh_popup()
         if not self._popup_refs then
             return
@@ -184,11 +199,13 @@ function popup.extend(instance_methods)
         local available_count = 0
         self._popup_items = {
             {
+                widget = refs.scan_action,
                 on_enter = function()
                     self:scan()
                 end,
             },
             {
+                widget = refs.toggle_wifi_action,
                 on_enter = function()
                     self:toggle_wifi_enabled()
                 end,
@@ -204,8 +221,13 @@ function popup.extend(instance_methods)
             local row = make_network_row(self, network, selected, function()
                 self:_connect_network(network)
             end)
+            local next_index = #self._popup_items + 1
+            row:connect_signal("mouse::enter", function()
+                self:_set_popup_selection(next_index)
+            end)
 
             self._popup_items[#self._popup_items + 1] = {
+                widget = row,
                 on_enter = function()
                     self:_connect_network(network)
                 end,
@@ -242,12 +264,38 @@ function popup.extend(instance_methods)
     end
 
     function instance_methods:_build_popup()
+        local scan_action = popup_common.make_selectable_click_row("Scan WiFi", function()
+            self:scan()
+        end, {
+            selected = self._popup_selected_index == 1,
+            inner_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
+            hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
+            outer_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
+            selected_bg = self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+            on_hover = function()
+                self:_set_popup_selection(1)
+            end,
+        })
+        local toggle_wifi_action = popup_common.make_selectable_click_row(self.state.enabled and "Disable WiFi" or "Enable WiFi", function()
+            self:toggle_wifi_enabled()
+        end, {
+            selected = self._popup_selected_index == 2,
+            inner_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
+            hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
+            outer_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
+            selected_bg = self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+            on_hover = function()
+                self:_set_popup_selection(2)
+            end,
+        })
         local current_header = wibox.layout.fixed.vertical()
         local current_value_container = wibox.layout.fixed.vertical()
         local known_list = wibox.layout.fixed.vertical()
         local available_list = wibox.layout.fixed.vertical()
 
         self._popup_refs = {
+            scan_action = scan_action,
+            toggle_wifi_action = toggle_wifi_action,
             current_header = current_header,
             current_value_container = current_value_container,
             known_list = known_list,
@@ -258,24 +306,8 @@ function popup.extend(instance_methods)
 
         return wibox.widget({
             {
-                popup_common.make_selectable_click_row("Scan WiFi", function()
-                    self:scan()
-                end, {
-                    selected = self._popup_selected_index == 1,
-                    inner_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
-                    hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
-                    outer_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
-                    selected_bg = self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-                }),
-                popup_common.make_selectable_click_row(self.state.enabled and "Disable WiFi" or "Enable WiFi", function()
-                    self:toggle_wifi_enabled()
-                end, {
-                    selected = self._popup_selected_index == 2,
-                    inner_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
-                    hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
-                    outer_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
-                    selected_bg = self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-                }),
+                scan_action,
+                toggle_wifi_action,
                 current_header,
                 current_value_container,
                 make_section_header(self, "Known"),
@@ -307,10 +339,7 @@ function popup.extend(instance_methods)
             return
         end
 
-        self._popup_selected_index = math.max(1, math.min((self._popup_selected_index or 1) + delta, count))
-        if self._popup and self._popup.visible then
-            self._popup.widget = self:_build_popup()
-        end
+        self:_set_popup_selection(math.max(1, math.min((self._popup_selected_index or 1) + delta, count)))
     end
 
     function instance_methods:activate_selected_popup_item()

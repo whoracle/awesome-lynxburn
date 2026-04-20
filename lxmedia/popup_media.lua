@@ -296,14 +296,10 @@ local function find_matching_source_output(stream, source_outputs)
 end
 
 local function decorate_stream_card(card, selected)
-    if not selected then
-        return card
-    end
-
-    return wibox.widget {
+    local wrapper = wibox.widget {
         {
             card,
-            margins = 1,
+            margins = selected and 1 or 0,
             widget = wibox.container.margin,
         },
         shape = gears.shape.rounded_rect,
@@ -313,7 +309,31 @@ local function decorate_stream_card(card, selected)
             or beautiful.lxmedia_bar_fg
             or beautiful.fg_normal
             or "#e2ccb0",
+        visible = selected,
         widget = wibox.container.background,
+    }
+
+    function wrapper:_lx_set_selected(value)
+        wrapper.visible = value and true or false
+        if wrapper.children and wrapper.children[1] then
+            wrapper.children[1].margins = value and 1 or 0
+        end
+    end
+
+    if selected then
+        return wrapper
+    end
+
+    card._lx_set_selected = function(_, value)
+        if value then
+            wrapper.visible = true
+        end
+    end
+
+    return wibox.widget {
+        card,
+        wrapper,
+        layout = wibox.layout.stack,
     }
 end
 
@@ -367,7 +387,7 @@ local function build_transport_row(instance, player, player_info)
     return container
 end
 
-local function build_stream_card(instance, stream, source_output, default_sink_name, selected)
+local function build_stream_card(instance, stream, source_output, default_sink_name, selected, selection_index)
     local media = require("lxmedia.media")
 
     local matched_player = stream._matched_player or media.player_for_stream(stream)
@@ -583,7 +603,17 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
         }))
     end
 
-    return decorate_stream_card(make_card(layout), selected)
+    local card = decorate_stream_card(make_card(layout), selected)
+    if selection_index then
+        card:connect_signal("mouse::enter", function()
+            if instance.media_popup_selected_index ~= selection_index then
+                instance.media_popup_selected_index = selection_index
+                M.rebuild(instance)
+            end
+        end)
+    end
+
+    return card
 end
 
 local function build_widget(instance)
@@ -659,7 +689,8 @@ local function build_widget(instance)
                     stream,
                     source_output,
                     default_sink_name,
-                    #popup_items == instance.media_popup_selected_index
+                    #popup_items == instance.media_popup_selected_index,
+                    #popup_items
                 ))
             end
         end
@@ -681,7 +712,8 @@ local function build_widget(instance)
                     stream,
                     source_output,
                     default_sink_name,
-                    #popup_items == instance.media_popup_selected_index
+                    #popup_items == instance.media_popup_selected_index,
+                    #popup_items
                 ))
             end
         end

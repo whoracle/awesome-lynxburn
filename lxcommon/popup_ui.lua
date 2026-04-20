@@ -180,16 +180,32 @@ function M.make_selectable_click_container(child, onclick, opts)
         on_scroll_down = opts.on_scroll_down,
     })
 
-    return wibox.widget({
-        {
-            inner,
-            margins = opts.selected and (opts.selection_margin or 2) or 0,
-            widget = wibox.container.margin,
-        },
+    local selection_margin = opts.selection_margin or 2
+    local selection_wrapper = wibox.widget({
+        inner,
+        margins = opts.selected and selection_margin or 0,
+        widget = wibox.container.margin,
+    })
+
+    local outer = wibox.widget({
+        selection_wrapper,
         bg = opts.selected and opts.selected_bg or opts.outer_bg,
         shape = opts.shape or gears.shape.rounded_rect,
         widget = wibox.container.background,
     })
+
+    function outer:_lx_set_selected(selected)
+        selection_wrapper.margins = selected and selection_margin or 0
+        outer.bg = selected and opts.selected_bg or opts.outer_bg
+    end
+
+    if type(opts.on_hover) == "function" then
+        outer:connect_signal("mouse::enter", function()
+            opts.on_hover()
+        end)
+    end
+
+    return outer
 end
 
 ---Build a selectable clickable text row using the shared popup primitives.

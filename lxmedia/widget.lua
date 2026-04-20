@@ -133,6 +133,7 @@ function M.build(instance)
         fg = instance.state.muted
             and (beautiful.lxmedia_widget_muted_fg or beautiful.fg_minimize or "#888888")
             or (beautiful.lxmedia_widget_fg or beautiful.fg_normal or "#ffffff"),
+        font = beautiful.lxmedia_icon_font or beautiful.font,
         align = "center",
         valign = "center",
         widget = wibox.widget.textbox,
@@ -155,6 +156,7 @@ function M.build(instance)
         fg = instance.state.mic_muted
             and (beautiful.lxmedia_widget_mic_muted_fg or beautiful.fg_minimize or "#888888")
             or (beautiful.lxmedia_widget_mic_fg or beautiful.fg_urgent or "#ff6666"),
+        font = beautiful.lxmedia_icon_font or beautiful.font,
         visible = mic_visible,
         align = "center",
         valign = "center",
@@ -185,6 +187,12 @@ function M.build(instance)
         widget = wibox.container.place,
     }
 
+    local output_bar_margin = wibox.widget {
+        output_bar_slot,
+        left = 6,
+        widget = wibox.container.margin,
+    }
+
     local output_cluster = wibox.widget {
         {
             {
@@ -197,8 +205,7 @@ function M.build(instance)
             strategy = "exact",
             widget = wibox.container.constraint,
         },
-        output_bar_slot,
-        spacing = 6,
+        output_bar_margin,
         layout = wibox.layout.fixed.horizontal,
     }
 
@@ -206,6 +213,12 @@ function M.build(instance)
         mic_bar,
         valign = "center",
         widget = wibox.container.place,
+    }
+
+    local mic_bar_margin = wibox.widget {
+        mic_bar_slot,
+        left = 6,
+        widget = wibox.container.margin,
     }
 
     local mic_cluster = wibox.widget {
@@ -220,15 +233,16 @@ function M.build(instance)
             strategy = "exact",
             widget = wibox.container.constraint,
         },
-        mic_bar_slot,
-        spacing = 6,
+        mic_bar_margin,
         visible = mic_visible,
         layout = wibox.layout.fixed.horizontal,
     }
 
     instance._refs.mic_cluster = mic_cluster
     instance._refs.output_bar_slot = output_bar_slot
+    instance._refs.output_bar_margin = output_bar_margin
     instance._refs.mic_bar_slot = mic_bar_slot
+    instance._refs.mic_bar_margin = mic_bar_margin
 
     local row = wibox.widget {
         {
@@ -237,8 +251,6 @@ function M.build(instance)
             spacing = 6,
             layout = wibox.layout.fixed.horizontal,
         },
-        left = 2,
-        right = 2,
         widget = wibox.container.margin,
     }
     local shell = wibox.widget({

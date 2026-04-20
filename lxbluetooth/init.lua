@@ -87,8 +87,6 @@ function M.new(opts)
                 },
                 layout = wibox.layout.fixed.horizontal,
             },
-            left = 2,
-            right = 2,
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,

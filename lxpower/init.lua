@@ -85,8 +85,23 @@ function M.new(opts)
     local label = wibox.widget({ markup = "", widget = wibox.widget.textbox })
     label.align = "center"
     label.valign = "center"
+    local label_slot = wibox.widget({
+        label,
+        widget = wibox.container.place,
+        halign = "center",
+        valign = "center",
+        visible = false,
+    })
+    local label_margin = wibox.widget({
+        label_slot,
+        left = 8,
+        widget = wibox.container.margin,
+        visible = false,
+    })
     self._refs.icon = icon
     self._refs.label = label
+    self._refs.label_slot = label_slot
+    self._refs.label_margin = label_margin
 
     self.widget = wibox.widget({
         {
@@ -97,12 +112,9 @@ function M.new(opts)
                     strategy = "exact",
                     widget = wibox.container.constraint,
                 },
-                label,
-                spacing = 8,
+                label_margin,
                 layout = wibox.layout.fixed.horizontal,
             },
-            left = 2,
-            right = 2,
             widget = wibox.container.margin,
         },
         widget = wibox.container.background,

@@ -143,9 +143,15 @@ function M.extend(instance_methods)
         if self._refs.output_bar_slot then
             self._refs.output_bar_slot.visible = show_bars
         end
+        if self._refs.output_bar_margin then
+            self._refs.output_bar_margin.visible = show_bars
+        end
 
         if self._refs.mic_bar_slot then
             self._refs.mic_bar_slot.visible = show_bars and (self.opts.show_mic_activity and self.state.mic_active or false)
+        end
+        if self._refs.mic_bar_margin then
+            self._refs.mic_bar_margin.visible = show_bars and (self.opts.show_mic_activity and self.state.mic_active or false)
         end
 
         widget_feedback.sync(self, function()

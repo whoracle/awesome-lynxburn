@@ -112,6 +112,21 @@ end
 
 ---Attach popup rendering and selection-state methods to the lxbluetooth instance.
 function popup.extend(instance_methods)
+    function instance_methods:_set_popup_selection(index)
+        local items = self._popup_items or {}
+        if index == nil or index < 1 or index > #items or self._popup_selected_index == index then
+            return
+        end
+
+        self._popup_selected_index = index
+
+        for item_index, item in ipairs(items) do
+            if item.widget and item.widget._lx_set_selected then
+                item.widget:_lx_set_selected(item_index == index)
+            end
+        end
+    end
+
     function instance_methods:_refresh_popup()
         if not self._popup_refs then
             return
@@ -122,12 +137,14 @@ function popup.extend(instance_methods)
         refs.status:reset()
         self._popup_items = {
             {
+                widget = refs.open_manager_action,
                 on_enter = function()
                     self:close_popup()
                     self:open_manager()
                 end,
             },
             {
+                widget = refs.toggle_power_action,
                 on_enter = function()
                     self:toggle_power()
                 end,
@@ -157,9 +174,13 @@ function popup.extend(instance_methods)
                     self:_device_action("connect", device.address)
                 end
             end)
+            row:connect_signal("mouse::enter", function()
+                self:_set_popup_selection(next_index)
+            end)
 
             refs.list:add(row)
             self._popup_items[#self._popup_items + 1] = {
+                widget = row,
                 on_enter = function()
                     if device.connected then
                         self:_device_action("disconnect", device.address)
@@ -176,35 +197,45 @@ function popup.extend(instance_methods)
     end
 
     function instance_methods:_build_popup()
+        local open_manager_action = popup_common.make_selectable_click_row("Open blueman-manager", function()
+            self:close_popup()
+            self:open_manager()
+        end, {
+            selected = self._popup_selected_index == 1,
+            inner_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
+            hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
+            outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
+            selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+            on_hover = function()
+                self:_set_popup_selection(1)
+            end,
+        })
+        local toggle_power_action = popup_common.make_selectable_click_row("Toggle controller power", function()
+            self:toggle_power()
+        end, {
+            selected = self._popup_selected_index == 2,
+            inner_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
+            hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
+            outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
+            selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+            on_hover = function()
+                self:_set_popup_selection(2)
+            end,
+        })
         local status = wibox.layout.fixed.vertical()
         local list = wibox.layout.fixed.vertical()
 
         self._popup_refs = {
+            open_manager_action = open_manager_action,
+            toggle_power_action = toggle_power_action,
             status = status,
             list = list,
         }
 
         local popup_widget = wibox.widget({
             {
-                popup_common.make_selectable_click_row("Open blueman-manager", function()
-                    self:close_popup()
-                    self:open_manager()
-                end, {
-                    selected = self._popup_selected_index == 1,
-                    inner_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
-                    hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
-                    outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
-                    selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-                }),
-                popup_common.make_selectable_click_row("Toggle controller power", function()
-                    self:toggle_power()
-                end, {
-                    selected = self._popup_selected_index == 2,
-                    inner_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
-                    hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
-                    outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
-                    selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-                }),
+                open_manager_action,
+                toggle_power_action,
                 status,
                 list,
                 spacing = 8,
@@ -235,12 +266,7 @@ function popup.extend(instance_methods)
             return
         end
 
-        self._popup_selected_index = math.max(1, math.min((self._popup_selected_index or 1) + delta, count))
-        if self._popup and self._popup.visible then
-            self._popup.widget = self:_build_popup()
-        else
-            self:_refresh_popup()
-        end
+        self:_set_popup_selection(math.max(1, math.min((self._popup_selected_index or 1) + delta, count)))
     end
 
     function instance_methods:activate_selected_popup_item()

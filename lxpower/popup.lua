@@ -8,6 +8,21 @@ local popup = {}
 
 ---Attach popup rendering and selection-state methods to the lxpower instance.
 function popup.extend(instance_methods)
+    function instance_methods:_set_popup_selection(index)
+        local items = self._popup_items or {}
+        if index == nil or index < 1 or index > #items or self._popup_selected_index == index then
+            return
+        end
+
+        self._popup_selected_index = index
+
+        for item_index, item in ipairs(items) do
+            if item.widget and item.widget._lx_set_selected then
+                item.widget:_lx_set_selected(item_index == index)
+            end
+        end
+    end
+
     function instance_methods:_refresh_popup()
         if not self._popup_refs then
             return
@@ -63,13 +78,14 @@ function popup.extend(instance_methods)
         self._popup_items = {}
 
         for _, profile_name in ipairs(self:all_profiles()) do
-            local selected = self._popup_selected_index == (#self._popup_items + 1)
+            local next_index = #self._popup_items + 1
+            local selected = self._popup_selected_index == next_index
             local label = self:profile_label(profile_name)
             if self.state.pinned and self.state.profile == profile_name then
                 label = self:_theme_value("lxpower_icon_pinned", "") .. " " .. label
             end
 
-            list:add(popup_ui.make_selectable_click_row(label, function()
+            local row = popup_ui.make_selectable_click_row(label, function()
                 self:set_profile(profile_name)
             end, {
                 selected = selected,
@@ -77,8 +93,13 @@ function popup.extend(instance_methods)
                 hover_bg = self:_theme_value("lxpower_button_hover", beautiful.bg_focus or "#444444"),
                 outer_bg = self:_theme_value("lxpower_popup_bg", beautiful.bg_normal or "#222222"),
                 selected_bg = self:_theme_value("lxpower_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-            }))
+                on_hover = function()
+                    self:_set_popup_selection(next_index)
+                end,
+            })
+            list:add(row)
             self._popup_items[#self._popup_items + 1] = {
+                widget = row,
                 profile = profile_name,
                 on_enter = function()
                     self:set_profile(profile_name)
@@ -126,10 +147,7 @@ function popup.extend(instance_methods)
             return
         end
 
-        self._popup_selected_index = math.max(1, math.min((self._popup_selected_index or 1) + delta, count))
-        if self._popup and self._popup.visible then
-            self._popup.widget = self:_build_popup()
-        end
+        self:_set_popup_selection(math.max(1, math.min((self._popup_selected_index or 1) + delta, count)))
     end
 
     function instance_methods:activate_selected_popup_item()
