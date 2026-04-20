@@ -6,6 +6,7 @@ local wibox = require("wibox")
 local popup_common = require("lxcommon.popup_ui")
 local popup_placement = require("lxcommon.popup_placement")
 local screen_util = require("lxcommon.screen")
+local util = require("lxcommon.util")
 
 local popup = {}
 
@@ -47,6 +48,40 @@ local function status_line(self, text)
     ))
 end
 
+local function header_button(self, label, onclick)
+    local text = wibox.widget({
+        text = label,
+        align = "center",
+        valign = "center",
+        widget = wibox.widget.textbox,
+    })
+
+    local button = wibox.widget({
+        {
+            text,
+            left = 10,
+            right = 10,
+            top = 6,
+            bottom = 6,
+            widget = wibox.container.margin,
+        },
+        bg = theme_value(self, "lxdisplay_button_bg", beautiful.bg_minimize or "#222222"),
+        widget = wibox.container.background,
+    })
+
+    util.attach_hover_background(
+        button,
+        theme_value(self, "lxdisplay_button_bg", beautiful.bg_minimize or "#222222"),
+        theme_value(self, "lxdisplay_button_hover", beautiful.bg_focus or "#444444")
+    )
+
+    button:buttons(gears.table.join(
+        awful.button({}, 1, onclick)
+    ))
+
+    return button
+end
+
 local function selectable_card(self, child, selected, index, onclick)
     return popup_common.make_selectable_click_container(child, onclick, {
         selected = selected,
@@ -60,29 +95,45 @@ local function selectable_card(self, child, selected, index, onclick)
     })
 end
 
-local function profile_card(self, profile, index)
+local function profile_card(self, profile, selection_index, profile_index)
     local output_names = self:_profile_output_names(profile)
     local outputs_line = table.concat(output_names, " + ")
     local topology_line = self:_profile_topology_summary(profile) or "single-output layout"
     local missing = self:_profile_missing_outputs(profile, self.state.connected_output_set or {})
-    local suffix = ""
+    local meta_fg = gears.string.xml_escape(theme_value(self, "lxdisplay_meta_fg", beautiful.fg_minimize or "#999999"))
+    local tag_text = nil
 
-    if self.state.active_profile_index == index then
-        suffix = " (active)"
+    if self.state.active_profile_index == profile_index then
+        tag_text = "active"
     elseif #missing > 0 then
-        suffix = " (missing: " .. table.concat(missing, ", ") .. ")"
+        tag_text = "missing: " .. table.concat(missing, ", ")
     end
 
     local card = wibox.widget({
         {
-            markup = gears.string.xml_escape((profile.name or "Profile") .. suffix),
-            ellipsize = "end",
-            widget = wibox.widget.textbox,
+            {
+                markup = gears.string.xml_escape(profile.name or "Profile"),
+                ellipsize = "end",
+                widget = wibox.widget.textbox,
+            },
+            nil,
+            {
+                markup = tag_text and string.format(
+                    "<span size='small' foreground='%s'>[%s]</span>",
+                    meta_fg,
+                    gears.string.xml_escape(tag_text)
+                ) or "",
+                align = "right",
+                widget = wibox.widget.textbox,
+                visible = tag_text ~= nil,
+            },
+            expand = "inside",
+            layout = wibox.layout.align.horizontal,
         },
         {
             markup = string.format(
-                "<span foreground='%s'>%s</span>",
-                gears.string.xml_escape(theme_value(self, "lxdisplay_meta_fg", beautiful.fg_minimize or "#999999")),
+                "<span size='small' foreground='%s'>%s</span>",
+                meta_fg,
                 gears.string.xml_escape(outputs_line ~= "" and outputs_line or "no outputs configured")
             ),
             ellipsize = "end",
@@ -90,8 +141,8 @@ local function profile_card(self, profile, index)
         },
         {
             markup = string.format(
-                "<span foreground='%s'>%s</span>",
-                gears.string.xml_escape(theme_value(self, "lxdisplay_meta_fg", beautiful.fg_minimize or "#999999")),
+                "<span size='small' foreground='%s'>%s</span>",
+                meta_fg,
                 gears.string.xml_escape(topology_line)
             ),
             ellipsize = "end",
@@ -101,12 +152,26 @@ local function profile_card(self, profile, index)
         layout = wibox.layout.fixed.vertical,
     })
 
-    return selectable_card(self, card, self._popup_selected_index == index, index, function()
-        self:activate_profile(index)
+    return selectable_card(self, card, self._popup_selected_index == selection_index, selection_index, function()
+        self:activate_profile(profile_index)
     end)
 end
 
-local function detected_output_card(self, output, action_entries)
+local function detected_section_header(self, detect_button)
+    return wibox.widget({
+        section_header(self, "Detected Displays"),
+        nil,
+        {
+            detect_button,
+            halign = "right",
+            widget = wibox.container.place,
+        },
+        expand = "inside",
+        layout = wibox.layout.align.horizontal,
+    })
+end
+
+local function detected_output_card(self, output)
     local list = wibox.layout.fixed.vertical()
     list:add(wibox.widget({
         {
@@ -142,7 +207,6 @@ local function detected_output_card(self, output, action_entries)
                 self:configure_detected_output(output.name, action.action)
             end,
         }
-        action_entries[#action_entries + 1] = row
     end
 
     return popup_common.make_card({
@@ -188,21 +252,12 @@ function popup.extend(instance_methods)
         refs.detected:reset()
         self._popup_items = {}
 
-        local detect_index = 1
-        refs.detect_action:_lx_set_selected(self._popup_selected_index == detect_index)
-        self._popup_items[#self._popup_items + 1] = {
-            widget = refs.detect_action,
-            on_enter = function()
-                self:detect_displays()
-            end,
-        }
-
         if #self._profiles == 0 then
             refs.profiles:add(status_line(self, "No display profiles configured."))
         else
             for profile_index, profile in ipairs(self._profiles) do
                 local next_index = #self._popup_items + 1
-                local card = profile_card(self, profile, profile_index)
+                local card = profile_card(self, profile, next_index, profile_index)
                 refs.profiles:add(card)
                 self._popup_items[#self._popup_items + 1] = {
                     widget = card,
@@ -210,9 +265,6 @@ function popup.extend(instance_methods)
                         self:activate_profile(profile_index)
                     end,
                 }
-                if self._popup_selected_index == next_index then
-                    card:_lx_set_selected(true)
-                end
             end
         end
 
@@ -220,20 +272,22 @@ function popup.extend(instance_methods)
             refs.detected:add(status_line(self, "No unassigned displays detected."))
         else
             for _, output in ipairs(self.state.detected_outputs or {}) do
-                refs.detected:add(detected_output_card(self, output, {}))
+                refs.detected:add(detected_output_card(self, output))
             end
         end
 
         self:_ensure_popup_selection()
-        self:_set_popup_selection(self._popup_selected_index)
+        for item_index, item in ipairs(self._popup_items) do
+            if item.widget and item.widget._lx_set_selected then
+                item.widget:_lx_set_selected(item_index == self._popup_selected_index)
+            end
+        end
     end
 
     function instance_methods:_build_popup()
-        local detect_action = selectable_card(
+        local detect_action = header_button(
             self,
-            popup_common.make_text("Detect Displays"),
-            self._popup_selected_index == 1,
-            1,
+            "Detect Displays",
             function()
                 self:detect_displays()
             end
@@ -251,10 +305,9 @@ function popup.extend(instance_methods)
 
         return wibox.widget({
             {
-                detect_action,
                 section_header(self, "Profiles"),
                 profiles,
-                section_header(self, "Detected Displays"),
+                detected_section_header(self, detect_action),
                 detected,
                 spacing = 8,
                 layout = wibox.layout.fixed.vertical,
