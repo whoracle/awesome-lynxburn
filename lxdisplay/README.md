@@ -8,6 +8,9 @@ scheduling, and a compact `xrandr`-driven popup for activating configured
 display profiles or attaching transient displays. It is intentionally not a
 full display manager.
 
+If `lxmodules.lxdisplay.profiles` is unset, the display-management popup is
+disabled and the module stays in brightness/redshift-only mode.
+
 ## Dependencies
 
 External:
@@ -198,6 +201,9 @@ Supported knobs:
 - `redshift.schedule_transition_seconds`
 - `redshift.day_start`
 - `redshift.night_start`
+
+If `profiles` is `nil` or omitted, `lxdisplay` does not register a popup and
+does not perform display-profile or transient-display actions.
 
 `profiles[].outputs.<output>.mode` is special-cased:
 

@@ -96,7 +96,6 @@ M.lxmodules = {
         osd_width = 260,
         osd_height = 18,
         osd_margin = 16,
-        profiles = {},
         detected = {
             extend_relative_to = "profile-primary",
             extend_direction = "left",

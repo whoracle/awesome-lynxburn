@@ -25,7 +25,8 @@ function M.new(opts)
     local brightness_opts = opts.brightness or {}
     local redshift_opts = opts.redshift or {}
     self._opts = opts
-    self._profiles = self:_normalize_profiles(opts.profiles or {})
+    self._profiles_enabled = type(opts.profiles) == "table"
+    self._profiles = self:_normalize_profiles(opts.profiles)
     self._detected = {
         extend_relative_to = ((opts.detected or {}).extend_relative_to) or "profile-primary",
         extend_direction = ((opts.detected or {}).extend_direction) or "left",

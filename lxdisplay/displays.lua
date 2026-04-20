@@ -60,6 +60,10 @@ local function active_profile_signature(profile, missing)
 end
 
 function displays.extend(instance_methods)
+    function instance_methods:xrandr_enabled()
+        return self._profiles_enabled == true
+    end
+
     function instance_methods:_normalize_profiles(profiles)
         local normalized = {}
 
@@ -218,6 +222,27 @@ function displays.extend(instance_methods)
     end
 
     function instance_methods:refresh_display_state(callback)
+        if not self:xrandr_enabled() then
+            self.state.connected_outputs = {}
+            self.state.connected_output_set = {}
+            self.state.current_primary_output = nil
+            self.state.detected_outputs = {}
+
+            if self._refresh_popup then
+                self:_refresh_popup()
+            end
+
+            if callback then
+                callback({
+                    outputs = {},
+                    output_names = {},
+                    output_set = {},
+                    primary_output = nil,
+                })
+            end
+            return
+        end
+
         self:_query_xrandr_state(function(state)
             self:_remember_inventory(state)
             self:_refresh_detected_outputs(state)
@@ -234,6 +259,10 @@ function displays.extend(instance_methods)
     end
 
     function instance_methods:detect_displays()
+        if not self:xrandr_enabled() then
+            return
+        end
+
         self:refresh_display_state()
     end
 
@@ -276,6 +305,10 @@ function displays.extend(instance_methods)
     end
 
     function instance_methods:activate_profile(index)
+        if not self:xrandr_enabled() then
+            return
+        end
+
         local profile = self._profiles[index]
         if not profile then
             return
@@ -342,6 +375,10 @@ function displays.extend(instance_methods)
     end
 
     function instance_methods:configure_detected_output(output_name, action)
+        if not self:xrandr_enabled() then
+            return
+        end
+
         if type(output_name) ~= "string" or output_name == "" then
             return
         end
