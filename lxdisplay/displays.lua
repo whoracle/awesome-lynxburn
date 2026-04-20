@@ -422,10 +422,6 @@ function displays.extend(instance_methods)
                 local output_name = occupancy[y] and occupancy[y][x]
                 if output_name then
                     local label = self:_profile_output_label(profile, output_name)
-                    if self:_profile_output_optional(profile, output_name)
-                        and self:_profile_output_initial_state(profile, output_name) == "off" then
-                        label = label .. "!"
-                    end
                     width = math.max(width, #cell_text(label))
                 end
             end
