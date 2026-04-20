@@ -113,8 +113,7 @@ local function bracket_summary_markup(self, profile, meta_fg, optional_fg)
         local label = string.format("[%s]", self:_profile_output_label(profile, output_name))
         local fg = meta_fg
 
-        if self:_profile_output_optional(profile, output_name)
-            and self:_profile_output_initial_state(profile, output_name) == "off" then
+        if self:_profile_output_is_off(profile, output_name) then
             fg = optional_fg
         end
 
@@ -182,8 +181,8 @@ local function profile_card(self, profile, selection_index, profile_index)
         },
         {
             markup = summary_markup,
-            ellipsize = "end",
             valign = "top",
+            wrap = "word_char",
             widget = wibox.widget.textbox,
         },
         {

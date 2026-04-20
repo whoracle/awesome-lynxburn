@@ -179,8 +179,7 @@ function displays.extend(instance_methods)
             local relationship
             local display_name = self:_profile_output_label(profile, output_name)
 
-            if self:_profile_output_optional(profile, output_name)
-                and self:_profile_output_initial_state(profile, output_name) == "off" then
+            if self:_profile_output_is_off(profile, output_name) then
                 display_name = display_name .. " optional-off"
             end
 
@@ -282,10 +281,6 @@ function displays.extend(instance_methods)
                     local output_name = occupancy[row] and occupancy[row][col]
                     if output_name then
                         local label = self:_profile_output_label(profile, output_name)
-                        if self:_profile_output_optional(profile, output_name)
-                            and self:_profile_output_initial_state(profile, output_name) == "off" then
-                            label = label .. "!"
-                        end
                         width = math.max(width, #cell_text(label))
                     end
                 end
@@ -299,10 +294,6 @@ function displays.extend(instance_methods)
                     local output_name = occupancy[row] and occupancy[row][col]
                     if output_name then
                         local label = self:_profile_output_label(profile, output_name)
-                        if self:_profile_output_optional(profile, output_name)
-                            and self:_profile_output_initial_state(profile, output_name) == "off" then
-                            label = label .. "!"
-                        end
                         local text = cell_text(label)
                         parts[#parts + 1] = text .. string.rep(" ", column_widths[col] - #text)
                     else
@@ -543,6 +534,30 @@ function displays.extend(instance_methods)
         self.state.connected_outputs = state.output_names or {}
         self.state.connected_output_set = state.output_set or {}
         self.state.current_primary_output = state.primary_output
+        self.state.output_status = {}
+
+        for _, output in ipairs(state.outputs or {}) do
+            self.state.output_status[output.name] = {
+                active = output.active == true,
+                primary = output.primary == true,
+            }
+        end
+    end
+
+    function instance_methods:_profile_output_is_off(profile, output_name)
+        if not self:_profile_output_optional(profile, output_name) then
+            return false
+        end
+
+        if self.state.active_profile_index ~= nil
+            and self._profiles[self.state.active_profile_index] == profile then
+            local status = (self.state.output_status or {})[output_name]
+            if status then
+                return status.active ~= true
+            end
+        end
+
+        return self:_profile_output_initial_state(profile, output_name) == "off"
     end
 
     function instance_methods:_refresh_detected_outputs(state)
@@ -752,6 +767,82 @@ function displays.extend(instance_methods)
         return args, nil
     end
 
+    function instance_methods:_build_single_output_argv(profile, output_name, desired_state)
+        local output_opts = ((profile or {}).outputs or {})[output_name]
+        if not output_opts then
+            return nil
+        end
+
+        local args = { preferred_xrandr_command(self), "--output", output_name }
+        if desired_state == "off" then
+            args[#args + 1] = "--off"
+            return args
+        end
+
+        local mode = output_opts.mode
+        if mode == "auto" then
+            args[#args + 1] = "--auto"
+        elseif type(mode) == "string" and mode ~= "" then
+            args[#args + 1] = "--mode"
+            args[#args + 1] = mode
+        end
+
+        local keys = {}
+        for key, value in pairs(output_opts) do
+            if key ~= "mode"
+                and not NON_XRANDR_OUTPUT_KEYS[key]
+                and value ~= false
+                and value ~= nil then
+                keys[#keys + 1] = key
+            end
+        end
+        table.sort(keys)
+
+        for _, key in ipairs(keys) do
+            local value = output_opts[key]
+            args[#args + 1] = flag_name(key)
+
+            if value ~= true then
+                args[#args + 1] = tostring(value)
+            end
+        end
+
+        return args
+    end
+
+    function instance_methods:_toggle_optional_outputs(profile)
+        self:_query_xrandr_state(function(state)
+            self:_remember_inventory(state)
+
+            local queue = {}
+            for _, output_name in ipairs(self:_profile_output_names(profile)) do
+                if self:_profile_output_optional(profile, output_name)
+                    and (state.output_set or {})[output_name] then
+                    local currently_active = ((self.state.output_status or {})[output_name] or {}).active == true
+                    local desired_state = currently_active and "off" or "on"
+                    local args = self:_build_single_output_argv(profile, output_name, desired_state)
+                    if args then
+                        queue[#queue + 1] = args
+                    end
+                end
+            end
+
+            local function run_next()
+                local args = table.remove(queue, 1)
+                if not args then
+                    self:refresh_display_state()
+                    return
+                end
+
+                awful.spawn.easy_async(args, function()
+                    run_next()
+                end)
+            end
+
+            run_next()
+        end)
+    end
+
     function instance_methods:_apply_profile_index(index, opts)
         opts = opts or {}
         local profile = self._profiles[index]
@@ -807,7 +898,13 @@ function displays.extend(instance_methods)
             return
         end
 
-        if not self._profiles[index] then
+        local profile = self._profiles[index]
+        if not profile then
+            return
+        end
+
+        if self.state.active_profile_index == index then
+            self:_toggle_optional_outputs(profile)
             return
         end
 
