@@ -1,3 +1,26 @@
+## v1.4.0 (2026-04-20)
+
+### Features
+
+- [lxdisplay] auto-apply startup profiles with default validation and panic fallback
+- [lxdisplay] make display popup opt-in via configured profiles
+- [lxdisplay] add xrandr profiles and transient display popup control
+
+### Bug Fixes
+
+- [lxdisplay] quiet profile state tags and confirm old xrandr script is unused
+- [lxdisplay] refine popup hierarchy and keyboard-target detect action
+- [lxdisplay] clean up popup selection state and profile card presentation
+- [lxdisplay] allow left-click brightness changes on compact bar
+- [theme] widen lxdisplay compact bar end margin to match lxmedia
+- [theme] add explicit compact bar end padding for display and media
+- [theme] match lxdisplay compact bar width to lxmedia
+- [theme] align display and media compact bar edge spacing
+
+### Documentation
+
+- [lxdisplay] finalize profile tag rendering and align remaining-work docs
+
 ## v1.3.0 (2026-04-20)
 
 ### Features
