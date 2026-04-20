@@ -203,6 +203,7 @@ local theme = {
     lxdisplay_bar_height = 8,
     lxdisplay_bar_spacing = 6,
     lxdisplay_bar_padding = 2,
+    lxdisplay_bar_end_margin = 4,
     lxdisplay_bar_bg = roles.bar_bg,
     lxdisplay_bar_fg = roles.bar_fg,
     lxdisplay_bar_hover_open_delay = 0.5,

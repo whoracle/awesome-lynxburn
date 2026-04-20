@@ -133,7 +133,7 @@ function theme.extend(instance_methods)
         self._bar_slot = wibox.widget({
             {
                 self._bar,
-                right = 1,
+                right = beautiful.lxdisplay_bar_end_margin or 4,
                 widget = wibox.container.margin,
             },
             valign = "center",
