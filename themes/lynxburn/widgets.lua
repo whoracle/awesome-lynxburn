@@ -376,10 +376,7 @@ function M.build(theme)
         local lxnetwork = services.network()
         local lxnotify = services.notify()
         local lxpower = services.power()
-        local lxbar_widget = wrap_widget(theme, lxbar.widget, nil, {
-            left = 0,
-            right = 0,
-        })
+        local lxbar_widget = wrap_widget(theme, lxbar.widget)
         local right_widgets = {
             layout = wibox.layout.fixed.horizontal,
             mailwidget,
