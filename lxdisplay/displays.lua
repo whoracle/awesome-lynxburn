@@ -13,6 +13,10 @@ local POSITION_KEYS = {
     same_as = true,
 }
 
+local NON_XRANDR_OUTPUT_KEYS = {
+    friendly_name = true,
+}
+
 local function clone_table(source)
     local copy = {}
 
@@ -105,22 +109,45 @@ function displays.extend(instance_methods)
         return sorted_output_names((profile or {}).outputs or {})
     end
 
+    function instance_methods:_profile_output_label(profile, output_name)
+        local output_opts = ((profile or {}).outputs or {})[output_name] or {}
+        local friendly_name = output_opts.friendly_name
+
+        if type(friendly_name) == "string" and friendly_name ~= "" then
+            return friendly_name
+        end
+
+        return output_name
+    end
+
+    function instance_methods:_profile_output_summary(profile)
+        local labels = {}
+
+        for _, output_name in ipairs(self:_profile_output_names(profile)) do
+            labels[#labels + 1] = self:_profile_output_label(profile, output_name)
+        end
+
+        return table.concat(labels, " + ")
+    end
+
     function instance_methods:_profile_topology_summary(profile)
         local fragments = {}
 
         for _, output_name in ipairs(self:_profile_output_names(profile)) do
             local opts = (profile.outputs or {})[output_name] or {}
             local relationship
+            local display_name = self:_profile_output_label(profile, output_name)
 
             for key, _ in pairs(POSITION_KEYS) do
                 if type(opts[key]) == "string" and opts[key] ~= "" then
-                    relationship = output_name .. " " .. key:gsub("_", "-") .. " " .. opts[key]
+                    local target_name = self:_profile_output_label(profile, opts[key])
+                    relationship = display_name .. " " .. key:gsub("_", "-") .. " " .. target_name
                     break
                 end
             end
 
             if not relationship and opts.primary == true then
-                relationship = output_name .. " primary"
+                relationship = display_name .. " primary"
             end
 
             if relationship then
@@ -328,7 +355,10 @@ function displays.extend(instance_methods)
 
         local keys = {}
         for key, value in pairs(output_opts) do
-            if key ~= "mode" and value ~= false and value ~= nil then
+            if key ~= "mode"
+                and not NON_XRANDR_OUTPUT_KEYS[key]
+                and value ~= false
+                and value ~= nil then
                 keys[#keys + 1] = key
             end
         end

@@ -190,6 +190,7 @@ Supported knobs:
 - `profiles[].default`
 - `profiles[].outputs`
 - `profiles[].outputs.<output>.mode`
+- `profiles[].outputs.<output>.friendly_name`
 - `profiles[].outputs.<output>.*`
 - `detected.extend_relative_to`
 - `detected.extend_direction`
@@ -238,6 +239,9 @@ into dashes and prefixing `--`. Examples:
 - `left_of = "eDP-1"` becomes `--left-of eDP-1`
 - `rotate = "left"` becomes `--rotate left`
 - `primary = true` becomes `--primary`
+
+`friendly_name` is display-only metadata for the popup/profile summaries and is
+not passed through to `xrandr`.
 
 ## Theme Variables
 

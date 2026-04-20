@@ -96,8 +96,7 @@ local function selectable_card(self, child, selected, index, onclick)
 end
 
 local function profile_card(self, profile, selection_index, profile_index)
-    local output_names = self:_profile_output_names(profile)
-    local outputs_line = table.concat(output_names, " + ")
+    local outputs_line = self:_profile_output_summary(profile)
     local topology_line = self:_profile_topology_summary(profile) or "single-output layout"
     local missing = self:_profile_missing_outputs(profile, self.state.connected_output_set or {})
     local meta_fg = gears.string.xml_escape(theme_value(self, "lxdisplay_meta_fg", beautiful.fg_minimize or "#999999"))
