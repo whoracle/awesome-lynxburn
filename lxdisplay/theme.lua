@@ -68,7 +68,11 @@ function theme.extend(instance_methods)
             return
         end
 
-        self._bar_slot.visible = (self._widget_hovered == true) or self:_has_visible_popup()
+        local visible = (self._widget_hovered == true) or self:_has_visible_popup()
+        self._bar_slot.visible = visible
+        if self._bar_margin then
+            self._bar_margin.visible = visible
+        end
     end
 
     ---Update suspended state and repaint widget colors immediately.
@@ -132,11 +136,12 @@ function theme.extend(instance_methods)
             widget = wibox.container.place,
         })
 
-        table.insert(content, 2, {
+        self._bar_margin = wibox.widget({
             self._bar_slot,
             left = beautiful.lxdisplay_bar_spacing or 8,
             widget = wibox.container.margin,
         })
+        table.insert(content, 2, self._bar_margin)
 
         local row = wibox.widget({
             content,
