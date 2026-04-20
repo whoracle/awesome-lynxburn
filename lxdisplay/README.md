@@ -27,6 +27,7 @@ the configured redshift backend command when `lxdisplay` is enabled in
 ## Features
 
 - compact top-level brightness widget
+- left-click absolute brightness setting on the compact bar
 - scroll-based brightness control
 - brightness OSD
 - built-in redshift/night-mode scheduling
@@ -73,6 +74,7 @@ lxmodules = {
 
 Top-level widget:
 
+- left click on compact bar: set brightness to clicked position
 - middle click: toggle redshift/night mode suspend state
 - scroll up: brightness up
 - scroll down: brightness down
@@ -164,6 +166,8 @@ Supported knobs:
 - `lxdisplay_bar_width`
 - `lxdisplay_bar_height`
 - `lxdisplay_bar_spacing`
+- `lxdisplay_bar_padding`
+- `lxdisplay_bar_end_margin`
 - `lxdisplay_bar_bg`
 - `lxdisplay_bar_fg`
 - `lxdisplay_widget_hover_bg`

@@ -130,12 +130,23 @@ function theme.extend(instance_methods)
             widget = wibox.widget.progressbar,
         })
 
+        self._bar_click_area = wibox.widget({
+            self._bar,
+            right = beautiful.lxdisplay_bar_end_margin or 4,
+            widget = wibox.container.margin,
+        })
+
+        self._bar_click_area:connect_signal("button::press", function(_, lx, _, button, _, hit)
+            if button ~= 1 then
+                return
+            end
+
+            local width = hit and hit.width or nil
+            self:_set_brightness_from_bar_click(lx, width)
+        end)
+
         self._bar_slot = wibox.widget({
-            {
-                self._bar,
-                right = beautiful.lxdisplay_bar_end_margin or 4,
-                widget = wibox.container.margin,
-            },
+            self._bar_click_area,
             valign = "center",
             widget = wibox.container.place,
         })
