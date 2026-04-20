@@ -73,6 +73,18 @@ local function trim_right_spaces(value)
     return (tostring(value or ""):gsub("%s+$", ""))
 end
 
+local function parse_pos(value)
+    local x, y = tostring(value or ""):match("^(%-?%d+)x(%-?%d+)$")
+    if not x or not y then
+        return nil
+    end
+
+    return {
+        x = tonumber(x),
+        y = tonumber(y),
+    }
+end
+
 function displays.extend(instance_methods)
     function instance_methods:xrandr_enabled()
         return self._profiles_enabled == true
@@ -201,6 +213,107 @@ function displays.extend(instance_methods)
         local output_names = self:_profile_output_names(profile)
         if #output_names == 0 then
             return nil
+        end
+
+        local has_pos = false
+        for _, output_name in ipairs(output_names) do
+            local opts = outputs[output_name] or {}
+            if parse_pos(opts.pos) then
+                has_pos = true
+                break
+            end
+        end
+
+        if has_pos then
+            local coords = {}
+            local x_values = {}
+            local y_values = {}
+            local occupancy = {}
+
+            for _, output_name in ipairs(output_names) do
+                local opts = outputs[output_name] or {}
+                local pos = parse_pos(opts.pos)
+                if not pos then
+                    return nil
+                end
+
+                coords[output_name] = pos
+                x_values[pos.x] = true
+                y_values[pos.y] = true
+            end
+
+            local x_order = {}
+            for x in pairs(x_values) do
+                x_order[#x_order + 1] = x
+            end
+            table.sort(x_order)
+
+            local y_order = {}
+            for y in pairs(y_values) do
+                y_order[#y_order + 1] = y
+            end
+            table.sort(y_order)
+
+            local x_index = {}
+            for index, x in ipairs(x_order) do
+                x_index[x] = index
+            end
+
+            local y_index = {}
+            for index, y in ipairs(y_order) do
+                y_index[y] = index
+            end
+
+            for _, output_name in ipairs(output_names) do
+                local pos = coords[output_name]
+                local row = y_index[pos.y]
+                local col = x_index[pos.x]
+                occupancy[row] = occupancy[row] or {}
+                if occupancy[row][col] then
+                    return nil
+                end
+                occupancy[row][col] = output_name
+            end
+
+            local column_widths = {}
+            for col = 1, #x_order do
+                local width = 0
+                for row = 1, #y_order do
+                    local output_name = occupancy[row] and occupancy[row][col]
+                    if output_name then
+                        local label = self:_profile_output_label(profile, output_name)
+                        if self:_profile_output_optional(profile, output_name)
+                            and self:_profile_output_initial_state(profile, output_name) == "off" then
+                            label = label .. "!"
+                        end
+                        width = math.max(width, #cell_text(label))
+                    end
+                end
+                column_widths[col] = width
+            end
+
+            local lines = {}
+            for row = 1, #y_order do
+                local parts = {}
+                for col = 1, #x_order do
+                    local output_name = occupancy[row] and occupancy[row][col]
+                    if output_name then
+                        local label = self:_profile_output_label(profile, output_name)
+                        if self:_profile_output_optional(profile, output_name)
+                            and self:_profile_output_initial_state(profile, output_name) == "off" then
+                            label = label .. "!"
+                        end
+                        local text = cell_text(label)
+                        parts[#parts + 1] = text .. string.rep(" ", column_widths[col] - #text)
+                    else
+                        parts[#parts + 1] = string.rep(" ", column_widths[col])
+                    end
+                end
+
+                lines[#lines + 1] = trim_right_spaces(table.concat(parts, " "))
+            end
+
+            return table.concat(lines, "\n")
         end
 
         local relation_of = {}
