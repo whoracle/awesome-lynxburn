@@ -132,7 +132,7 @@ local function profile_card(self, profile, selection_index, profile_index)
             nil,
             {
                 markup = tag_text and string.format(
-                    "<span size='small' foreground='%s'>%s</span>",
+                    "<span size='x-small' foreground='%s'>%s</span>",
                     meta_fg,
                     gears.string.xml_escape(tag_text)
                 ) or "",
