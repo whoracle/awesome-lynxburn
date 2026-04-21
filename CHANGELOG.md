@@ -1,3 +1,26 @@
+## v1.5.0 (2026-04-21)
+
+### Features
+
+- [lxdisplay] support optional profile outputs with initial state control
+- [lxdisplay] render profile topology as compact bracketed spatial summaries
+- [lxdisplay] support friendly output names in profile summaries
+
+### Bug Fixes
+
+- [lxdisplay] use explicit optional-output color for disabled profile displays
+- [lxdisplay] restore stable spatial profile layout for optional outputs
+- [lxdisplay] preserve spatial layout alignment in colored optional output markup
+- [lxdisplay] render optional display layout from structured spatial rows
+- [lxdisplay] restore spatial summary as primary layout line for optional outputs
+- [lxdisplay] track optional output runtime state and toggle via single-output xrandr calls
+- [lxdisplay] restore bracket summary line and color optional-off outputs red
+- [lxdisplay] restore spatial layout summaries for pos-based profiles
+
+### Documentation
+
+- [lxdisplay] document optional output rendering and theme color key
+
 ## v1.4.0 (2026-04-20)
 
 ### Features
