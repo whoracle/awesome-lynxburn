@@ -41,7 +41,7 @@ end
 local function wrap_selectable_card(child)
     local card = popup_common.make_card(child, {
         margins = 6,
-        radius = 8,
+        radius = 6,
     })
 
     function card:_lx_set_selected(selected)
@@ -135,7 +135,7 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         badges:add(badge("expired", accent_fg))
     end
     if secret.vpn and secret.vpn ~= "" then
-        badges:add(badge("vpn", meta_fg))
+        badges:add(badge(tostring(secret.vpn), meta_fg))
     end
 
     local title_row = wibox.widget({
@@ -185,7 +185,7 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
     local selectable = popup_common.make_selectable_click_container(content, nil, {
         selected = selected,
         inner_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
-        hover_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
+        hover_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
         outer_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
         selected_bg = instance:_theme_value("lxsecrets_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
         on_hover = function()

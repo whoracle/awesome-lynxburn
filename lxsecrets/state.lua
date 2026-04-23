@@ -100,6 +100,37 @@ local function normalize_provider(value)
     return PROVIDER_ALIASES[tostring(value or "")] or tostring(value or "")
 end
 
+local PROVIDER_SORT_ORDER = {
+    hashicorp_vault = 1,
+    gitlab = 2,
+}
+
+local function secret_sort_key(secret)
+    local provider_order = PROVIDER_SORT_ORDER[secret.provider] or 99
+    local has_vpn = (secret.vpn and secret.vpn ~= "") and 0 or 1
+    local vpn_name = tostring(secret.vpn or "")
+    local expired_rank = secret.expired and 0 or 1
+    local expiry_rank = secret.expires_at_sort and 0 or 1
+    local expiry_value = secret.expires_at_sort or math.huge
+
+    return provider_order, has_vpn, vpn_name, expired_rank, expiry_rank, expiry_value, tostring(secret.name or "")
+end
+
+local function sort_secrets_in_place(secrets)
+    table.sort(secrets, function(a, b)
+        local ak1, ak2, ak3, ak4, ak5, ak6, ak7 = secret_sort_key(a)
+        local bk1, bk2, bk3, bk4, bk5, bk6, bk7 = secret_sort_key(b)
+
+        if ak1 ~= bk1 then return ak1 < bk1 end
+        if ak2 ~= bk2 then return ak2 < bk2 end
+        if ak3 ~= bk3 then return ak3 < bk3 end
+        if ak4 ~= bk4 then return ak4 < bk4 end
+        if ak5 ~= bk5 then return ak5 < bk5 end
+        if ak6 ~= bk6 then return ak6 < bk6 end
+        return ak7 < bk7
+    end)
+end
+
 function M.extend(instance_methods)
     function instance_methods:_normalize_secret(secret, index)
         local selectors = copy_table(secret.selectors or {})
@@ -153,19 +184,21 @@ function M.extend(instance_methods)
             secrets[#secrets + 1] = self:_normalize_secret(secret, index)
         end
 
-        table.sort(secrets, function(a, b)
-            if a.provider_group ~= b.provider_group then
-                return a.provider_group < b.provider_group
-            end
-
-            return a.name < b.name
-        end)
+        sort_secrets_in_place(secrets)
 
         for index, secret in ipairs(secrets) do
             secret.index = index
         end
 
         return secrets
+    end
+
+    function instance_methods:_sort_secrets()
+        sort_secrets_in_place(self.state.secrets or {})
+
+        for index, secret in ipairs(self.state.secrets or {}) do
+            secret.index = index
+        end
     end
 
     function instance_methods:has_attention()
@@ -235,6 +268,7 @@ function M.extend(instance_methods)
                 self:_notify_refresh_failure(secret, secret.last_message)
             end
 
+            self:_sort_secrets()
             self:_update_ui_state()
             callback(kind == "ok")
         end)
@@ -311,6 +345,7 @@ function M.extend(instance_methods)
     end
 
     function instance_methods:provider_groups()
+        self:_sort_secrets()
         local groups = {}
         local order = {}
 

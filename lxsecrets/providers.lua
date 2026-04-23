@@ -162,6 +162,36 @@ local function iso_to_local_display(value)
     return format_expiry(timestamp) or tostring(value or "")
 end
 
+local function parse_display_epoch(value)
+    local year, month, day, hour, min = tostring(value or ""):match(
+        "^(%d%d%d%d)%-(%d%d)%-(%d%d) ?(%d%d):?(%d%d)$"
+    )
+    if year then
+        return os.time({
+            year = tonumber(year),
+            month = tonumber(month),
+            day = tonumber(day),
+            hour = tonumber(hour),
+            min = tonumber(min),
+            sec = 0,
+        })
+    end
+
+    local y2, m2, d2 = tostring(value or ""):match("^(%d%d%d%d)%-(%d%d)%-(%d%d)$")
+    if y2 then
+        return os.time({
+            year = tonumber(y2),
+            month = tonumber(m2),
+            day = tonumber(d2),
+            hour = 0,
+            min = 0,
+            sec = 0,
+        })
+    end
+
+    return nil
+end
+
 local function hold_path(vpn_name)
     local safe = tostring(vpn_name or ""):gsub("[^%w_.-]", "_")
     return "/tmp/lxsecrets-vpn-" .. safe .. ".hold"
@@ -271,6 +301,32 @@ local function secret_lookup(selector_pairs_list, callback)
     end)
 end
 
+local function secret_search_metadata(selector_pairs_list, callback)
+    local args = { "secret-tool", "search", "--all" }
+    append_all(args, selector_pairs_list)
+
+    run_process(args, function(stdout, _, exit_code)
+        if exit_code ~= 0 then
+            callback({})
+            return
+        end
+
+        local metadata = {}
+
+        for _, line in ipairs(util.split_lines(stdout)) do
+            local value = line:match("^%s*attribute%.expiry_date%s*=%s*(.+)%s*$")
+                or line:match("^%s*expiry_date%s*=%s*(.+)%s*$")
+                or line:match("^%s*attribute expiry_date%s*=%s*(.+)%s*$")
+            if value then
+                metadata.expiry_date = value:gsub("^['\"]", ""):gsub("['\"]$", "")
+                break
+            end
+        end
+
+        callback(metadata)
+    end)
+end
+
 local function secret_clear(selector_pairs_list, callback)
     local args = { "secret-tool", "clear" }
     append_all(args, selector_pairs_list)
@@ -355,6 +411,39 @@ local function keyring_account(secret)
     return selectors.account or "me@example.org"
 end
 
+local function keyring_selector(secret)
+    return {
+        "service", keyring_service(secret),
+        "account", keyring_account(secret),
+    }
+end
+
+local function update_secret_expiry(secret, display_value, expired)
+    secret.expires_at_display = display_value or "unknown"
+    secret.expires_at_sort = parse_display_epoch(display_value)
+    secret.expired = expired and true or false
+end
+
+local function sync_keyring_expiry(secret, token, callback)
+    local display_value = secret.expires_at_display
+    callback = callback or function() end
+
+    if not display_value or display_value == "unknown" or display_value == "expired" then
+        callback(true)
+        return
+    end
+
+    secret_store(
+        keyring_label(secret),
+        keyring_selector(secret),
+        { "expiry_date", tostring(display_value) },
+        token,
+        function(ok)
+            callback(ok)
+        end
+    )
+end
+
 local function vault_env(secret, token, browser_override)
     local selectors = secret.selectors or {}
     local browser = browser_override or secret.browser_command or config_data.commands().browser
@@ -434,8 +523,7 @@ local function gitlab_refresh(secret, callback)
 
                 local seconds_left = expiry_epoch - os.time()
                 local days_left = math.floor(seconds_left / 86400)
-                secret.expires_at_display = expires_at
-                secret.expired = seconds_left <= 0
+                update_secret_expiry(secret, expires_at, seconds_left <= 0)
 
                 if seconds_left <= 0 then
                     callback("error", "managed PAT is already expired")
@@ -443,7 +531,9 @@ local function gitlab_refresh(secret, callback)
                 end
 
                 if days_left > (secret.gitlab_threshold_days or 30) then
-                    callback("ok", string.format("token healthy; ~%dd left", days_left))
+                    sync_keyring_expiry(secret, managed_pat, function()
+                        callback("ok", string.format("token healthy; ~%dd left", days_left))
+                    end)
                     return
                 end
 
@@ -491,8 +581,7 @@ local function gitlab_refresh(secret, callback)
                             return
                         end
 
-                        secret.expires_at_display = new_expires_at
-                        secret.expired = false
+                        update_secret_expiry(secret, new_expires_at, false)
 
                         secret_clear(token_selector, function()
                             secret_store(store_label, token_selector, { "expiry_date", tostring(new_expires_at) }, new_pat, function(stored, store_err)
@@ -551,10 +640,7 @@ local function vault_login(secret, opts, callback)
                 return
             end
 
-            local selector_pairs_list = {
-                "service", keyring_service(secret),
-                "account", keyring_account(secret),
-            }
+            local selector_pairs_list = keyring_selector(secret)
 
             secret_store(keyring_label(secret), selector_pairs_list, {}, token, function(stored, store_err)
                 if not stored then
@@ -570,12 +656,12 @@ local function vault_login(secret, opts, callback)
                         local expire_time = data.expire_time
 
                         if expire_time and expire_time ~= "" and expire_time ~= "0001-01-01T00:00:00Z" then
-                            secret.expires_at_display = iso_to_local_display(expire_time)
+                            update_secret_expiry(secret, iso_to_local_display(expire_time), false)
                         elseif ttl > 0 then
-                            secret.expires_at_display = format_expiry(os.time() + ttl)
+                            update_secret_expiry(secret, format_expiry(os.time() + ttl), false)
                         end
 
-                        secret.expired = false
+                        sync_keyring_expiry(secret, token, function() end)
                     end
 
                     callback("ok", "login succeeded")
@@ -586,15 +672,11 @@ local function vault_login(secret, opts, callback)
 end
 
 local function vault_refresh(secret, opts, callback)
-    local selector_pairs_list = {
-        "service", keyring_service(secret),
-        "account", keyring_account(secret),
-    }
+    local selector_pairs_list = keyring_selector(secret)
 
     secret_lookup(selector_pairs_list, function(token)
         if not token or token == "" then
-            secret.expired = false
-            secret.expires_at_display = nil
+            update_secret_expiry(secret, "unknown", false)
             if opts and opts.interactive_login then
                 vault_login(secret, opts, callback)
             else
@@ -603,10 +685,16 @@ local function vault_refresh(secret, opts, callback)
             return
         end
 
+        secret_search_metadata(selector_pairs_list, function(metadata)
+        if metadata.expiry_date and metadata.expiry_date ~= "" then
+            update_secret_expiry(secret, metadata.expiry_date, false)
+        else
+            update_secret_expiry(secret, "unknown", false)
+        end
+
         vault_run(secret, token, { "vault", "token", "lookup", "-format=json" }, secret.vpn_timeout_seconds, nil, function(stdout, _, exit_code)
             if exit_code ~= 0 then
-                secret.expired = true
-                secret.expires_at_display = "expired"
+                update_secret_expiry(secret, "expired", true)
                 secret_clear(selector_pairs_list, function()
                     if opts and opts.interactive_login then
                         vault_login(secret, opts, callback)
@@ -629,17 +717,17 @@ local function vault_refresh(secret, opts, callback)
             local expire_time = data.expire_time
 
             if expire_time and expire_time ~= "" and expire_time ~= "0001-01-01T00:00:00Z" then
-                secret.expires_at_display = iso_to_local_display(expire_time)
+                update_secret_expiry(secret, iso_to_local_display(expire_time), false)
             elseif ttl > 0 then
-                secret.expires_at_display = format_expiry(os.time() + ttl)
+                update_secret_expiry(secret, format_expiry(os.time() + ttl), false)
             else
-                secret.expires_at_display = nil
+                update_secret_expiry(secret, "unknown", ttl <= 0)
             end
-            secret.expired = ttl <= 0
 
             if ttl > (secret.threshold_seconds or 604800) then
-                secret.expired = false
-                callback("ok", "token healthy; ttl=" .. tostring(ttl) .. "s")
+                sync_keyring_expiry(secret, token, function()
+                    callback("ok", "token healthy; ttl=" .. tostring(ttl) .. "s")
+                end)
                 return
             end
 
@@ -649,9 +737,10 @@ local function vault_refresh(secret, opts, callback)
                         local renewed, renew_err = decode_json(renew_stdout)
                         if renewed then
                             local new_ttl = tonumber(((renewed.auth or {}).lease_duration) or renewed.lease_duration) or 0
-                            secret.expires_at_display = format_expiry(os.time() + new_ttl)
-                            secret.expired = new_ttl <= 0
-                            callback("ok", "renewal succeeded; new ttl=" .. tostring(new_ttl) .. "s")
+                            update_secret_expiry(secret, format_expiry(os.time() + new_ttl), new_ttl <= 0)
+                            sync_keyring_expiry(secret, token, function()
+                                callback("ok", "renewal succeeded; new ttl=" .. tostring(new_ttl) .. "s")
+                            end)
                             return
                         end
 
@@ -673,6 +762,7 @@ local function vault_refresh(secret, opts, callback)
             else
                 callback("auth_required", "vault login required for " .. tostring((secret.selectors or {}).vault_url or "vault"))
             end
+        end)
         end)
     end)
 end
