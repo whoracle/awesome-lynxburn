@@ -39,6 +39,10 @@ Rationale:
 - keep `config.example.lua` as an example/override file rather than a second
   defaults file
 - preserve top-level `config.lua` as gitignored local machine state
+- consider an optional update-checker helper that, when the live Awesome config
+  checkout is a git repo, compares the current state against newer available
+  tags and notifies the user; keep it disabled by default and opt-in via
+  `config.lua`
 - add any remaining repository-wide policy or documentation notices once the
   project shape is more stable
 - do one later cleanup pass to remove stale glue, prune dead definitions, and
