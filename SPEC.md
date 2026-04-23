@@ -12,7 +12,7 @@ are linked below.
 Doc refactoring first:
 - Move all "planned features" out of the SPEC.md files. SPEC should only describe what the tool does/doesn't going forward. So a "real" SPEC
 - Create a centralized ROADMAP.md - either linking to per-module ROADMAP or have one central file
-- Remove MIGRATE.md - everything is currently migrated
+- Clear out MIGRATE.md. Going forward, Assume everyone is on tag `v1.5.0`. We will only document neccessary migrations between tags, so once you detect, say, `v1.5.1`, or, more likely `v1.6.0` we do a migration pass. Usually I'd reserve those for BREAKing changes, i.e. `v2.0.0`, but we're moving fast at the moment. Once `v2.0.0` hits we'll make sure no minors will BREAK user configs. We will keep migration steps between tags in MIGRATE.md, and always assume people will migrate incrementally and not skipping steps.
 
 Then, use this order for the next fresh session unless new bugs force a reprioritization:
 
