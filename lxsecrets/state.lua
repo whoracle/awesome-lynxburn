@@ -82,6 +82,21 @@ local function last_nonempty_line(output)
     return last_line
 end
 
+local function provider_requires_auth(secret, exit_code, message)
+    if not secret or secret.provider ~= "hashicorp_vault" then
+        return false
+    end
+
+    if exit_code == 10 then
+        return true
+    end
+
+    local lowered = tostring(message or ""):lower()
+    return lowered:find("login required", 1, true) ~= nil
+        or lowered:find("auth is required", 1, true) ~= nil
+        or lowered:find("oidc", 1, true) ~= nil and lowered:find("login", 1, true) ~= nil
+end
+
 local function threshold_text(seconds)
     if not seconds then
         return "-"
@@ -229,6 +244,15 @@ function M.extend(instance_methods)
         })
     end
 
+    function instance_methods:_notify_auth_required(secret, message)
+        naughty.notify({
+            app_name = "lxsecrets",
+            title = "Secret login required",
+            text = string.format("%s: %s", secret.name, message),
+            urgency = "normal",
+        })
+    end
+
     function instance_methods:_refresh_secret_async(secret, opts, callback)
         opts = opts or {}
         local command, build_error = providers.build_command(secret, opts)
@@ -257,13 +281,20 @@ function M.extend(instance_methods)
             secret.last_checked_at = os.time()
             secret.last_message = message
 
+            local auth_required = provider_requires_auth(secret, exit_code, message)
+
             if exit_code == 0 then
                 secret.status = "ok"
                 secret.auth_required = false
                 secret.needs_attention = false
+            elseif auth_required then
+                secret.status = "attention"
+                secret.auth_required = true
+                secret.needs_attention = true
+                self:_notify_auth_required(secret, message)
             elseif exit_code == 10 or exit_code == 11 then
                 secret.status = "attention"
-                secret.auth_required = (secret.provider == "hashicorp_vault" and exit_code == 10)
+                secret.auth_required = false
                 secret.needs_attention = true
                 self:_notify_refresh_failure(secret, message)
             else
