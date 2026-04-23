@@ -25,6 +25,7 @@ Then, use this order for the next fresh session unless new bugs force a repriori
 
 Rationale:
 
+- `lxsecrets` is already implemented in bash, and "just" needs translation and yassifying
 - `lxbar` polish is useful and visible, but still lower risk than larger
   feature work
 - theme cleanup is mostly structural cleanup and later-stage polish
