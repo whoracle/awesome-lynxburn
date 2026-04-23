@@ -74,6 +74,31 @@ local function make_status_line(instance, text, fg_key, fallback)
     ))
 end
 
+local function wrap_card(child)
+    return popup_common.make_card(child, {
+        margins = 6,
+        radius = 8,
+    })
+end
+
+local function wrap_selectable_card(child)
+    local card = wrap_card(child)
+
+    function card:_lx_set_selected(selected)
+        if child and child._lx_set_selected then
+            child:_lx_set_selected(selected)
+        end
+    end
+
+    function card:_lx_set_feedback_active(active)
+        if child and child._lx_set_feedback_active then
+            child:_lx_set_feedback_active(active)
+        end
+    end
+
+    return card
+end
+
 local function make_network_row(instance, network, selected, onclick)
     local name = network.ssid
     if network.active then
@@ -129,13 +154,13 @@ local function make_network_row(instance, network, selected, onclick)
         layout = wibox.layout.align.horizontal,
     })
 
-    return popup_common.make_selectable_click_container(row_content, onclick, {
+    return wrap_selectable_card(popup_common.make_selectable_click_container(row_content, onclick, {
         selected = selected,
         inner_bg = instance:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
         hover_bg = instance:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
         outer_bg = instance:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
         selected_bg = instance:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-    })
+    }))
 end
 
 ---Attach popup rendering and selection-state methods to the lxnetwork instance.
@@ -264,7 +289,7 @@ function popup.extend(instance_methods)
     end
 
     function instance_methods:_build_popup()
-        local scan_action = popup_common.make_selectable_click_row("Scan WiFi", function()
+        local scan_action = wrap_selectable_card(popup_common.make_selectable_click_row("Scan WiFi", function()
             self:scan()
         end, {
             selected = self._popup_selected_index == 1,
@@ -275,8 +300,8 @@ function popup.extend(instance_methods)
             on_hover = function()
                 self:_set_popup_selection(1)
             end,
-        })
-        local toggle_wifi_action = popup_common.make_selectable_click_row(self.state.enabled and "Disable WiFi" or "Enable WiFi", function()
+        }))
+        local toggle_wifi_action = wrap_selectable_card(popup_common.make_selectable_click_row(self.state.enabled and "Disable WiFi" or "Enable WiFi", function()
             self:toggle_wifi_enabled()
         end, {
             selected = self._popup_selected_index == 2,
@@ -287,7 +312,7 @@ function popup.extend(instance_methods)
             on_hover = function()
                 self:_set_popup_selection(2)
             end,
-        })
+        }))
         local current_header = wibox.layout.fixed.vertical()
         local current_value_container = wibox.layout.fixed.vertical()
         local known_list = wibox.layout.fixed.vertical()
