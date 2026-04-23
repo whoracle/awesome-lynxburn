@@ -48,6 +48,10 @@ local function parse_duration_seconds(value)
     return tonumber(amount) * (DURATION_UNITS[unit] or 0)
 end
 
+local function duration_or_default(value, fallback)
+    return parse_duration_seconds(value) or fallback
+end
+
 local function duration_days(value, fallback)
     local seconds = parse_duration_seconds(value)
     if not seconds or seconds < 1 then
@@ -138,6 +142,14 @@ function M.extend(instance_methods)
         local threshold_value = secret.threshold or (self.opts.thresholds or {})[provider] or (self.opts.thresholds or {}).vault
         local threshold_seconds = parse_duration_seconds(threshold_value) or 604800
         local lifetime_days = duration_days(secret.lifetime or (self.opts.lifetimes or {})[provider] or "365d", "365d")
+        local vpn_timeout_seconds = duration_or_default(
+            secret.vpn_timeout or self.opts.vpn_timeout,
+            300
+        )
+        local interactive_vpn_timeout_seconds = duration_or_default(
+            secret.interactive_vpn_timeout or self.opts.interactive_vpn_timeout,
+            900
+        )
 
         return {
             index = index,
@@ -150,12 +162,15 @@ function M.extend(instance_methods)
             admin_selector = copy_table(secret.admin_selector),
             token_selector = copy_table(secret.token_selector),
             vpn = secret.vpn,
+            vpn_timeout_seconds = vpn_timeout_seconds,
+            interactive_vpn_timeout_seconds = interactive_vpn_timeout_seconds,
             threshold_seconds = threshold_seconds,
             threshold_label = threshold_text(threshold_seconds),
             gitlab_threshold_days = math.max(1, math.floor((threshold_seconds + 86399) / 86400)),
             gitlab_lifetime_days = lifetime_days,
             running = false,
             status = "idle",
+            auth_required = false,
             last_message = "never checked",
             last_checked_at = nil,
             needs_attention = false,
@@ -214,8 +229,9 @@ function M.extend(instance_methods)
         })
     end
 
-    function instance_methods:_refresh_secret_async(secret, callback)
-        local command, build_error = providers.build_command(secret)
+    function instance_methods:_refresh_secret_async(secret, opts, callback)
+        opts = opts or {}
+        local command, build_error = providers.build_command(secret, opts)
         if not command then
             secret.running = false
             secret.status = "error"
@@ -243,13 +259,16 @@ function M.extend(instance_methods)
 
             if exit_code == 0 then
                 secret.status = "ok"
+                secret.auth_required = false
                 secret.needs_attention = false
             elseif exit_code == 10 or exit_code == 11 then
                 secret.status = "attention"
+                secret.auth_required = (secret.provider == "hashicorp_vault" and exit_code == 10)
                 secret.needs_attention = true
                 self:_notify_refresh_failure(secret, message)
             else
                 secret.status = "error"
+                secret.auth_required = false
                 secret.needs_attention = true
                 self:_notify_refresh_failure(secret, message)
             end
@@ -259,7 +278,8 @@ function M.extend(instance_methods)
         end)
     end
 
-    function instance_methods:_run_secret_queue(indices)
+    function instance_methods:_run_secret_queue(indices, opts)
+        opts = opts or {}
         if self._refreshing then
             return
         end
@@ -286,7 +306,7 @@ function M.extend(instance_methods)
                 return
             end
 
-            self:_refresh_secret_async(secret, function()
+            self:_refresh_secret_async(secret, opts, function()
                 step()
             end)
         end
@@ -294,15 +314,27 @@ function M.extend(instance_methods)
         step()
     end
 
-    function instance_methods:refresh_secret(index)
+    function instance_methods:refresh_secret(index, opts)
         if self.state.suspended then
             return
         end
 
-        self:_run_secret_queue({ index })
+        self:_run_secret_queue({ index }, opts)
     end
 
-    function instance_methods:refresh_all()
+    function instance_methods:login_secret(index)
+        local secret = (self.state.secrets or {})[index]
+        if not secret then
+            return
+        end
+
+        self:refresh_secret(index, {
+            interactive_login = true,
+            vpn_timeout_seconds = secret.interactive_vpn_timeout_seconds,
+        })
+    end
+
+    function instance_methods:refresh_all(opts)
         if self.state.suspended then
             return
         end
@@ -313,7 +345,7 @@ function M.extend(instance_methods)
             indices[#indices + 1] = index
         end
 
-        self:_run_secret_queue(indices)
+        self:_run_secret_queue(indices, opts)
     end
 
     function instance_methods:provider_groups()

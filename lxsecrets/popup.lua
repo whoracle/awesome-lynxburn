@@ -59,6 +59,22 @@ local function wrap_selectable_card(child)
     return card
 end
 
+local function action_text(label, fg, onclick)
+    local widget = wibox.widget({
+        markup = string.format("<span foreground='%s'>%s</span>", fg, label),
+        valign = "center",
+        widget = wibox.widget.textbox,
+    })
+
+    if onclick then
+        widget:buttons(gears.table.join(
+            awful.button({}, 1, onclick)
+        ))
+    end
+
+    return widget
+end
+
 local function action_row(instance, label, selected, index, onclick)
     return wrap_selectable_card(popup_common.make_selectable_click_row(label, onclick, {
         selected = selected,
@@ -102,23 +118,27 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         }))
     end
 
+    local actions = wibox.layout.fixed.horizontal()
+    actions.spacing = 8
+    actions:add(action_text("refresh", state_fg, function()
+        instance:refresh_secret(secret_index)
+    end))
+
+    if secret.auth_required then
+        actions:add(action_text("login", state_fg, function()
+            instance:login_secret(secret_index)
+        end))
+    end
+
     local row = wibox.widget({
         info,
         nil,
-        {
-            markup = string.format(
-                "<span foreground='%s'>refresh</span>",
-                state_fg
-            ),
-            align = "right",
-            valign = "center",
-            widget = wibox.widget.textbox,
-        },
+        actions,
         expand = "inside",
         layout = wibox.layout.align.horizontal,
     })
 
-    return wrap_selectable_card(popup_common.make_selectable_click_container(row, function()
+    local container = popup_common.make_selectable_click_container(row, function()
         instance:refresh_secret(secret_index)
     end, {
         selected = selected,
@@ -129,7 +149,9 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         on_hover = function()
             instance:_set_popup_selection(selection_index)
         end,
-    }))
+    })
+
+    return wrap_selectable_card(container)
 end
 
 function M.extend(instance_methods)

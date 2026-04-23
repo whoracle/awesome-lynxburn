@@ -136,6 +136,8 @@ return {
     --         interval = "30m",
     --         top_level = "urgent",
     --         cycle_exclude = true,
+    --         vpn_timeout = "5m",
+    --         interactive_vpn_timeout = "15m",
     --         thresholds = {
     --             gitlab = "30d",
     --             hashicorp_vault = "7d",

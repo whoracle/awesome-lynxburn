@@ -265,6 +265,7 @@ local function collect_secrets_dependencies(grouped)
 
     if has_vpn then
         require_binary(grouped, "lxsecrets", "nmcli")
+        require_binary(grouped, "lxsecrets", "timeout")
     end
 end
 

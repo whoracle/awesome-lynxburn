@@ -31,6 +31,9 @@ Internal:
 - pause/resume checks
 - compact healthy/suspended/attention widget state
 - optional VPN-gated refresh execution per secret
+- Vault cards surface an inline login action only after a refresh determines
+  that interactive auth is required
+- interactive Vault login keeps VPN-gated runs alive until success or timeout
 
 ## Example Usage
 
@@ -58,6 +61,8 @@ lxmodules = {
         interval = "30m",
         top_level = "urgent",
         cycle_exclude = true,
+        vpn_timeout = "5m",
+        interactive_vpn_timeout = "15m",
         thresholds = {
             gitlab = "30d",
             hashicorp_vault = "7d",
@@ -99,12 +104,16 @@ Supported knobs:
 - `interval`
 - `top_level`
 - `cycle_exclude`
+- `vpn_timeout`
+- `interactive_vpn_timeout`
 - `thresholds.gitlab`
 - `thresholds.hashicorp_vault`
 - `lifetimes.gitlab`
 - `secrets`
 - `secrets[].name`
 - `secrets[].vpn`
+- `secrets[].vpn_timeout`
+- `secrets[].interactive_vpn_timeout`
 - `secrets[].threshold`
 - `secrets[].lifetime`
 - `secrets[].selectors`
@@ -168,3 +177,9 @@ Current provider support:
 - provider execution still uses the bundled shell backends rather than a full
   native Lua reimplementation
 - `cycle_exclude = true` is the default first-pass behavior
+- automatic/background Vault refresh runs fail into attention state when login
+  is required; they do not open an interactive login flow on their own
+- clicking a card always means “try refresh”
+- Vault rows expose an inline `login` action only after a refresh reports that
+  auth is required; normal `refresh` stays non-interactive and is safe for
+  periodic or retry use

@@ -31,6 +31,7 @@ RENEW_BELOW_SECONDS="${RENEW_BELOW_SECONDS:-604800}"
 
 # Notification app name
 NOTIFY_APP_NAME="${NOTIFY_APP_NAME:-vault-token-refresh}"
+LXSECRETS_LOGIN_MODE="${LXSECRETS_LOGIN_MODE:-notify}"
 
 # ---- helpers --------------------------------------------------------------
 
@@ -103,26 +104,41 @@ prompt_login_action() {
     "$VAULT_ADDR"
 }
 
-login_via_notification() {
+login_if_needed() {
   local action new_token
 
-  action="$(prompt_login_action || true)"
-
-  case "$action" in
-    login)
-      log "user chose login for $VAULT_ADDR"
+  case "$LXSECRETS_LOGIN_MODE" in
+    direct)
+      log "starting direct OIDC login for $VAULT_ADDR"
       new_token="$(vault_oidc_login_token)"
       [[ -n "$new_token" ]] || { log "OIDC login returned empty token"; exit 1; }
       keyring_set "$new_token"
       notify-send -a "$NOTIFY_APP_NAME" "Vault login succeeded" "$VAULT_ADDR"
       ;;
-    ignore|"")
-      log "user ignored login for $VAULT_ADDR"
+    silent)
+      log "vault login required for $VAULT_ADDR"
       exit 10
       ;;
-    *)
-      log "unknown notification action: $action"
-      exit 11
+    notify|*)
+      action="$(prompt_login_action || true)"
+
+      case "$action" in
+        login)
+          log "user chose login for $VAULT_ADDR"
+          new_token="$(vault_oidc_login_token)"
+          [[ -n "$new_token" ]] || { log "OIDC login returned empty token"; exit 1; }
+          keyring_set "$new_token"
+          notify-send -a "$NOTIFY_APP_NAME" "Vault login succeeded" "$VAULT_ADDR"
+          ;;
+        ignore|"")
+          log "user ignored login for $VAULT_ADDR"
+          exit 10
+          ;;
+        *)
+          log "unknown notification action: $action"
+          exit 11
+          ;;
+      esac
       ;;
   esac
 }
@@ -138,14 +154,14 @@ main() {
 
   if [[ -z "$token" ]]; then
     log "no token in keyring"
-    login_via_notification
+    login_if_needed
     exit 0
   fi
 
   if ! lookup_json="$(vault_lookup_json "$token" 2>/dev/null)"; then
     log "stored token is invalid or expired"
     keyring_clear
-    login_via_notification
+    login_if_needed
     exit 0
   fi
 
@@ -169,7 +185,7 @@ main() {
     log "token below threshold and not renewable"
   fi
 
-  login_via_notification
+  login_if_needed
 }
 
 main "$@"

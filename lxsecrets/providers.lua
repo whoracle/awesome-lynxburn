@@ -4,6 +4,8 @@ local util = require("lxcommon.util")
 
 local M = {}
 
+local DEFAULT_VPN_TIMEOUT_SECONDS = 300
+
 local GITLAB_SPECIAL_KEYS = {
     type = true,
     gitlab_url = true,
@@ -57,20 +59,27 @@ local function shell_assignment(key, value)
     return tostring(key) .. "=" .. util.shell_escape(value)
 end
 
-local function wrap_vpn(command, vpn_name)
+local function wrap_vpn(command, vpn_name, timeout_seconds)
     local vpn = util.shell_escape(vpn_name)
+    local seconds = tonumber(timeout_seconds) or DEFAULT_VPN_TIMEOUT_SECONDS
+    local wrapped_command = "timeout --foreground "
+        .. util.shell_escape(tostring(seconds))
+        .. " sh -lc "
+        .. util.shell_escape(command)
 
     return table.concat({
         "(",
         "if nmcli -t -f NAME connection show --active | grep -Fx -- " .. vpn .. " >/dev/null; then",
-        command .. ";",
+        wrapped_command .. ";",
+        "rc=$?;",
         "else",
         "nmcli connection up " .. vpn .. " >/dev/null || { echo 'failed to activate vpn " .. tostring(vpn_name) .. "' >&2; exit 1; };",
-        command .. ";",
+        wrapped_command .. ";",
         "rc=$?;",
         "nmcli connection down " .. vpn .. " >/dev/null || true;",
+        "fi;",
+        "if [ \"$rc\" -eq 124 ]; then echo 'vpn-gated refresh timed out' >&2; fi;",
         "exit $rc;",
-        "fi",
         ")",
     }, " ")
 end
@@ -94,8 +103,9 @@ local function gitlab_command(secret)
     return table.concat(parts, " ")
 end
 
-local function vault_command(secret)
+local function vault_command(secret, opts)
     local selectors = secret.selectors or {}
+    local login_mode = (opts and opts.interactive_login) and "direct" or "silent"
     local env = {
         shell_assignment("VAULT_ADDR", selectors.vault_url or ""),
         shell_assignment("VAULT_AUTH_PATH", selectors.auth_path or "oidc"),
@@ -106,6 +116,7 @@ local function vault_command(secret)
         shell_assignment("VAULT_ENV", selectors.env or secret.name or "unset"),
         shell_assignment("RENEW_BELOW_SECONDS", secret.threshold_seconds or 604800),
         shell_assignment("NOTIFY_APP_NAME", "lxsecrets"),
+        shell_assignment("LXSECRETS_LOGIN_MODE", login_mode),
     }
 
     return table.concat(env, " ") .. " " .. util.shell_escape(script_path("vault_refresh.sh"))
@@ -135,20 +146,20 @@ function M.provider_label(provider)
     return tostring(provider or "unknown")
 end
 
-function M.build_command(secret)
+function M.build_command(secret, opts)
     local provider = secret.provider
     local command
 
     if provider == "gitlab" then
         command = gitlab_command(secret)
     elseif provider == "hashicorp_vault" then
-        command = vault_command(secret)
+        command = vault_command(secret, opts)
     else
         return nil, "unsupported provider: " .. tostring(provider)
     end
 
     if secret.vpn and secret.vpn ~= "" then
-        command = wrap_vpn(command, secret.vpn)
+        command = wrap_vpn(command, secret.vpn, (opts and opts.vpn_timeout_seconds) or secret.vpn_timeout_seconds)
     end
 
     return command
