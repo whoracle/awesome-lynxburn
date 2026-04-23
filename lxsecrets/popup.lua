@@ -160,20 +160,46 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         end))
     end
 
-    local body = wibox.widget({
-        info,
-        {
-            buttons,
-            top = 8,
-            widget = wibox.container.margin,
-        },
-        spacing = 0,
-        layout = wibox.layout.fixed.vertical,
-    })
-
-    return selectable_card(instance, body, selected, selection_index, function()
+    local info_card = selectable_card(instance, info, selected, selection_index, function()
         instance:refresh_secret(secret_index)
     end)
+
+    local outer = popup_common.make_card({
+        {
+            info_card,
+            {
+                buttons,
+                top = 8,
+                left = 12,
+                right = 8,
+                bottom = 6,
+                widget = wibox.container.margin,
+            },
+            spacing = 0,
+            layout = wibox.layout.fixed.vertical,
+        },
+        widget = wibox.container.background,
+    }, {
+        radius = 4,
+    })
+
+    outer:connect_signal("mouse::enter", function()
+        instance:_set_popup_selection(selection_index)
+    end)
+
+    outer._lx_set_selected = function(_, value)
+        if info_card and info_card._lx_set_selected then
+            info_card:_lx_set_selected(value)
+        end
+    end
+
+    outer._lx_set_feedback_active = function(_, value)
+        if info_card and info_card._lx_set_feedback_active then
+            info_card:_lx_set_feedback_active(value)
+        end
+    end
+
+    return outer
 end
 
 function M.extend(instance_methods)
