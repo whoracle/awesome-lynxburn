@@ -24,9 +24,15 @@ local function make_row_card(child)
     })
 end
 
-local function selectable_card(instance, child, selected, index, onclick)
+local function selectable_card(instance, child, selected, index, onclick, opts)
+    opts = opts or {}
     return popup_ui.make_selectable_click_container(child, onclick, {
         selected = selected,
+        left = opts.left,
+        right = opts.right,
+        top = opts.top,
+        bottom = opts.bottom,
+        selection_margin = opts.selection_margin,
         inner_bg = beautiful.lxmedia_popup_bg or beautiful.bg_normal or "#222222",
         hover_bg = beautiful.lxmedia_button_hover or beautiful.bg_focus or "#444444",
         outer_bg = beautiful.lxmedia_popup_bg or beautiful.bg_normal or "#222222",
@@ -59,13 +65,24 @@ end
 
 local function make_selectable_card_row(instance, text, selected, index, onclick, opts)
     opts = opts or {}
-    if opts.top == nil then
-        opts.top = 2
-    end
-    if opts.bottom == nil then
-        opts.bottom = 2
-    end
-    return make_row_card(selectable_card(instance, make_info_line(text, opts), selected, index, onclick))
+    opts.text_opts = opts.text_opts or {
+        ellipsize = "end",
+        valign = "center",
+    }
+    return make_row_card(selectable_card(
+        instance,
+        popup_ui.make_text(text, opts.text_opts),
+        selected,
+        index,
+        onclick,
+        {
+            left = opts.left or 12,
+            right = opts.right or 8,
+            top = opts.top ~= nil and opts.top or 6,
+            bottom = opts.bottom ~= nil and opts.bottom or 6,
+            selection_margin = opts.selection_margin or 1,
+        }
+    ))
 end
 
 local function make_card_info_row(text, opts)
@@ -151,9 +168,7 @@ local function build_outputs_card(instance, sinks, popup_items)
         end
     end
 
-    local card = make_card(layout)
-    card.forced_height = 69
-    return card
+    return make_card(layout)
 end
 
 local function build_inputs_card(instance, sources, popup_items)
@@ -205,9 +220,7 @@ local function build_inputs_card(instance, sources, popup_items)
         end
     end
 
-    local card = make_card(layout)
-    card.forced_height = 69
-    return card
+    return make_card(layout)
 end
 
 local function build_stream_route_rows(instance, stream, sinks, layout, popup_items)
@@ -375,9 +388,7 @@ local function build_advanced_card(instance, popup_items)
         end,
     }
 
-    local card = make_card(layout)
-    card.forced_height = 69
-    return card
+    return make_card(layout)
 end
 
 local function build_widget(instance)
