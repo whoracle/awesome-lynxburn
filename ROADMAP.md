@@ -111,11 +111,6 @@ Rationale:
 - expand transient-display behavior only if the current narrow action set
   proves insufficient
 
-### `lxrunner`
-
-- track invocation counts in history so sorting can consider “most used” as
-  well as “last used”
-
 ### `lxsecrets`
 
 - keep the native provider runtime stable for GitLab and Vault
