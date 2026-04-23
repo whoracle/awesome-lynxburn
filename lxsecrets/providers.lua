@@ -65,7 +65,7 @@ local function wrap_vpn(command, vpn_name)
         "if nmcli -t -f NAME connection show --active | grep -Fx -- " .. vpn .. " >/dev/null; then",
         command .. ";",
         "else",
-        "nmcli connection up " .. vpn .. " --ask >/dev/null || exit $?;",
+        "nmcli connection up " .. vpn .. " >/dev/null || { echo 'failed to activate vpn " .. tostring(vpn_name) .. "' >&2; exit 1; };",
         command .. ";",
         "rc=$?;",
         "nmcli connection down " .. vpn .. " >/dev/null || true;",
