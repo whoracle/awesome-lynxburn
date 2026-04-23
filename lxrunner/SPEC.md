@@ -6,9 +6,8 @@ This file only tracks what is still wanted for the module.
 
 ## Still Wanted
 
-- consider later result-row metadata such as a small source indicator or
-  description when it clearly improves usability
-  Why: useful, but lower priority than finishing broader repo work
+- keep count of program invocations in history to then sort by "most used" in addition to "last used"
+  Why: makes commonly used invocations more easily accessible
 
 ## Explicit Non-Goals For Now
 
