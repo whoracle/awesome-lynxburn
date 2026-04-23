@@ -3,7 +3,7 @@
 -- This version keeps only theme keys that are consumed by:
 -- - Awesome core widgets and notifications used by this config
 -- - themes/lynxburn/widgets.lua
--- - the bundled lxmedia, lxnotify, lxdisplay, and lxrunner modules
+-- - the bundled lxmedia, lxnotify, lxdisplay, lxrunner, and lxsecrets modules
 --
 -- It intentionally drops copycats-era fields that are currently unused.
 
@@ -252,6 +252,21 @@ local theme = {
     lxpower_profile_fg_powersave = roles.text_muted,
     lxpower_profile_fg_balanced = roles.text,
     lxpower_profile_fg_performance = palette.critical,
+
+    lxsecrets_icon = "",
+    lxsecrets_icon_font = icon_font,
+    lxsecrets_icon_width = 24,
+    lxsecrets_widget_fg = roles.text,
+    lxsecrets_widget_suspended_fg = roles.text_muted,
+    lxsecrets_widget_attention_fg = palette.critical,
+    lxsecrets_widget_hover_bg = roles.panel_bg,
+    lxsecrets_widget_press_bg = roles.hover_bg,
+    lxsecrets_popup_bg = roles.panel_bg,
+    lxsecrets_popup_width = 380,
+    lxsecrets_popup_placement = "side",
+    lxsecrets_button_hover = roles.hover_bg,
+    lxsecrets_selected_bg = roles.text_accent,
+    lxsecrets_meta_fg = roles.text_meta,
 
     lxrunner_bg = roles.panel_bg,
     lxrunner_border_color = roles.panel_border,

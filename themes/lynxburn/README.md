@@ -30,7 +30,7 @@ Internal:
 - per-screen wibar assembly in `widgets.lua`
 - support for user theme overrides through top-level `config.lua`
 - bundled theme keys for `lxmedia`, `lxnotify`, `lxdisplay`, `lxrunner`,
-  `lxbluetooth`, `lxnetwork`, and `lxpower`
+  `lxbluetooth`, `lxnetwork`, `lxpower`, and `lxsecrets`
 
 ## Example Usage
 
@@ -270,6 +270,7 @@ Layout label values:
 - `lxpower_icon_ac`
 - `lxpower_icon_battery`
 - `lxpower_popup_placement`
+- `lxpower_popup_width`
 - `lxpower_icon_pinned`
 - `lxpower_icon_width`
 - `lxpower_widget_hover_bg`
@@ -277,7 +278,23 @@ Layout label values:
 - `lxpower_profile_fg_powersave`
 - `lxpower_profile_fg_balanced`
 - `lxpower_profile_fg_performance`
-- `lxpower_popup_width`
+
+`lxsecrets` values:
+
+- `lxsecrets_icon`
+- `lxsecrets_icon_font`
+- `lxsecrets_icon_width`
+- `lxsecrets_widget_fg`
+- `lxsecrets_widget_suspended_fg`
+- `lxsecrets_widget_attention_fg`
+- `lxsecrets_widget_hover_bg`
+- `lxsecrets_widget_press_bg`
+- `lxsecrets_popup_bg`
+- `lxsecrets_popup_width`
+- `lxsecrets_popup_placement`
+- `lxsecrets_button_hover`
+- `lxsecrets_selected_bg`
+- `lxsecrets_meta_fg`
 
 `lxrunner` values:
 

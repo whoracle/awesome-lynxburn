@@ -131,6 +131,41 @@ return {
     --             ac = "balanced",
     --         },
     --     },
+    --     lxsecrets = {
+    --         at_start = true,
+    --         interval = "30m",
+    --         top_level = "urgent",
+    --         cycle_exclude = true,
+    --         thresholds = {
+    --             gitlab = "30d",
+    --             hashicorp_vault = "7d",
+    --         },
+    --         secrets = {
+    --             {
+    --                 name = "GitLab PAT",
+    --                 selectors = {
+    --                     type = "gitlab",
+    --                     gitlab_url = "https://gitlab.example.org",
+    --                     label = "SHELL_GIT_TOKEN",
+    --                     service = "gitlab-example",
+    --                     account = "me@example.org",
+    --                 },
+    --             },
+    --             {
+    --                 name = "Vault token",
+    --                 vpn = "corp-vpn",
+    --                 selectors = {
+    --                     type = "hashicorp_vault",
+    --                     vault_url = "https://vault.example.org",
+    --                     label = "Vault token for https://vault.example.org",
+    --                     service = "vault-example",
+    --                     account = "me@example.org",
+    --                     auth_path = "oidc",
+    --                     skip_verify = false,
+    --                 },
+    --             },
+    --         },
+    --     },
     --     lxrunner = {
     --         width = 640,
     --         row_count = 12,

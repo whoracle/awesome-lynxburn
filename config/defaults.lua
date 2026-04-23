@@ -157,6 +157,20 @@ M.lxmodules = {
         prompt = "Run",
         aliases = {},
     },
+    lxsecrets = {
+        at_start = true,
+        interval = "30m",
+        top_level = "always",
+        cycle_exclude = true,
+        thresholds = {
+            gitlab = "30d",
+            hashicorp_vault = "7d",
+        },
+        lifetimes = {
+            gitlab = "365d",
+        },
+        secrets = {},
+    },
 }
 
 M.keys = default_keys

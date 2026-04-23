@@ -168,10 +168,31 @@ function M.power()
     end)
 end
 
+---Return the shared lxsecrets instance.
+---@return table
+function M.secrets()
+    return state.ensure("secrets", function()
+        local options = module_config.options("secrets")
+        local instance = require("lxsecrets").new(options)
+
+        registry.register_widget("secrets", instance.widget, 15, {
+            include_in_popup_cycle = options.cycle_exclude ~= true,
+        })
+        register_single_popup("secrets", instance, "default", "primary", "_popup", function(service, popup_opts)
+            service:toggle_popup(nil, popup_opts)
+        end, function(service)
+            service:close_popup()
+        end)
+
+        return instance
+    end)
+end
+
 ---Build the standard set of long-lived services after theme initialization.
 ---@return table
 function M.bootstrap()
     return {
+        secrets = M.secrets(),
         media = M.media(),
         notify = M.notify(),
         runner = M.runner(),

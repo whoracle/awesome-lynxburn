@@ -14,6 +14,7 @@ local M = {}
 
 local GROUP_ORDER = {
     "core",
+    "lxsecrets",
     "lxmedia",
     "lxbluetooth",
     "lxnetwork",
@@ -226,6 +227,47 @@ local function collect_runner_dependencies(grouped)
     require_binary(grouped, "lxrunner", "find")
 end
 
+local function collect_secrets_dependencies(grouped)
+    local opts = module_config.options("secrets")
+    local has_vpn = false
+    local needs_gitlab = false
+    local needs_vault = false
+
+    for _, secret in ipairs(opts.secrets or {}) do
+        local selectors = secret.selectors or {}
+        local provider = tostring(selectors.type or secret.type or "")
+
+        if provider == "gitlab" then
+            needs_gitlab = true
+        elseif provider == "hashicorp_vault" or provider == "vault" then
+            needs_vault = true
+        end
+
+        if type(secret.vpn) == "string" and secret.vpn ~= "" then
+            has_vpn = true
+        end
+    end
+
+    if needs_gitlab then
+        require_binary(grouped, "lxsecrets", "curl")
+        require_binary(grouped, "lxsecrets", "jq")
+        require_binary(grouped, "lxsecrets", "secret-tool")
+        require_binary(grouped, "lxsecrets", "date")
+        require_binary(grouped, "lxsecrets", "mktemp")
+    end
+
+    if needs_vault then
+        require_binary(grouped, "lxsecrets", "vault")
+        require_binary(grouped, "lxsecrets", "jq")
+        require_binary(grouped, "lxsecrets", "secret-tool")
+        require_binary(grouped, "lxsecrets", "notify-send")
+    end
+
+    if has_vpn then
+        require_binary(grouped, "lxsecrets", "nmcli")
+    end
+end
+
 function M.collect()
     local grouped = {}
     local commands = config_data.commands()
@@ -233,6 +275,9 @@ function M.collect()
     local user_commands = user_config.commands or {}
 
     collect_core_dependencies(grouped, commands, user_commands)
+    if module_config.enabled("secrets", false) then
+        collect_secrets_dependencies(grouped)
+    end
     if module_config.enabled("media", false) then
         collect_media_dependencies(grouped)
     end

@@ -22,7 +22,7 @@ return {
     lxmodules = {
         lxbar = {
             order = {
-                "secrets",
+                "lxsecrets",
             },
         },
         lxsecrets = {

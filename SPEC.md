@@ -46,6 +46,7 @@ Modules:
 - [`lxpower`](./lxpower/SPEC.md)
 - [`lxdisplay`](./lxdisplay/SPEC.md)
 - [`lxrunner`](./lxrunner/SPEC.md)
+- [`lxsecrets`](./lxsecrets/SPEC.md)
 
 Theme:
 
