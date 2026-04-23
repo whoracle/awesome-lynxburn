@@ -18,6 +18,17 @@ Current baseline:
 
 ## Documented Migrations
 
-### `v1.5.0` -> current
+### `v1.5.0` -> `v1.6.0`
 
-No tagged migration steps are recorded yet beyond the `v1.5.0` baseline.
+Apply these user-facing config migrations:
+
+- update `lxmodules.lxbar.order` to use full module ids such as `lxmedia`,
+  `lxbluetooth`, `lxnetwork`, `lxnotify`, `lxdisplay`, `lxpower`,
+  `lxsecrets`, and `lxrunner`
+- update `lxmodules.lxbar.modules` to use the same full ids as keys:
+  `lxmedia = { ... }`, not `media = { ... }`
+- if you want to select a bundled `lynxburn` color scheme explicitly, use
+  `theme = { color_scheme = "default" }`
+  Flat `theme.<key>` overrides continue to work as before.
+- `lxsecrets` is available as an optional new module
+  No migration is required unless you want to enable/configure it.

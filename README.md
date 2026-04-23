@@ -214,5 +214,5 @@ module/theme `SPEC.md` files.
 - [`DEVELOPMENT.md`](./DEVELOPMENT.md): internal architecture and extension notes
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md): contribution scope and expectations
 - [`CHANGELOG.md`](./CHANGELOG.md): repository changelog generated from commit history
-- [`MIGRATE.md`](./MIGRATE.md): temporary notes for older machines still moving from the `migrate` tag
+- [`MIGRATE.md`](./MIGRATE.md): tagged-release migration notes for user-facing config changes
 - [`LICENSE.md`](./LICENSE.md): repository licensing and third-party notices

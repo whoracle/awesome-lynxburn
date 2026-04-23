@@ -53,7 +53,7 @@ some_wibar:setup({
 Popup routing examples:
 
 ```lua
-lxbar:toggle_popup_by_role("media", "primary", {
+lxbar:toggle_popup_by_role("lxmedia", "primary", {
     keyboard_navigation = true,
 })
 
@@ -74,7 +74,7 @@ Current knobs:
 - `lxmodules.lxbar.popup_side`
   Global left/right side used when a popup chooses `"side"` placement.
 
-- `lxmodules.lxbar.modules.<lxname>.cycle`
+- `lxmodules.lxbar.modules.<lxmodule>.cycle`
   Whether a visible module participates in popup cycling.
 
 ## Theme Variables

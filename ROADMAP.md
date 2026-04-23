@@ -11,26 +11,26 @@ Use this order for the next fresh session unless new bugs force a
 reprioritization:
 
 1. `lxsecrets` UX polish
-2. `lxbar` spacing/composition polish
-3. `themes/lynxburn` ownership cleanup / asset pruning / theme-surface polish
-4. `lxdisplay` UX refinements only if daily-driving reveals real friction
-5. future systray / non-`lx*` widget hosting in `lxbar`
-6. `lxnotify` browser/web-app action hardening
+2. `lxdisplay` UX refinements only if daily-driving reveals real friction
+3. `themes/lynxburn` follow-up polish
+4. future systray / non-`lx*` widget hosting in `lxbar`
+5. `lxnotify` browser/web-app action hardening
+6. `lxrunner` history-weighted result ordering
 
 Rationale:
 
 - `lxsecrets` now works end-to-end and the next value is making its popup and
   state presentation feel as polished as the older modules
-- `lxbar` polish is visible and useful, but lower risk than larger new module
-  work
-- theme cleanup is now mostly ownership and surface cleanup after the structure
-  vs color-scheme split landed
 - `lxdisplay` already covers the core workflow and should now evolve from real
   usage feedback, not speculation
+- theme cleanup already landed the larger split/pruning work, so what remains
+  is follow-up polish rather than structural cleanup
 - systray/non-`lx*` hosting is still underspecified and likely to churn config
   shape
 - `lxnotify` hardening stays deliberately late until daily-driver evidence says
   it matters
+- `lxrunner` history weighting is useful, but lower urgency than the current
+  popup/theme/module finish work
 
 ## Repo-Wide Work
 
@@ -62,7 +62,6 @@ Rationale:
 
 ### `lxbar`
 
-- continue polishing top-level widget spacing and composition behavior
 - keep popup cycling strictly derived from final top-level widget order
 - support future optional systray-style non-`lx*` widget integration once the
   config shape is clear enough
@@ -74,7 +73,6 @@ Rationale:
   - primary popup for playback streams and transport
   - secondary popup for devices and routing
 - continue smoothing top-level bar show/hide behavior
-- document the popup keyboard-controls contract more clearly
 
 ### `lxnotify`
 
@@ -130,19 +128,22 @@ Rationale:
 ### `themes/lynxburn`
 
 - keep the structural-vs-color-scheme split stable and well-documented
+- add at least one second bundled color scheme once there is appetite to pick
+  real colors
 - continue normalizing explicit theme keys so modules rely less on generic
   Awesome fallbacks
 - align popup/action button border treatment across modules during the theme
   split pass; some current buttons still mix orange and gray border behavior
-- keep moving repo-specific behavior out of `themes/lynxburn/widgets.lua`
-  where that improves ownership boundaries
-- treat these as likely future move candidates out of `widgets.lua`:
-  - IMAP mail widget
-  - lain CPU / sysload / memory / filesystem widgets
-  - the custom power menu popup
 - keep these as theme-owned unless the repo shape changes materially:
   - wallpaper application
   - wibar assembly
   - tasklist/taglist/layout switcher composition
   - systray / clock / date placement
-- prune unused inherited assets once the remaining legacy widget usage is gone
+
+### Proposed `lxmenu`
+
+- consider a future `lxmenu` module as the replacement home for the current
+  theme-owned power menu popup and similar session/menu actions
+- keep this proposal late until there is a clearer decision on scope:
+  - just session/power actions
+  - or a broader launcher/menu surface
