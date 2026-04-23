@@ -81,25 +81,20 @@ local function wrap_card(child)
     })
 end
 
-local function wrap_selectable_card(child)
-    local card = wrap_card(child)
-
-    function card:_lx_set_selected(selected)
-        if child and child._lx_set_selected then
-            child:_lx_set_selected(selected)
-        end
-    end
-
-    function card:_lx_set_feedback_active(active)
-        if child and child._lx_set_feedback_active then
-            child:_lx_set_feedback_active(active)
-        end
-    end
-
-    return card
+local function selectable_card(instance, child, selected, index, onclick)
+    return popup_common.make_selectable_click_container(child, onclick, {
+        selected = selected,
+        inner_bg = instance:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
+        hover_bg = instance:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
+        outer_bg = instance:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
+        selected_bg = instance:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+        on_hover = function()
+            instance:_set_popup_selection(index)
+        end,
+    })
 end
 
-local function make_network_row(instance, network, selected, onclick)
+local function make_network_row(instance, network, selected, selection_index, onclick)
     local name = network.ssid
     if network.active then
         name = "● " .. name
@@ -154,13 +149,7 @@ local function make_network_row(instance, network, selected, onclick)
         layout = wibox.layout.align.horizontal,
     })
 
-    return wrap_selectable_card(popup_common.make_selectable_click_container(row_content, onclick, {
-        selected = selected,
-        inner_bg = instance:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
-        hover_bg = instance:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
-        outer_bg = instance:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
-        selected_bg = instance:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-    }))
+    return selectable_card(instance, row_content, selected, selection_index, onclick)
 end
 
 ---Attach popup rendering and selection-state methods to the lxnetwork instance.
@@ -243,13 +232,10 @@ function popup.extend(instance_methods)
             end
 
             local selected = self._popup_selected_index == (#self._popup_items + 1)
-            local row = make_network_row(self, network, selected, function()
+            local row = make_network_row(self, network, selected, #self._popup_items + 1, function()
                 self:_connect_network(network)
             end)
             local next_index = #self._popup_items + 1
-            row:connect_signal("mouse::enter", function()
-                self:_set_popup_selection(next_index)
-            end)
 
             self._popup_items[#self._popup_items + 1] = {
                 widget = row,
@@ -289,30 +275,18 @@ function popup.extend(instance_methods)
     end
 
     function instance_methods:_build_popup()
-        local scan_action = wrap_selectable_card(popup_common.make_selectable_click_row("Scan WiFi", function()
+        local scan_action = selectable_card(self, popup_common.make_text("Scan WiFi"), self._popup_selected_index == 1, 1, function()
             self:scan()
-        end, {
-            selected = self._popup_selected_index == 1,
-            inner_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
-            hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
-            outer_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
-            selected_bg = self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-            on_hover = function()
-                self:_set_popup_selection(1)
-            end,
-        }))
-        local toggle_wifi_action = wrap_selectable_card(popup_common.make_selectable_click_row(self.state.enabled and "Disable WiFi" or "Enable WiFi", function()
-            self:toggle_wifi_enabled()
-        end, {
-            selected = self._popup_selected_index == 2,
-            inner_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
-            hover_bg = self:_theme_value("lxnetwork_button_hover", beautiful.bg_focus or "#444444"),
-            outer_bg = self:_theme_value("lxnetwork_popup_bg", beautiful.bg_normal or "#222222"),
-            selected_bg = self:_theme_value("lxnetwork_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-            on_hover = function()
-                self:_set_popup_selection(2)
-            end,
-        }))
+        end)
+        local toggle_wifi_action = selectable_card(
+            self,
+            popup_common.make_text(self.state.enabled and "Disable WiFi" or "Enable WiFi"),
+            self._popup_selected_index == 2,
+            2,
+            function()
+                self:toggle_wifi_enabled()
+            end
+        )
         local current_header = wibox.layout.fixed.vertical()
         local current_value_container = wibox.layout.fixed.vertical()
         local known_list = wibox.layout.fixed.vertical()

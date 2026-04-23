@@ -45,22 +45,17 @@ local function wrap_card(child)
     })
 end
 
-local function wrap_selectable_card(child)
-    local card = wrap_card(child)
-
-    function card:_lx_set_selected(selected)
-        if child and child._lx_set_selected then
-            child:_lx_set_selected(selected)
-        end
-    end
-
-    function card:_lx_set_feedback_active(active)
-        if child and child._lx_set_feedback_active then
-            child:_lx_set_feedback_active(active)
-        end
-    end
-
-    return card
+local function selectable_card(instance, child, selected, index, onclick)
+    return popup_common.make_selectable_click_container(child, onclick, {
+        selected = selected,
+        inner_bg = instance:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
+        hover_bg = instance:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
+        outer_bg = instance:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
+        selected_bg = instance:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+        on_hover = function()
+            instance:_set_popup_selection(index)
+        end,
+    })
 end
 
 local function device_metadata(device)
@@ -87,7 +82,7 @@ local function device_metadata(device)
     return table.concat(parts, " • ")
 end
 
-local function make_device_row(instance, device, selected, onclick)
+local function make_device_row(instance, device, selected, selection_index, onclick)
     local meta_fg = instance:_theme_value("lxbluetooth_meta_fg", beautiful.fg_minimize or "#999999")
     local name = device.name or device.address
     local action = device.connected and "Disconnect" or "Connect"
@@ -126,13 +121,7 @@ local function make_device_row(instance, device, selected, onclick)
         layout = wibox.layout.align.horizontal,
     })
 
-    return wrap_selectable_card(popup_common.make_selectable_click_container(row, onclick, {
-        selected = selected,
-        inner_bg = instance:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
-        hover_bg = instance:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
-        outer_bg = instance:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
-        selected_bg = instance:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-    }))
+    return selectable_card(instance, row, selected, selection_index, onclick)
 end
 
 ---Attach popup rendering and selection-state methods to the lxbluetooth instance.
@@ -200,15 +189,12 @@ function popup.extend(instance_methods)
         for _, device in ipairs(self.state.devices) do
             local next_index = #self._popup_items + 1
             local selected = self._popup_selected_index == next_index
-            local row = make_device_row(self, device, selected, function()
+            local row = make_device_row(self, device, selected, next_index, function()
                 if device.connected then
                     self:_device_action("disconnect", device.address)
                 else
                     self:_device_action("connect", device.address)
                 end
-            end)
-            row:connect_signal("mouse::enter", function()
-                self:_set_popup_selection(next_index)
             end)
 
             refs.list:add(row)
