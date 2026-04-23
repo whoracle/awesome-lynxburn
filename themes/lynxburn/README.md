@@ -90,7 +90,6 @@ Core/theme-shell values:
 - `wibar_height`
 - `wibar_position`
 - `space`
-- `systray_icon_spacing`
 - `widget_padding_top`
 - `widget_padding_bottom`
 - `widget_padding_left`
@@ -109,8 +108,6 @@ Core/theme-shell values:
 
 Awesome core widget values:
 
-- `tasklist_plain_task_name`
-- `tasklist_disable_icon`
 - `tasklist_bg_normal`
 - `tasklist_bg_focus`
 - `tasklist_fg_normal`
