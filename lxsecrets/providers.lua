@@ -446,7 +446,7 @@ end
 
 local function vault_env(secret, token, browser_override)
     local selectors = secret.selectors or {}
-    local browser = browser_override or secret.browser_command or config_data.commands().browser
+    local browser = browser_override or secret.browser_command
     local env = {
         "VAULT_ADDR=" .. tostring(selectors.vault_url or ""),
         "VAULT_SKIP_VERIFY=" .. (selectors.skip_verify and "true" or "false"),
