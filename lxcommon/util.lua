@@ -15,7 +15,7 @@ end
 ---Escape one shell argument using single-quote wrapping.
 function M.shell_escape(s)
     s = tostring(s or "")
-    return "'" .. s:gsub("'", [["'"']]) .. "'"
+    return "'" .. s:gsub("'", "'\\''") .. "'"
 end
 
 ---Return true when a command exists on PATH.

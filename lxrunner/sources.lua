@@ -77,7 +77,7 @@ end
 
 local function shell_escape(s)
     s = tostring(s or "")
-    return "'" .. s:gsub("'", [["'"']]) .. "'"
+    return "'" .. s:gsub("'", "'\\''") .. "'"
 end
 
 local function upsert_alias(target, alias)
