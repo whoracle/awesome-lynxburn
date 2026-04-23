@@ -250,18 +250,12 @@ local function collect_secrets_dependencies(grouped)
 
     if needs_gitlab then
         require_binary(grouped, "lxsecrets", "curl")
-        require_binary(grouped, "lxsecrets", "jq")
         require_binary(grouped, "lxsecrets", "secret-tool")
-        require_binary(grouped, "lxsecrets", "date")
-        require_binary(grouped, "lxsecrets", "mktemp")
     end
 
     if needs_vault then
         require_binary(grouped, "lxsecrets", "vault")
-        require_binary(grouped, "lxsecrets", "jq")
         require_binary(grouped, "lxsecrets", "secret-tool")
-        require_binary(grouped, "lxsecrets", "notify-send")
-        require_binary(grouped, "lxsecrets", "mktemp")
     end
 
     if has_vpn then

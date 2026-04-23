@@ -10,9 +10,9 @@ module with a compact top-level widget plus a grouped popup.
 External:
 
 - common: `secret-tool`
-- GitLab secrets: `curl`, `jq`, `date`, `mktemp`
-- Vault secrets: `vault`, `jq`, `notify-send`
-- VPN-gated secrets: `nmcli`
+- GitLab secrets: `curl`
+- Vault secrets: `vault`
+- VPN-gated secrets: `nmcli`, `timeout`
 
 Internal:
 
@@ -170,17 +170,17 @@ Current provider support:
 
 - `init.lua`: module constructor and wiring
 - `state.lua`: config normalization, timers, refresh queue, and runtime state
-- `providers.lua`: provider-specific shell command construction
+- `providers.lua`: provider-specific native refresh logic, keyring access, and
+  process orchestration
 - `popup.lua`: popup rendering and selection behavior
 - `theme.lua`: compact widget rendering and theme-backed state colors
-- `*.sh`: existing shell refresh backends currently reused by the module
 
 ## Notes
 
 - per-secret status is currently in-memory only and does not survive Awesome
   reloads
-- provider execution still uses the bundled shell backends rather than a full
-  native Lua reimplementation
+- provider execution is handled directly in Lua; the legacy shell scripts are
+  no longer part of the runtime path
 - `cycle_exclude = true` is the default first-pass behavior
 - automatic/background Vault refresh runs fail into attention state when login
   is required; they do not open an interactive login flow on their own

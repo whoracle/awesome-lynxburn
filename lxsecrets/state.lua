@@ -1,9 +1,7 @@
-local awful = require("awful")
 local gears = require("gears")
 local naughty = require("naughty")
 
 local providers = require("lxsecrets.providers")
-local util = require("lxcommon.util")
 
 local M = {}
 
@@ -67,34 +65,6 @@ local function format_timestamp(timestamp)
     end
 
     return os.date("%Y-%m-%d %H:%M", timestamp)
-end
-
-local function last_nonempty_line(output)
-    local last_line = nil
-
-    for _, line in ipairs(util.split_lines(output)) do
-        local trimmed = util.trim(line)
-        if trimmed and trimmed ~= "" then
-            last_line = trimmed
-        end
-    end
-
-    return last_line
-end
-
-local function provider_requires_auth(secret, exit_code, message)
-    if not secret or secret.provider ~= "hashicorp_vault" then
-        return false
-    end
-
-    if exit_code == 10 then
-        return true
-    end
-
-    local lowered = tostring(message or ""):lower()
-    return lowered:find("login required", 1, true) ~= nil
-        or lowered:find("auth is required", 1, true) ~= nil
-        or lowered:find("oidc", 1, true) ~= nil and lowered:find("login", 1, true) ~= nil
 end
 
 local function threshold_text(seconds)
@@ -256,60 +226,34 @@ function M.extend(instance_methods)
 
     function instance_methods:_refresh_secret_async(secret, opts, callback)
         opts = opts or {}
-        local command, build_error = providers.build_command(secret, opts)
-        if not command then
-            secret.running = false
-            secret.status = "error"
-            secret.needs_attention = true
-            secret.last_checked_at = os.time()
-            secret.last_message = build_error
-            self:_update_ui_state()
-            self:_notify_refresh_failure(secret, build_error)
-            callback(false)
-            return
-        end
-
         secret.running = true
         secret.status = "running"
         secret.last_message = "refreshing"
         self:_update_ui_state()
 
-        awful.spawn.easy_async_with_shell(command, function(stdout, stderr, _, exit_code)
-            local output = util.trim((stderr ~= "" and stderr) or stdout or "")
-            local message = last_nonempty_line(output) or (exit_code == 0 and "refresh succeeded" or "refresh failed")
-
+        providers.refresh(secret, opts, function(kind, message)
             secret.running = false
             secret.last_checked_at = os.time()
-            secret.last_message = message
+            secret.last_message = message or "refresh finished"
 
-            local auth_required = provider_requires_auth(secret, exit_code, message)
-
-            if exit_code == 0 then
+            if kind == "ok" then
                 secret.status = "ok"
                 secret.auth_required = false
                 secret.needs_attention = false
-                if opts.interactive_login then
-                    message = "login succeeded"
-                end
-            elseif auth_required then
+            elseif kind == "auth_required" then
                 secret.status = "attention"
                 secret.auth_required = true
                 secret.needs_attention = true
-                self:_notify_auth_required(secret, message)
-            elseif exit_code == 10 or exit_code == 11 then
-                secret.status = "attention"
-                secret.auth_required = false
-                secret.needs_attention = true
-                self:_notify_refresh_failure(secret, message)
+                self:_notify_auth_required(secret, secret.last_message)
             else
                 secret.status = "error"
                 secret.auth_required = false
                 secret.needs_attention = true
-                self:_notify_refresh_failure(secret, message)
+                self:_notify_refresh_failure(secret, secret.last_message)
             end
 
             self:_update_ui_state()
-            callback(exit_code == 0)
+            callback(kind == "ok")
         end)
     end
 

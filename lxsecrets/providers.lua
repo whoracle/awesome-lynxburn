@@ -1,5 +1,6 @@
-local gears = require("gears")
+local awful = require("awful")
 local config_data = require("config.config_data")
+local json = require("lain.util").dkjson
 
 local util = require("lxcommon.util")
 
@@ -26,10 +27,6 @@ local VAULT_SPECIAL_KEYS = {
     threshold = true,
 }
 
-local function script_path(name)
-    return gears.filesystem.get_configuration_dir() .. "lxsecrets/" .. name
-end
-
 local function sorted_keys(source)
     local keys = {}
 
@@ -41,102 +38,586 @@ local function sorted_keys(source)
     return keys
 end
 
-local function selector_string(source, special_keys)
-    local parts = {}
+local function selector_pairs(source, special_keys)
+    local pairs_out = {}
 
     for _, key in ipairs(sorted_keys(source)) do
         local value = source[key]
 
         if not special_keys[key] and value ~= nil and value ~= false then
-            parts[#parts + 1] = tostring(key)
-            parts[#parts + 1] = tostring(value)
+            pairs_out[#pairs_out + 1] = tostring(key)
+            pairs_out[#pairs_out + 1] = tostring(value)
         end
     end
 
-    return table.concat(parts, " ")
+    return pairs_out
 end
 
-local function shell_assignment(key, value)
-    return tostring(key) .. "=" .. util.shell_escape(value)
+local function last_nonempty_line(output)
+    local last_line = nil
+
+    for _, line in ipairs(util.split_lines(output)) do
+        local trimmed = util.trim(line)
+        if trimmed and trimmed ~= "" then
+            last_line = trimmed
+        end
+    end
+
+    return last_line
 end
 
-local function vpn_hold_path(vpn_name)
+local function append_all(target, values)
+    for _, value in ipairs(values or {}) do
+        target[#target + 1] = value
+    end
+end
+
+local function run_process(args, callback)
+    awful.spawn.easy_async(args, function(stdout, stderr, _, exit_code)
+        callback(stdout or "", stderr or "", exit_code or 1)
+    end)
+end
+
+local function run_env_process(env_assignments, args, timeout_seconds, callback)
+    local command = {}
+
+    if timeout_seconds and tonumber(timeout_seconds) and tonumber(timeout_seconds) > 0 then
+        command[#command + 1] = "timeout"
+        command[#command + 1] = "--foreground"
+        command[#command + 1] = tostring(math.floor(tonumber(timeout_seconds)))
+    end
+
+    if env_assignments and #env_assignments > 0 then
+        command[#command + 1] = "env"
+        append_all(command, env_assignments)
+    end
+
+    append_all(command, args)
+    run_process(command, callback)
+end
+
+local function decode_json(raw)
+    if not raw or raw == "" then
+        return nil, "empty JSON output"
+    end
+
+    local decoded, _, err = json.decode(raw, 1, nil)
+    if err then
+        return nil, err
+    end
+
+    return decoded
+end
+
+local function parse_http_output(raw)
+    local body, code = tostring(raw or ""):match("^(.*)\n(%d%d%d)\n?$")
+    if not code then
+        return nil, nil
+    end
+
+    return body, tonumber(code)
+end
+
+local function parse_ymd_epoch(value)
+    local year, month, day = tostring(value or ""):match("^(%d%d%d%d)%-(%d%d)%-(%d%d)$")
+    if not year then
+        return nil
+    end
+
+    return os.time({
+        year = tonumber(year),
+        month = tonumber(month),
+        day = tonumber(day),
+        hour = 0,
+        min = 0,
+        sec = 0,
+    })
+end
+
+local function hold_path(vpn_name)
     local safe = tostring(vpn_name or ""):gsub("[^%w_.-]", "_")
     return "/tmp/lxsecrets-vpn-" .. safe .. ".hold"
 end
 
-local function wrap_vpn(command, vpn_name, timeout_seconds)
-    local vpn = util.shell_escape(vpn_name)
-    local hold = util.shell_escape(vpn_hold_path(vpn_name))
-    local seconds = tonumber(timeout_seconds) or DEFAULT_VPN_TIMEOUT_SECONDS
-    local wrapped_command = "timeout --foreground "
-        .. util.shell_escape(tostring(seconds))
-        .. " sh -lc "
-        .. util.shell_escape(command)
-
-    return table.concat({
-        "(",
-        "managed=0;",
-        "if nmcli -t -f NAME connection show --active | grep -Fx -- " .. vpn .. " >/dev/null; then",
-        "if [ -f " .. hold .. " ]; then managed=1; fi;",
-        wrapped_command .. ";",
-        "rc=$?;",
-        "else",
-        "nmcli connection up " .. vpn .. " >/dev/null || { echo 'failed to activate vpn " .. tostring(vpn_name) .. "' >&2; exit 1; };",
-        "managed=1;",
-        wrapped_command .. ";",
-        "rc=$?;",
-        "fi;",
-        "if [ \"$managed\" -eq 1 ] && [ \"$rc\" -eq 10 ]; then : > " .. hold .. "; fi;",
-        "if [ \"$managed\" -eq 1 ] && [ \"$rc\" -ne 10 ]; then nmcli connection down " .. vpn .. " >/dev/null || true; rm -f " .. hold .. "; fi;",
-        "if [ \"$rc\" -eq 124 ]; then echo 'vpn-gated refresh timed out' >&2; fi;",
-        "exit $rc;",
-        ")",
-    }, " ")
-end
-
-local function gitlab_command(secret)
-    local selectors = secret.selectors or {}
-    local token_selector = selector_string(secret.token_selector or selectors, GITLAB_SPECIAL_KEYS)
-    local admin_selector = selector_string(secret.admin_selector or selectors.admin_selector or selectors, GITLAB_SPECIAL_KEYS)
-    local store_label = selectors.label or secret.name or "GitLab Personal Access Token"
-
-    local parts = {
-        util.shell_escape(script_path("gitlab_refresh.sh")),
-        "--gitlab-url", util.shell_escape(selectors.gitlab_url or ""),
-        "--admin-selector", util.shell_escape(admin_selector),
-        "--token-selector", util.shell_escape(token_selector),
-        "--threshold-days", util.shell_escape(secret.gitlab_threshold_days or 30),
-        "--new-lifetime-days", util.shell_escape(secret.gitlab_lifetime_days or 365),
-        "--store-label", util.shell_escape(store_label),
-    }
-
-    return table.concat(parts, " ")
-end
-
-local function vault_command(secret, opts)
-    local selectors = secret.selectors or {}
-    local login_mode = (opts and opts.interactive_login) and "direct" or "silent"
-    local configured_browser = ((opts and opts.browser_command) or secret.browser_command)
-        or config_data.commands().browser
-    local env = {
-        shell_assignment("VAULT_ADDR", selectors.vault_url or ""),
-        shell_assignment("VAULT_AUTH_PATH", selectors.auth_path or "oidc"),
-        shell_assignment("VAULT_SKIP_VERIFY", selectors.skip_verify and "true" or "false"),
-        shell_assignment("KEYRING_LABEL", selectors.label or ("Vault token for " .. tostring(selectors.vault_url or ""))),
-        shell_assignment("KEYRING_SERVICE", selectors.service or "vault"),
-        shell_assignment("KEYRING_ACCOUNT", selectors.account or ""),
-        shell_assignment("VAULT_ENV", selectors.env or secret.name or "unset"),
-        shell_assignment("RENEW_BELOW_SECONDS", secret.threshold_seconds or 604800),
-        shell_assignment("NOTIFY_APP_NAME", "lxsecrets"),
-        shell_assignment("LXSECRETS_LOGIN_MODE", login_mode),
-    }
-
-    if configured_browser and configured_browser ~= "" then
-        env[#env + 1] = shell_assignment("BROWSER", configured_browser)
+local function hold_exists(vpn_name)
+    local file = io.open(hold_path(vpn_name), "r")
+    if file then
+        file:close()
+        return true
     end
 
-    return table.concat(env, " ") .. " " .. util.shell_escape(script_path("vault_refresh.sh"))
+    return false
+end
+
+local function write_hold(vpn_name)
+    local file = io.open(hold_path(vpn_name), "w")
+    if file then
+        file:write("1\n")
+        file:close()
+    end
+end
+
+local function clear_hold(vpn_name)
+    os.remove(hold_path(vpn_name))
+end
+
+local function vpn_is_active(vpn_name, callback)
+    run_process({ "nmcli", "-t", "-f", "NAME", "connection", "show", "--active" }, function(stdout)
+        for _, line in ipairs(util.split_lines(stdout)) do
+            if util.trim(line) == vpn_name then
+                callback(true)
+                return
+            end
+        end
+
+        callback(false)
+    end)
+end
+
+local function ensure_vpn(secret, callback)
+    if not secret.vpn or secret.vpn == "" then
+        callback(true)
+        return
+    end
+
+    vpn_is_active(secret.vpn, function(active)
+        if active then
+            secret._vpn_managed = hold_exists(secret.vpn)
+            callback(true)
+            return
+        end
+
+        run_process({ "nmcli", "connection", "up", secret.vpn }, function(stdout, stderr, exit_code)
+            if exit_code == 0 then
+                secret._vpn_managed = true
+                callback(true)
+                return
+            end
+
+            callback(false, last_nonempty_line(stderr) or last_nonempty_line(stdout)
+                or ("failed to activate vpn " .. tostring(secret.vpn)))
+        end)
+    end)
+end
+
+local function release_vpn(secret, keep_open, callback)
+    callback = callback or function() end
+
+    if not secret.vpn or secret.vpn == "" then
+        callback()
+        return
+    end
+
+    if keep_open then
+        if secret._vpn_managed then
+            write_hold(secret.vpn)
+        end
+        callback()
+        return
+    end
+
+    clear_hold(secret.vpn)
+
+    if not secret._vpn_managed then
+        callback()
+        return
+    end
+
+    run_process({ "nmcli", "connection", "down", secret.vpn }, function()
+        secret._vpn_managed = false
+        callback()
+    end)
+end
+
+local function secret_lookup(selector_pairs_list, callback)
+    local args = { "secret-tool", "lookup" }
+    append_all(args, selector_pairs_list)
+
+    run_process(args, function(stdout, stderr, exit_code)
+        if exit_code == 0 then
+            callback(util.trim(stdout or ""))
+            return
+        end
+
+        callback(nil, last_nonempty_line(stderr) or last_nonempty_line(stdout))
+    end)
+end
+
+local function secret_clear(selector_pairs_list, callback)
+    local args = { "secret-tool", "clear" }
+    append_all(args, selector_pairs_list)
+
+    run_process(args, function(_, _, _)
+        callback(true)
+    end)
+end
+
+local function secret_store(label, selector_pairs_list, extra_pairs, secret_value, callback)
+    local args = {
+        "env",
+        "LXSECRET_VALUE=" .. tostring(secret_value or ""),
+        "sh",
+        "-lc",
+        'label=$1; shift; printf %s "$LXSECRET_VALUE" | secret-tool store --label="$label" "$@"',
+        "sh",
+        tostring(label or "Secret"),
+    }
+
+    append_all(args, selector_pairs_list)
+    append_all(args, extra_pairs)
+
+    run_process(args, function(stdout, stderr, exit_code)
+        if exit_code == 0 then
+            callback(true)
+            return
+        end
+
+        callback(false, last_nonempty_line(stderr) or last_nonempty_line(stdout) or "failed to store secret")
+    end)
+end
+
+local function curl_json(method, token, url, body, callback)
+    local args = {
+        "curl",
+        "-sS",
+        "-X", method,
+        "-H", "PRIVATE-TOKEN: " .. tostring(token),
+        "-H", "Accept: application/json",
+    }
+
+    if body then
+        args[#args + 1] = "-H"
+        args[#args + 1] = "Content-Type: application/json"
+        args[#args + 1] = "--data-binary"
+        args[#args + 1] = body
+    end
+
+    args[#args + 1] = "-w"
+    args[#args + 1] = "\n%{http_code}"
+    args[#args + 1] = url
+
+    run_process(args, function(stdout, stderr, exit_code)
+        if exit_code ~= 0 then
+            callback(nil, nil, last_nonempty_line(stderr) or "curl request failed")
+            return
+        end
+
+        local response_body, code = parse_http_output(stdout)
+        if not code then
+            callback(nil, nil, "failed to parse HTTP response")
+            return
+        end
+
+        callback(code, response_body or "", nil)
+    end)
+end
+
+local function keyring_label(secret)
+    local selectors = secret.selectors or {}
+    return selectors.label or ("Vault token for " .. tostring(selectors.vault_url or ""))
+end
+
+local function keyring_service(secret)
+    local selectors = secret.selectors or {}
+    return selectors.service or "vault"
+end
+
+local function keyring_account(secret)
+    local selectors = secret.selectors or {}
+    return selectors.account or "me@example.org"
+end
+
+local function vault_env(secret, token, browser_override)
+    local selectors = secret.selectors or {}
+    local browser = browser_override or secret.browser_command or config_data.commands().browser
+    local env = {
+        "VAULT_ADDR=" .. tostring(selectors.vault_url or ""),
+        "VAULT_SKIP_VERIFY=" .. (selectors.skip_verify and "true" or "false"),
+    }
+
+    if token and token ~= "" then
+        env[#env + 1] = "VAULT_TOKEN=" .. token
+    end
+
+    if browser and browser ~= "" then
+        env[#env + 1] = "BROWSER=" .. browser
+    end
+
+    return env
+end
+
+local function vault_run(secret, token, args, timeout_seconds, browser_override, callback)
+    run_env_process(vault_env(secret, token, browser_override), args, timeout_seconds, callback)
+end
+
+local function gitlab_refresh(secret, callback)
+    local selectors = secret.selectors or {}
+    local admin_selector = selector_pairs(secret.admin_selector or selectors.admin_selector or selectors, GITLAB_SPECIAL_KEYS)
+    local token_selector = selector_pairs(secret.token_selector or selectors, GITLAB_SPECIAL_KEYS)
+    local store_label = selectors.label or secret.name or "GitLab Personal Access Token"
+    local api_base = tostring(selectors.gitlab_url or ""):gsub("/+$", "") .. "/api/v4"
+
+    secret_lookup(admin_selector, function(admin_pat)
+        if not admin_pat or admin_pat == "" then
+            callback("error", "admin PAT not found in keyring")
+            return
+        end
+
+        secret_lookup(token_selector, function(managed_pat)
+            if not managed_pat or managed_pat == "" then
+                callback("error", "managed PAT not found in keyring")
+                return
+            end
+
+            curl_json("GET", managed_pat, api_base .. "/personal_access_tokens/self", nil, function(code, body, err)
+                if err then
+                    callback("error", err)
+                    return
+                end
+
+                if code == 401 then
+                    callback("error", "managed PAT is invalid, expired, or revoked")
+                    return
+                end
+
+                if code ~= 200 then
+                    callback("error", "unexpected HTTP " .. tostring(code) .. " from self info endpoint")
+                    return
+                end
+
+                local info, decode_err = decode_json(body)
+                if not info then
+                    callback("error", "failed to parse GitLab PAT metadata: " .. tostring(decode_err))
+                    return
+                end
+
+                local token_id = info.id
+                local user_id = info.user_id
+                local expires_at = info.expires_at
+                local scopes = info.scopes or {}
+                local name = info.name or secret.name or "Managed token"
+                local description = info.description
+                local expiry_epoch = parse_ymd_epoch(expires_at)
+
+                if not token_id or not user_id or not expires_at or not expiry_epoch then
+                    callback("error", "managed PAT metadata is incomplete")
+                    return
+                end
+
+                local seconds_left = expiry_epoch - os.time()
+                local days_left = math.floor(seconds_left / 86400)
+
+                if seconds_left <= 0 then
+                    callback("error", "managed PAT is already expired")
+                    return
+                end
+
+                if days_left > (secret.gitlab_threshold_days or 30) then
+                    callback("ok", string.format("token healthy; ~%dd left", days_left))
+                    return
+                end
+
+                local payload = json.encode({
+                    name = name,
+                    description = description ~= "" and description or nil,
+                    expires_at = os.date("!%Y-%m-%d", os.time() + ((secret.gitlab_lifetime_days or 365) * 86400)),
+                    scopes = scopes,
+                })
+
+                curl_json("POST", admin_pat, api_base .. "/users/" .. tostring(user_id) .. "/personal_access_tokens", payload, function(create_code, create_body, create_err)
+                    if create_err then
+                        callback("error", create_err)
+                        return
+                    end
+
+                    if create_code ~= 200 and create_code ~= 201 then
+                        callback("error", "failed to create successor PAT: HTTP " .. tostring(create_code))
+                        return
+                    end
+
+                    local created, create_decode_err = decode_json(create_body)
+                    if not created then
+                        callback("error", "failed to parse successor PAT response: " .. tostring(create_decode_err))
+                        return
+                    end
+
+                    local new_pat = created.token
+                    local new_id = created.id
+                    local new_expires_at = created.expires_at
+
+                    if not new_pat or new_pat == "" or not new_expires_at or new_expires_at == "" then
+                        callback("error", "GitLab did not return the new PAT value")
+                        return
+                    end
+
+                    curl_json("GET", new_pat, api_base .. "/personal_access_tokens/self", nil, function(verify_code, _, verify_err)
+                        if verify_err then
+                            callback("error", verify_err)
+                            return
+                        end
+
+                        if verify_code ~= 200 then
+                            callback("error", "successor PAT verification failed: HTTP " .. tostring(verify_code))
+                            return
+                        end
+
+                        secret_clear(token_selector, function()
+                            secret_store(store_label, token_selector, { "expiry_date", tostring(new_expires_at) }, new_pat, function(stored, store_err)
+                                if not stored then
+                                    callback("error", store_err)
+                                    return
+                                end
+
+                                curl_json("DELETE", admin_pat, api_base .. "/personal_access_tokens/" .. tostring(token_id), nil, function(delete_code, _, delete_err)
+                                    if delete_err then
+                                        callback("error", "new PAT stored, but failed to revoke old PAT id=" .. tostring(token_id))
+                                        return
+                                    end
+
+                                    if delete_code ~= 200 and delete_code ~= 204 then
+                                        callback("error", "new PAT stored, but failed to revoke old PAT id=" .. tostring(token_id) .. " (HTTP " .. tostring(delete_code) .. ")")
+                                        return
+                                    end
+
+                                    callback("ok", "replaced PAT id=" .. tostring(token_id) .. " with new id=" .. tostring(new_id) .. " expiring " .. tostring(new_expires_at))
+                                end)
+                            end)
+                        end)
+                    end)
+                end)
+            end)
+        end)
+    end)
+end
+
+local function vault_login(secret, opts, callback)
+    local selectors = secret.selectors or {}
+    local args = {
+        "vault",
+        "login",
+        "-method=oidc",
+        "-path=" .. tostring(selectors.auth_path or "oidc"),
+        "-token-only",
+    }
+
+    vault_run(
+        secret,
+        nil,
+        args,
+        (opts and opts.vpn_timeout_seconds) or secret.interactive_vpn_timeout_seconds or DEFAULT_VPN_TIMEOUT_SECONDS,
+        (opts and opts.browser_command) or secret.browser_command,
+        function(stdout, stderr, exit_code)
+            if exit_code ~= 0 then
+                callback("error", last_nonempty_line(stderr) or "Vault login failed")
+                return
+            end
+
+            local token = util.trim(stdout or "")
+            if not token or token == "" then
+                callback("error", "OIDC login returned empty token")
+                return
+            end
+
+            local selector_pairs_list = {
+                "service", keyring_service(secret),
+                "account", keyring_account(secret),
+            }
+
+            secret_store(keyring_label(secret), selector_pairs_list, {}, token, function(stored, store_err)
+                if not stored then
+                    callback("error", store_err)
+                    return
+                end
+
+                callback("ok", "login succeeded")
+            end)
+        end
+    )
+end
+
+local function vault_refresh(secret, opts, callback)
+    local selector_pairs_list = {
+        "service", keyring_service(secret),
+        "account", keyring_account(secret),
+    }
+
+    secret_lookup(selector_pairs_list, function(token)
+        if not token or token == "" then
+            if opts and opts.interactive_login then
+                vault_login(secret, opts, callback)
+            else
+                callback("auth_required", "vault login required for " .. tostring((secret.selectors or {}).vault_url or "vault"))
+            end
+            return
+        end
+
+        vault_run(secret, token, { "vault", "token", "lookup", "-format=json" }, secret.vpn_timeout_seconds, nil, function(stdout, _, exit_code)
+            if exit_code ~= 0 then
+                secret_clear(selector_pairs_list, function()
+                    if opts and opts.interactive_login then
+                        vault_login(secret, opts, callback)
+                    else
+                        callback("auth_required", "vault login required for " .. tostring((secret.selectors or {}).vault_url or "vault"))
+                    end
+                end)
+                return
+            end
+
+            local lookup, err = decode_json(stdout)
+            if not lookup then
+                callback("error", "failed to parse Vault token metadata: " .. tostring(err))
+                return
+            end
+
+            local data = lookup.data or {}
+            local ttl = tonumber(data.ttl) or 0
+            local renewable = data.renewable == true
+
+            if ttl > (secret.threshold_seconds or 604800) then
+                callback("ok", "token healthy; ttl=" .. tostring(ttl) .. "s")
+                return
+            end
+
+            if renewable then
+                vault_run(secret, token, { "vault", "token", "renew", "-format=json" }, secret.vpn_timeout_seconds, nil, function(renew_stdout, renew_stderr, renew_exit_code)
+                    if renew_exit_code == 0 then
+                        local renewed, renew_err = decode_json(renew_stdout)
+                        if renewed then
+                            local new_ttl = tonumber(((renewed.auth or {}).lease_duration) or renewed.lease_duration) or 0
+                            callback("ok", "renewal succeeded; new ttl=" .. tostring(new_ttl) .. "s")
+                            return
+                        end
+
+                        callback("error", "failed to parse Vault renewal response: " .. tostring(renew_err))
+                        return
+                    end
+
+                    if opts and opts.interactive_login then
+                        vault_login(secret, opts, callback)
+                    else
+                        callback("auth_required", last_nonempty_line(renew_stderr) or "vault login required for " .. tostring((secret.selectors or {}).vault_url or "vault"))
+                    end
+                end)
+                return
+            end
+
+            if opts and opts.interactive_login then
+                vault_login(secret, opts, callback)
+            else
+                callback("auth_required", "vault login required for " .. tostring((secret.selectors or {}).vault_url or "vault"))
+            end
+        end)
+    end)
+end
+
+local function run_without_vpn(secret, opts, callback)
+    if secret.provider == "gitlab" then
+        gitlab_refresh(secret, callback)
+    elseif secret.provider == "hashicorp_vault" then
+        vault_refresh(secret, opts, callback)
+    else
+        callback("error", "unsupported provider: " .. tostring(secret.provider))
+    end
 end
 
 function M.provider_group(provider)
@@ -163,23 +644,21 @@ function M.provider_label(provider)
     return tostring(provider or "unknown")
 end
 
-function M.build_command(secret, opts)
-    local provider = secret.provider
-    local command
+function M.refresh(secret, opts, callback)
+    opts = opts or {}
 
-    if provider == "gitlab" then
-        command = gitlab_command(secret)
-    elseif provider == "hashicorp_vault" then
-        command = vault_command(secret, opts)
-    else
-        return nil, "unsupported provider: " .. tostring(provider)
-    end
+    ensure_vpn(secret, function(ok, vpn_message)
+        if not ok then
+            callback("error", vpn_message or ("failed to activate vpn " .. tostring(secret.vpn)))
+            return
+        end
 
-    if secret.vpn and secret.vpn ~= "" then
-        command = wrap_vpn(command, secret.vpn, (opts and opts.vpn_timeout_seconds) or secret.vpn_timeout_seconds)
-    end
-
-    return command
+        run_without_vpn(secret, opts, function(kind, message)
+            release_vpn(secret, kind == "auth_required", function()
+                callback(kind, message)
+            end)
+        end)
+    end)
 end
 
 return M
