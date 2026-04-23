@@ -1,6 +1,6 @@
 local awful = require("awful")
 local config_data = require("config.config_data")
-local json = require("lain.util").dkjson
+local json = require("lxcommon.dkjson")
 
 local util = require("lxcommon.util")
 
