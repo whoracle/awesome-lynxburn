@@ -169,6 +169,7 @@ Layout label values:
 `lxmedia` values:
 
 - `lxmedia_bg_hover`
+- `lxmedia_popup_bg`
 - `lxmedia_button_bg`
 - `lxmedia_button_hover`
 - `lxmedia_hover_close_poll_interval`
@@ -190,6 +191,8 @@ Layout label values:
 - `lxmedia_bar_fg`
 - `lxmedia_mic_bar_bg`
 - `lxmedia_mic_bar_fg`
+- `lxmedia_osd_bar_bg`
+- `lxmedia_osd_bar_fg`
 - `lxmedia_widget_fg`
 - `lxmedia_widget_muted_fg`
 - `lxmedia_widget_mic_fg`
@@ -240,6 +243,7 @@ Layout label values:
 - `lxdisplay_popup_width`
 - `lxdisplay_popup_placement`
 - `lxdisplay_popup_bg`
+- `lxdisplay_button_bg`
 - `lxdisplay_button_hover`
 - `lxdisplay_selected_bg`
 - `lxdisplay_meta_fg`
@@ -258,8 +262,14 @@ Layout label values:
 - `lxbluetooth_icon`
 - `lxbluetooth_popup_placement`
 - `lxbluetooth_icon_width`
+- `lxbluetooth_widget_fg`
+- `lxbluetooth_widget_disabled_fg`
 - `lxbluetooth_widget_hover_bg`
 - `lxbluetooth_widget_press_bg`
+- `lxbluetooth_popup_bg`
+- `lxbluetooth_button_hover`
+- `lxbluetooth_selected_bg`
+- `lxbluetooth_meta_fg`
 - `lxbluetooth_popup_width`
 
 `lxnetwork` values:
@@ -268,9 +278,17 @@ Layout label values:
 - `lxnetwork_icon_disabled`
 - `lxnetwork_popup_placement`
 - `lxnetwork_icon_width`
+- `lxnetwork_widget_fg`
+- `lxnetwork_widget_disabled_fg`
 - `lxnetwork_widget_hover_bg`
 - `lxnetwork_widget_press_bg`
+- `lxnetwork_popup_bg`
+- `lxnetwork_button_hover`
+- `lxnetwork_selected_bg`
+- `lxnetwork_meta_fg`
 - `lxnetwork_widget_vpn_fg`
+- `lxnetwork_signal_bar_bg`
+- `lxnetwork_signal_bar_fg`
 - `lxnetwork_popup_width`
 
 `lxpower` values:
@@ -281,8 +299,13 @@ Layout label values:
 - `lxpower_popup_width`
 - `lxpower_icon_pinned`
 - `lxpower_icon_width`
+- `lxpower_widget_fg`
 - `lxpower_widget_hover_bg`
 - `lxpower_widget_press_bg`
+- `lxpower_popup_bg`
+- `lxpower_button_hover`
+- `lxpower_selected_bg`
+- `lxpower_meta_fg`
 - `lxpower_profile_fg_powersave`
 - `lxpower_profile_fg_balanced`
 - `lxpower_profile_fg_performance`
@@ -347,7 +370,14 @@ Layout label values:
 
 - user-facing theme overrides belong in top-level `config.lua`, not in
   per-module config
+- `widgets.lua` still intentionally owns:
+  - wallpaper application
+  - wibar assembly
+  - tasklist/taglist/layout switcher composition
+  - systray / clock / date placement
 - `widgets.lua` still contains older non-`lx*` widget assembly that will likely
-  be reduced later as more functionality moves into modules
+  be reduced later as more functionality moves into modules; the main likely
+  future move candidates are the IMAP mail widget, the lain metric widgets, and
+  the custom power menu popup
 - `color_scheme` changes only the scheme layer; spacing/layout/widget placement
   remains owned by the `lynxburn` theme shell

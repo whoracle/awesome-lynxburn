@@ -12,7 +12,7 @@ reprioritization:
 
 1. `lxsecrets` UX polish
 2. `lxbar` spacing/composition polish
-3. `themes/lynxburn` split / asset pruning / further ownership cleanup
+3. `themes/lynxburn` ownership cleanup / asset pruning / theme-surface polish
 4. `lxdisplay` UX refinements only if daily-driving reveals real friction
 5. future systray / non-`lx*` widget hosting in `lxbar`
 6. `lxnotify` browser/web-app action hardening
@@ -23,8 +23,8 @@ Rationale:
   state presentation feel as polished as the older modules
 - `lxbar` polish is visible and useful, but lower risk than larger new module
   work
-- theme cleanup is structural and best done after the most visible behavior is
-  stable
+- theme cleanup is now mostly ownership and surface cleanup after the structure
+  vs color-scheme split landed
 - `lxdisplay` already covers the core workflow and should now evolve from real
   usage feedback, not speculation
 - systray/non-`lx*` hosting is still underspecified and likely to churn config
@@ -129,9 +129,20 @@ Rationale:
 
 ### `themes/lynxburn`
 
-- split structural values from color-scheme values later
+- keep the structural-vs-color-scheme split stable and well-documented
+- continue normalizing explicit theme keys so modules rely less on generic
+  Awesome fallbacks
 - align popup/action button border treatment across modules during the theme
   split pass; some current buttons still mix orange and gray border behavior
 - keep moving repo-specific behavior out of `themes/lynxburn/widgets.lua`
   where that improves ownership boundaries
+- treat these as likely future move candidates out of `widgets.lua`:
+  - IMAP mail widget
+  - lain CPU / sysload / memory / filesystem widgets
+  - the custom power menu popup
+- keep these as theme-owned unless the repo shape changes materially:
+  - wallpaper application
+  - wibar assembly
+  - tasklist/taglist/layout switcher composition
+  - systray / clock / date placement
 - prune unused inherited assets once the remaining legacy widget usage is gone

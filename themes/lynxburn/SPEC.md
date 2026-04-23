@@ -8,6 +8,8 @@ Planned work lives in [`../../ROADMAP.md`](../../ROADMAP.md).
 - the theme owns colors, sizing, spacing, and other appearance-level knobs
 - color schemes may vary palette/fonts while the `lynxburn` theme shell keeps
   structural layout, spacing, and widget composition stable
+- `widgets.lua` still owns the current wibar assembly and the remaining
+  non-`lx*` theme widgets until they are intentionally replaced or extracted
 - repo-specific business logic should not accumulate in theme code unless the
   behavior is genuinely presentation-specific
 
