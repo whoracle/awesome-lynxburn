@@ -1,3 +1,69 @@
+## v1.6.0 (2026-04-23)
+
+### Features
+
+- [lxrunner] track invocation counts and use them in history ranking
+- [lxsecrets] add first-pass secret refresh module with popup and provider runners
+- [lxsecrets] add lxsecrets example and SPEC
+- [lxrunner] also scan user XDG_DATA_DIR for .desktop files
+
+### Bug Fixes
+
+- [lxmedia] collapse hidden mic spacing in top-level widget row
+- [lxmedia] fully collapse hidden top-level bar width to recenter icon
+- [lxmedia] remove fixed device card heights and unsqueeze selectable rows
+- [lxmedia] add vertical breathing room to devices popup row cards
+- [lxsecrets] give action buttons a dedicated idle background
+- [lxsecrets] keep secret card hover border-only to preserve button contrast
+- [lxsecrets] match secret card selection structure to lxdisplay profiles
+- [lxsecrets] match card hover layering and batch refreshes by vpn
+- [lxsecrets] reduce secret card selection border thickness
+- [lxsecrets] match secret card selection layering to lxdisplay profiles
+- [lxsecrets] render hover selection as border instead of filled card
+- [lxsecrets] default vault login to ambient browser resolution unless overridden
+- [lxsecrets] complete interactive vault login flow and manage vpn ownership across auth
+- [lxsecrets] split auth row click handling and keep vpn up for login-required refreshes
+- [lxsecrets] make inline vault login action inside auth-needed cards clickable
+- [lxsecrets] render vault login action as explicit inline auth-needed card row
+- [lxsecrets] surface per-card vault login action after auth-needed refresh
+- [core] fix shell escaping for single quotes in async commands
+- [lxsecrets] show inline vault login action only when refresh requires auth
+- [lxsecrets] make vpn-gated refresh fail fast without interactive nmcli
+- [lxmedia] handle escape and cycle keys in devices popup modeÄ
+
+### Refactors
+
+- [theme] drop dead lynxburn keys and prune unused theme assets
+- [lxmedia] add shared hover and keyboard selection to devices popup
+- [core] align bluetooth network and power popup cards with lxdisplay
+- [theme] normalize popup accents, text colors, and button backgrounds
+- [theme] split lynxburn structure from swappable color schemes
+- [core] vendor json support in lxcommon instead of depending on lain
+- [lxsecrets] align card styling and sort secrets by vpn and expiry
+- [lxsecrets] simplify secret cards around expiry badges and real action buttons
+- [lxsecrets] replace shell refresh backends with native provider runtime
+- [core] use explicit lxmodule ids in lxbar module config keys
+- [core] use explicit lxmodule ids in lxbar order config
+- [core] use explicit lxmodule ids in lxbar order config
+- [lxnetwork] wrap popup entries in card-style selectable rows
+- [core] restyle lxbluetooth and lxmedia device rows around popup cards
+
+### Documentation
+
+- [core] note lxsecrets startup delay and lxdisplay no-op profile apply ideas
+- [core] refresh roadmap and migration notes for v1.6.0
+- [theme] document lynxburn widget ownership and normalize remaining media theme keys
+- [core] add optional git-tag update checker to roadmap
+- [core] update docs for native lxsecrets runtime and vendored dkjson
+- [core] record popup input and theme button-border follow-up work
+- [core] split specs from roadmap and reset migration policy
+- [core] update SPEC.md
+- [core] update SPEC.md
+- [core] Document behaviour of MIGRATE.md going forward
+- [core] some more notes in SPEC
+- [core] document secret-tool usage
+- [lxmedia] add known issues and further todos to lxmedia and lxrunner
+
 ## v1.5.0 (2026-04-21)
 
 ### Features
