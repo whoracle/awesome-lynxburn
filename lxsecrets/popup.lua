@@ -118,17 +118,27 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         }))
     end
 
+    if secret.auth_required then
+        local auth_line = wibox.layout.fixed.horizontal()
+        auth_line.spacing = 8
+        auth_line:add(wibox.widget({
+            markup = string.format(
+                "<span size='x-small' foreground='%s'>login required</span>",
+                state_fg
+            ),
+            widget = wibox.widget.textbox,
+        }))
+        auth_line:add(action_text("login", state_fg, function()
+            instance:login_secret(secret_index)
+        end))
+        info:add(auth_line)
+    end
+
     local actions = wibox.layout.fixed.horizontal()
     actions.spacing = 8
     actions:add(action_text("refresh", state_fg, function()
         instance:refresh_secret(secret_index)
     end))
-
-    if secret.auth_required then
-        actions:add(action_text("login", state_fg, function()
-            instance:login_secret(secret_index)
-        end))
-    end
 
     local row = wibox.widget({
         info,
