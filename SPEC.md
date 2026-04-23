@@ -16,11 +16,12 @@ Doc refactoring first:
 
 Then, use this order for the next fresh session unless new bugs force a reprioritization:
 
-1. `lxbar` spacing/composition polish
-2. `themes/lynxburn` split / asset pruning / further ownership cleanup
-3. `lxdisplay` xrandr / display-profile handling
-4. future systray / non-`lx*` widget hosting in `lxbar`
-5. `lxnotify` browser/web-app action hardening
+1. `lxsecrets` implementation
+2. `lxbar` spacing/composition polish
+3. `themes/lynxburn` split / asset pruning / further ownership cleanup
+4. `lxdisplay` xrandr / display-profile handling
+5. future systray / non-`lx*` widget hosting in `lxbar`
+6. `lxnotify` browser/web-app action hardening
 
 Rationale:
 
