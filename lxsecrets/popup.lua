@@ -182,7 +182,13 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
     content:add(info)
     content:add(buttons)
 
-    local selectable = popup_common.make_selectable_click_container(content, nil, {
+    local body = wibox.widget({
+        content,
+        bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        widget = wibox.container.background,
+    })
+
+    local selectable = popup_common.make_selectable_click_container(body, nil, {
         selected = selected,
         inner_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
         hover_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
