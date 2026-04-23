@@ -100,26 +100,6 @@ local function normalize_provider(value)
     return PROVIDER_ALIASES[tostring(value or "")] or tostring(value or "")
 end
 
-local function secret_status_label(secret)
-    if secret.running then
-        return "running"
-    end
-
-    if secret.status == "ok" then
-        return "ok"
-    end
-
-    if secret.status == "attention" then
-        return "attention"
-    end
-
-    if secret.status == "error" then
-        return "error"
-    end
-
-    return "idle"
-end
-
 function M.extend(instance_methods)
     function instance_methods:_normalize_secret(secret, index)
         local selectors = copy_table(secret.selectors or {})
@@ -154,6 +134,9 @@ function M.extend(instance_methods)
             threshold_label = threshold_text(threshold_seconds),
             gitlab_threshold_days = math.max(1, math.floor((threshold_seconds + 86399) / 86400)),
             gitlab_lifetime_days = lifetime_days,
+            keyring_label = selectors.label or secret.name or ("Secret " .. tostring(index)),
+            expires_at_display = nil,
+            expired = false,
             running = false,
             status = "idle",
             auth_required = false,
@@ -344,37 +327,10 @@ function M.extend(instance_methods)
     end
 
     function instance_methods:secret_metadata_lines(secret)
-        local selectors = secret.selectors or {}
         local lines = {}
 
-        if secret.provider == "gitlab" and selectors.gitlab_url then
-            lines[#lines + 1] = selectors.gitlab_url
-        elseif secret.provider == "hashicorp_vault" and selectors.vault_url then
-            lines[#lines + 1] = selectors.vault_url
-        end
-
-        local selector_bits = {}
-        if selectors.service then
-            selector_bits[#selector_bits + 1] = selectors.service
-        end
-        if selectors.account then
-            selector_bits[#selector_bits + 1] = selectors.account
-        end
-        if #selector_bits > 0 then
-            lines[#lines + 1] = table.concat(selector_bits, " • ")
-        end
-
-        local tags = {
-            "[" .. secret_status_label(secret) .. "]",
-            "[threshold " .. secret.threshold_label .. "]",
-            "[checked " .. format_timestamp(secret.last_checked_at) .. "]",
-        }
-        if secret.vpn and secret.vpn ~= "" then
-            tags[#tags + 1] = "[vpn " .. tostring(secret.vpn) .. "]"
-        end
-        lines[#lines + 1] = table.concat(tags, " ")
-
-        lines[#lines + 1] = secret.last_message or ""
+        lines[#lines + 1] = "expires: " .. tostring(secret.expires_at_display or "unknown")
+        lines[#lines + 1] = tostring(secret.keyring_label or "-")
         return lines
     end
 

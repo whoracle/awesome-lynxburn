@@ -59,12 +59,45 @@ local function wrap_selectable_card(child)
     return card
 end
 
-local function action_text(label, fg)
+local function badge(label, fg)
     return wibox.widget({
-        markup = string.format("<span foreground='%s'>%s</span>", fg, label),
+        markup = string.format("<span size='x-small' foreground='%s'>[%s]</span>", fg, label),
+        widget = wibox.widget.textbox,
+    })
+end
+
+local function action_button(instance, label, onclick)
+    local text = wibox.widget({
+        text = label,
+        align = "center",
         valign = "center",
         widget = wibox.widget.textbox,
     })
+
+    local button = wibox.widget({
+        {
+            text,
+            left = 10,
+            right = 10,
+            top = 6,
+            bottom = 6,
+            widget = wibox.container.margin,
+        },
+        shape = gears.shape.rounded_rect,
+        bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        widget = wibox.container.background,
+    })
+
+    popup_common.attach_button_feedback(button, {
+        idle_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        hover_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
+    })
+
+    button:buttons(gears.table.join(
+        awful.button({}, 1, onclick)
+    ))
+
+    return button
 end
 
 local function action_row(instance, label, selected, index, onclick)
@@ -82,47 +115,74 @@ end
 
 local function secret_row(instance, secret, selected, selection_index, secret_index)
     local meta_fg = gears.string.xml_escape(instance:_theme_value("lxsecrets_meta_fg", beautiful.fg_minimize or "#999999"))
-    local state_fg = meta_fg
+    local accent_fg = gears.string.xml_escape(instance:_theme_value("lxsecrets_widget_attention_fg", beautiful.fg_critical or "#d97777"))
+    local normal_fg = gears.string.xml_escape(instance:_theme_value("lxsecrets_widget_fg", beautiful.fg_normal or "#ffffff"))
+    local title_fg = secret.expired and accent_fg or normal_fg
 
-    if secret.status == "attention" or secret.status == "error" then
-        state_fg = gears.string.xml_escape(instance:_theme_value("lxsecrets_widget_attention_fg", beautiful.fg_critical or "#d97777"))
-    elseif secret.status == "ok" then
-        state_fg = gears.string.xml_escape(instance:_theme_value("lxsecrets_widget_fg", beautiful.fg_normal or "#ffffff"))
-    end
-
-    local info = wibox.layout.fixed.vertical()
-    info.spacing = 2
-    info:add(wibox.widget({
-        markup = gears.string.xml_escape(secret.name),
+    local title = wibox.widget({
+        markup = string.format(
+            "<span foreground='%s'>%s</span>",
+            title_fg,
+            gears.string.xml_escape(secret.name)
+        ),
         ellipsize = "end",
         widget = wibox.widget.textbox,
-    }))
+    })
+
+    local badges = wibox.layout.fixed.horizontal()
+    badges.spacing = 4
+    if secret.expired then
+        badges:add(badge("expired", accent_fg))
+    end
+    if secret.vpn and secret.vpn ~= "" then
+        badges:add(badge("vpn", meta_fg))
+    end
+
+    local title_row = wibox.widget({
+        title,
+        nil,
+        badges,
+        expand = "inside",
+        layout = wibox.layout.align.horizontal,
+    })
+
+    local info = wibox.layout.fixed.vertical()
+    info.spacing = 4
+    info:add(title_row)
 
     for _, line in ipairs(instance:secret_metadata_lines(secret)) do
         info:add(wibox.widget({
-            markup = string.format(
-                "<span size='x-small' foreground='%s'>%s</span>",
-                line == (secret.last_message or "") and state_fg or meta_fg,
-                gears.string.xml_escape(line)
-            ),
+            markup = string.format("<span size='x-small' foreground='%s'>%s</span>", meta_fg, gears.string.xml_escape(line)),
             ellipsize = "end",
             widget = wibox.widget.textbox,
         }))
     end
 
-    local actions = wibox.layout.fixed.horizontal()
-    actions.spacing = 8
-    actions:add(action_text("refresh", state_fg))
+    if secret.status == "error" and secret.last_message and secret.last_message ~= "" then
+        info:add(wibox.widget({
+            markup = string.format("<span size='x-small' foreground='%s'>%s</span>", accent_fg, gears.string.xml_escape(secret.last_message)),
+            ellipsize = "end",
+            widget = wibox.widget.textbox,
+        }))
+    end
 
-    local refresh_row = popup_common.make_selectable_click_container(wibox.widget({
-        info,
-        nil,
-        actions,
-        expand = "inside",
-        layout = wibox.layout.align.horizontal,
-    }), function()
+    local buttons = wibox.layout.fixed.horizontal()
+    buttons.spacing = 8
+    buttons:add(action_button(instance, "Refresh", function()
         instance:refresh_secret(secret_index)
-    end, {
+    end))
+    if secret.auth_required then
+        buttons:add(action_button(instance, "Login", function()
+            instance:login_secret(secret_index)
+        end))
+    end
+
+    local content = wibox.layout.fixed.vertical()
+    content.spacing = 8
+    content:add(info)
+    content:add(buttons)
+
+    local selectable = popup_common.make_selectable_click_container(content, nil, {
         selected = selected,
         inner_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
         hover_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
@@ -133,50 +193,7 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         end,
     })
 
-    local card_content = wibox.layout.fixed.vertical()
-    card_content.spacing = 4
-    card_content:add(refresh_row)
-
-    if secret.auth_required then
-        card_content:add(popup_common.make_click_container(wibox.widget({
-            {
-                wibox.widget({
-                    markup = string.format(
-                        "<span size='x-small' foreground='%s'>login required</span>",
-                        state_fg
-                    ),
-                    widget = wibox.widget.textbox,
-                }),
-                action_text("login", state_fg),
-                spacing = 8,
-                layout = wibox.layout.fixed.horizontal,
-            },
-            layout = wibox.layout.fixed.horizontal,
-        }), function()
-            instance:login_secret(secret_index)
-        end, {
-            left = 0,
-            right = 0,
-            top = 0,
-            bottom = 0,
-            hover_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
-            press_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
-        }))
-    end
-
-    function card_content:_lx_set_selected(value)
-        if refresh_row and refresh_row._lx_set_selected then
-            refresh_row:_lx_set_selected(value)
-        end
-    end
-
-    function card_content:_lx_set_feedback_active(value)
-        if refresh_row and refresh_row._lx_set_feedback_active then
-            refresh_row:_lx_set_feedback_active(value)
-        end
-    end
-
-    return wrap_selectable_card(card_content)
+    return wrap_selectable_card(selectable)
 end
 
 function M.extend(instance_methods)

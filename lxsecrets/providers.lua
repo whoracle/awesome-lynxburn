@@ -134,6 +134,34 @@ local function parse_ymd_epoch(value)
     })
 end
 
+local function format_expiry(timestamp)
+    if not timestamp then
+        return nil
+    end
+
+    return os.date("%Y-%m-%d %H:%M", timestamp)
+end
+
+local function iso_to_local_display(value)
+    local year, month, day, hour, min, sec = tostring(value or ""):match(
+        "^(%d%d%d%d)%-(%d%d)%-(%d%d)T(%d%d):(%d%d):(%d%d)"
+    )
+    if not year then
+        return tostring(value or "")
+    end
+
+    local timestamp = os.time({
+        year = tonumber(year),
+        month = tonumber(month),
+        day = tonumber(day),
+        hour = tonumber(hour),
+        min = tonumber(min),
+        sec = tonumber(sec),
+    })
+
+    return format_expiry(timestamp) or tostring(value or "")
+end
+
 local function hold_path(vpn_name)
     local safe = tostring(vpn_name or ""):gsub("[^%w_.-]", "_")
     return "/tmp/lxsecrets-vpn-" .. safe .. ".hold"
@@ -406,6 +434,8 @@ local function gitlab_refresh(secret, callback)
 
                 local seconds_left = expiry_epoch - os.time()
                 local days_left = math.floor(seconds_left / 86400)
+                secret.expires_at_display = expires_at
+                secret.expired = seconds_left <= 0
 
                 if seconds_left <= 0 then
                     callback("error", "managed PAT is already expired")
@@ -460,6 +490,9 @@ local function gitlab_refresh(secret, callback)
                             callback("error", "successor PAT verification failed: HTTP " .. tostring(verify_code))
                             return
                         end
+
+                        secret.expires_at_display = new_expires_at
+                        secret.expired = false
 
                         secret_clear(token_selector, function()
                             secret_store(store_label, token_selector, { "expiry_date", tostring(new_expires_at) }, new_pat, function(stored, store_err)
@@ -529,7 +562,24 @@ local function vault_login(secret, opts, callback)
                     return
                 end
 
-                callback("ok", "login succeeded")
+                vault_run(secret, token, { "vault", "token", "lookup", "-format=json" }, secret.vpn_timeout_seconds, nil, function(lookup_stdout, _, lookup_exit_code)
+                    if lookup_exit_code == 0 then
+                        local lookup = decode_json(lookup_stdout)
+                        local data = lookup and lookup.data or {}
+                        local ttl = tonumber(data.ttl) or 0
+                        local expire_time = data.expire_time
+
+                        if expire_time and expire_time ~= "" and expire_time ~= "0001-01-01T00:00:00Z" then
+                            secret.expires_at_display = iso_to_local_display(expire_time)
+                        elseif ttl > 0 then
+                            secret.expires_at_display = format_expiry(os.time() + ttl)
+                        end
+
+                        secret.expired = false
+                    end
+
+                    callback("ok", "login succeeded")
+                end)
             end)
         end
     )
@@ -543,6 +593,8 @@ local function vault_refresh(secret, opts, callback)
 
     secret_lookup(selector_pairs_list, function(token)
         if not token or token == "" then
+            secret.expired = false
+            secret.expires_at_display = nil
             if opts and opts.interactive_login then
                 vault_login(secret, opts, callback)
             else
@@ -553,6 +605,8 @@ local function vault_refresh(secret, opts, callback)
 
         vault_run(secret, token, { "vault", "token", "lookup", "-format=json" }, secret.vpn_timeout_seconds, nil, function(stdout, _, exit_code)
             if exit_code ~= 0 then
+                secret.expired = true
+                secret.expires_at_display = "expired"
                 secret_clear(selector_pairs_list, function()
                     if opts and opts.interactive_login then
                         vault_login(secret, opts, callback)
@@ -572,8 +626,19 @@ local function vault_refresh(secret, opts, callback)
             local data = lookup.data or {}
             local ttl = tonumber(data.ttl) or 0
             local renewable = data.renewable == true
+            local expire_time = data.expire_time
+
+            if expire_time and expire_time ~= "" and expire_time ~= "0001-01-01T00:00:00Z" then
+                secret.expires_at_display = iso_to_local_display(expire_time)
+            elseif ttl > 0 then
+                secret.expires_at_display = format_expiry(os.time() + ttl)
+            else
+                secret.expires_at_display = nil
+            end
+            secret.expired = ttl <= 0
 
             if ttl > (secret.threshold_seconds or 604800) then
+                secret.expired = false
                 callback("ok", "token healthy; ttl=" .. tostring(ttl) .. "s")
                 return
             end
@@ -584,6 +649,8 @@ local function vault_refresh(secret, opts, callback)
                         local renewed, renew_err = decode_json(renew_stdout)
                         if renewed then
                             local new_ttl = tonumber(((renewed.auth or {}).lease_duration) or renewed.lease_duration) or 0
+                            secret.expires_at_display = format_expiry(os.time() + new_ttl)
+                            secret.expired = new_ttl <= 0
                             callback("ok", "renewal succeeded; new ttl=" .. tostring(new_ttl) .. "s")
                             return
                         end
