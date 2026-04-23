@@ -198,3 +198,9 @@ Current provider support:
   login when set
 - if `expiry_date` is missing from the keyring item, the card shows `unknown`
   until the next successful live refresh writes it
+
+## Known Issues
+
+- secret-card selection currently highlights only the info slab, not the action
+  button row below it; this is intentional for click-separation right now, but
+  still visually inconsistent with the desired full-card border treatment
