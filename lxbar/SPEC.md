@@ -1,22 +1,18 @@
 # lxbar Spec
 
-This file tracks the remaining intended work for the shared bar composition
-layer.
+This file describes the intended scope of the shared bar composition layer.
 
-## Planned Features
+Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 
-- keep popup cycling strictly derived from final top-level widget order
+## Scope
 
-- keep semantic popup role routing stable:
+- popup cycling is derived from final top-level widget order
+- semantic popup-role routing is stable and limited to:
   - `primary`
   - `secondary`
   - `tertiary`
-
-- continue polishing top-level widget spacing and bar composition behavior once
-  the individual modules stabilize
-
-- support future optional systray-style non-`lx*` bar integration later if the
-  config shape becomes clear enough
+- `lxbar` owns composition of registered top-level widgets and shared popup
+  routing semantics
 
 ## Won't Do
 

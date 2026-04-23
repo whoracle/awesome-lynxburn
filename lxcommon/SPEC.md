@@ -1,14 +1,16 @@
 # lxcommon Spec
 
-This file tracks the remaining intended work for the shared helper layer.
+This file describes the intended scope of the shared helper layer.
 
-## Planned Features
+Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 
-- keep popup keyboard, hover-close, outside-click, and placement behavior
-  consistent across modules
+## Scope
 
-- keep `lxcommon` small and utility-focused rather than letting it become a
-  vague dumping ground for unrelated helpers
+- `lxcommon` owns shared helper code for popup behavior, registry/state
+  plumbing, placement, widget feedback, and other genuinely cross-module
+  infrastructure
+- it should stay utility-focused rather than becoming a vague bucket for
+  unrelated code
 
 ## Won't Do
 

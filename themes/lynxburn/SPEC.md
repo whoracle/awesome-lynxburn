@@ -1,24 +1,13 @@
-# lynxburn Remaining Work
+# lynxburn Spec
 
-`lynxburn` is the active bundled theme and no longer a placeholder.
+Planned work lives in [`../../ROADMAP.md`](../../ROADMAP.md).
 
-This file tracks what is still wanted from the theme layer.
+## Scope
 
-## Still Wanted
-
-- split the theme later into structural values and color-scheme values
-  Why: the current single-file theme is workable, but palette swapping will be
-  cleaner once colors and non-color theme settings are separated
-
-- keep moving repo-specific behavior out of `themes/lynxburn/widgets.lua` and
-  into dedicated modules where that produces a cleaner ownership boundary
-  Why: the theme should own appearance and final composition, not accumulate
-  unrelated business logic
-
-- prune unused inherited theme assets once the remaining old widget usage is
-  reduced or removed
-  Why: the theme tree still contains older bundled assets that should not live
-  forever if they no longer serve the current config
+- `lynxburn` is the active bundled theme
+- the theme owns colors, sizing, spacing, and other appearance-level knobs
+- repo-specific business logic should not accumulate in theme code unless the
+  behavior is genuinely presentation-specific
 
 ## Explicit Non-Goals For Now
 

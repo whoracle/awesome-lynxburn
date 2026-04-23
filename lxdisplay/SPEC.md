@@ -1,23 +1,17 @@
-# lxdisplay Remaining Work
+# lxdisplay Spec
 
-`lxdisplay` already exists as the local display/brightness/redshift module.
+Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 
-This file only tracks the remaining intended work.
+## Scope
 
-## Still Wanted
-
-- keep brightness/redshift behavior stable and predictable
-  Why: this module owns display-side QoL behavior and should stay boring in the
-  good sense
-
-- refine profile/detected-display UX only after daily-driving reveals a real
-  need
-  Why: the current popup and startup behavior are intentionally complete enough
-  for regular use, and further expansion should be driven by actual friction
-
-- expand transient-display behavior only if needed
-  Why: the first pass intentionally keeps temporary display actions narrow
-  (`Detect`, `Extend`, `Mirror`, `Disable`) instead of becoming a full editor
+- `lxdisplay` is the local display/brightness/redshift module
+- it owns:
+  - brightness controls
+  - redshift/night-mode behavior
+  - display profiles
+  - narrow transient-display actions from the popup
+- transient display discovery is intentionally user-triggered rather than
+  always-on
 
 ## Explicit Non-Goals For Now
 
