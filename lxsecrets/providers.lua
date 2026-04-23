@@ -811,7 +811,7 @@ function M.refresh(secret, opts, callback)
         end
 
         run_without_vpn(secret, opts, function(kind, message)
-            release_vpn(secret, kind == "auth_required", function()
+            release_vpn(secret, kind == "auth_required" or opts.keep_vpn_open == true, function()
                 callback(kind, message)
             end)
         end)

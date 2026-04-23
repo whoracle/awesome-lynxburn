@@ -177,18 +177,7 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         end))
     end
 
-    local content = wibox.layout.fixed.vertical()
-    content.spacing = 8
-    content:add(info)
-    content:add(buttons)
-
-    local body = wibox.widget({
-        content,
-        bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
-        widget = wibox.container.background,
-    })
-
-    local selectable = popup_common.make_selectable_click_container(body, nil, {
+    local selectable = popup_common.make_selectable_click_container(info, nil, {
         selected = selected,
         selection_margin = 1,
         inner_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
@@ -200,7 +189,24 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         end,
     })
 
-    return selectable
+    local card = wibox.layout.fixed.vertical()
+    card.spacing = 8
+    card:add(selectable)
+    card:add(buttons)
+
+    function card:_lx_set_selected(value)
+        if selectable and selectable._lx_set_selected then
+            selectable:_lx_set_selected(value)
+        end
+    end
+
+    function card:_lx_set_feedback_active(value)
+        if selectable and selectable._lx_set_feedback_active then
+            selectable:_lx_set_feedback_active(value)
+        end
+    end
+
+    return wrap_selectable_card(card)
 end
 
 function M.extend(instance_methods)

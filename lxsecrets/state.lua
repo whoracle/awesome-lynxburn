@@ -302,7 +302,19 @@ function M.extend(instance_methods)
                 return
             end
 
-            self:_refresh_secret_async(secret, opts, function()
+            local next_secret = self.state.secrets[indices[position]]
+            local effective_opts = {}
+            for key, value in pairs(opts) do
+                effective_opts[key] = value
+            end
+
+            effective_opts.keep_vpn_open = (
+                secret.vpn and secret.vpn ~= ""
+                and next_secret
+                and next_secret.vpn == secret.vpn
+            ) and true or false
+
+            self:_refresh_secret_async(secret, effective_opts, function()
                 step()
             end)
         end
