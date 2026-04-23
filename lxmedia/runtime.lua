@@ -121,6 +121,9 @@ function M.extend(instance_methods)
         if self._refs.mic_cluster then
             self._refs.mic_cluster.visible = self.opts.show_mic_activity and self.state.mic_active or false
         end
+        if self._refs.row_layout then
+            self._refs.row_layout.spacing = (self.opts.show_mic_activity and self.state.mic_active) and 6 or 0
+        end
 
         if self._refs.mic_bar then
             self._refs.mic_bar.value = math.max(0, math.min(1, self.state.mic_volume))
