@@ -67,14 +67,14 @@ M.lxmodules = {
             "lxnotify",
         },
         modules = {
-            media = {},
-            bluetooth = {},
-            display = {},
-            network = {
+            lxmedia = {},
+            lxbluetooth = {},
+            lxdisplay = {},
+            lxnetwork = {
                 -- cycle = false,
             },
-            notify = {},
-            power = {},
+            lxnotify = {},
+            lxpower = {},
         },
     },
     lxmedia = {

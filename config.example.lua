@@ -59,10 +59,10 @@ return {
     --             "lxpower",
     --         },
     --         modules = {
-    --             bluetooth = {
+    --             lxbluetooth = {
     --                 -- cycle = false,
     --             },
-    --             network = {
+    --             lxnetwork = {
     --                 -- cycle = false,
     --             },
     --         },

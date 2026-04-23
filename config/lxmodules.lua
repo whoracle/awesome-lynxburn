@@ -7,7 +7,11 @@ end
 
 local function bar_module_settings(id)
     local modules = (lxmodules().lxbar or {}).modules or {}
-    local module_settings = modules[id]
+    local module_settings = modules["lx" .. id]
+
+    if type(module_settings) ~= "table" then
+        module_settings = modules[id]
+    end
 
     if type(module_settings) ~= "table" then
         return {}

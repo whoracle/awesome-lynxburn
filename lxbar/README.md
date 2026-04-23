@@ -74,7 +74,7 @@ Current knobs:
 - `lxmodules.lxbar.popup_side`
   Global left/right side used when a popup chooses `"side"` placement.
 
-- `lxmodules.lxbar.modules.<name>.cycle`
+- `lxmodules.lxbar.modules.<lxname>.cycle`
   Whether a visible module participates in popup cycling.
 
 ## Theme Variables
