@@ -136,6 +136,7 @@ return {
     --         interval = "30m",
     --         top_level = "urgent",
     --         cycle_exclude = true,
+    --         browser = "vivaldi-stable --profile-directory=Profile\\ 1",
     --         vpn_timeout = "5m",
     --         interactive_vpn_timeout = "15m",
     --         thresholds = {

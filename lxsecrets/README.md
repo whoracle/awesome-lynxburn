@@ -34,6 +34,8 @@ Internal:
 - Vault cards surface an inline login action only after a refresh determines
   that interactive auth is required
 - interactive Vault login keeps VPN-gated runs alive until success or timeout
+- Vault login can use an explicit browser command instead of ambient desktop
+  browser resolution
 
 ## Example Usage
 
@@ -61,6 +63,7 @@ lxmodules = {
         interval = "30m",
         top_level = "urgent",
         cycle_exclude = true,
+        browser = "vivaldi-stable --profile-directory=Profile\\ 1",
         vpn_timeout = "5m",
         interactive_vpn_timeout = "15m",
         thresholds = {
@@ -104,6 +107,7 @@ Supported knobs:
 - `interval`
 - `top_level`
 - `cycle_exclude`
+- `browser`
 - `vpn_timeout`
 - `interactive_vpn_timeout`
 - `thresholds.gitlab`
@@ -111,6 +115,7 @@ Supported knobs:
 - `lifetimes.gitlab`
 - `secrets`
 - `secrets[].name`
+- `secrets[].browser`
 - `secrets[].vpn`
 - `secrets[].vpn_timeout`
 - `secrets[].interactive_vpn_timeout`
@@ -183,3 +188,5 @@ Current provider support:
 - Vault rows expose an inline `login` action only after a refresh reports that
   auth is required; normal `refresh` stays non-interactive and is safe for
   periodic or retry use
+- `browser` or `secrets[].browser` is exported as `BROWSER` for Vault OIDC
+  login when set

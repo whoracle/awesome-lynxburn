@@ -177,6 +177,7 @@ function M.extend(instance_methods)
             admin_selector = copy_table(secret.admin_selector),
             token_selector = copy_table(secret.token_selector),
             vpn = secret.vpn,
+            browser_command = secret.browser or self.opts.browser,
             vpn_timeout_seconds = vpn_timeout_seconds,
             interactive_vpn_timeout_seconds = interactive_vpn_timeout_seconds,
             threshold_seconds = threshold_seconds,
@@ -287,6 +288,9 @@ function M.extend(instance_methods)
                 secret.status = "ok"
                 secret.auth_required = false
                 secret.needs_attention = false
+                if opts.interactive_login then
+                    message = "login succeeded"
+                end
             elseif auth_required then
                 secret.status = "attention"
                 secret.auth_required = true

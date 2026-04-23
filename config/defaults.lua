@@ -162,6 +162,7 @@ M.lxmodules = {
         interval = "30m",
         top_level = "always",
         cycle_exclude = true,
+        browser = nil,
         vpn_timeout = "5m",
         interactive_vpn_timeout = "15m",
         thresholds = {

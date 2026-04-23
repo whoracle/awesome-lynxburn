@@ -1,4 +1,5 @@
 local gears = require("gears")
+local config_data = require("config.config_data")
 
 local util = require("lxcommon.util")
 
@@ -116,6 +117,8 @@ end
 local function vault_command(secret, opts)
     local selectors = secret.selectors or {}
     local login_mode = (opts and opts.interactive_login) and "direct" or "silent"
+    local configured_browser = ((opts and opts.browser_command) or secret.browser_command)
+        or config_data.commands().browser
     local env = {
         shell_assignment("VAULT_ADDR", selectors.vault_url or ""),
         shell_assignment("VAULT_AUTH_PATH", selectors.auth_path or "oidc"),
@@ -128,6 +131,10 @@ local function vault_command(secret, opts)
         shell_assignment("NOTIFY_APP_NAME", "lxsecrets"),
         shell_assignment("LXSECRETS_LOGIN_MODE", login_mode),
     }
+
+    if configured_browser and configured_browser ~= "" then
+        env[#env + 1] = shell_assignment("BROWSER", configured_browser)
+    end
 
     return table.concat(env, " ") .. " " .. util.shell_escape(script_path("vault_refresh.sh"))
 end
