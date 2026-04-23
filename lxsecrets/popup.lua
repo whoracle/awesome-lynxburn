@@ -199,7 +199,7 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         end,
     })
 
-    return wrap_selectable_card(selectable)
+    return selectable
 end
 
 function M.extend(instance_methods)
