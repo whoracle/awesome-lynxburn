@@ -24,6 +24,19 @@ local function make_row_card(child)
     })
 end
 
+local function selectable_card(instance, child, selected, index, onclick)
+    return popup_ui.make_selectable_click_container(child, onclick, {
+        selected = selected,
+        inner_bg = beautiful.lxmedia_popup_bg or beautiful.bg_normal or "#222222",
+        hover_bg = beautiful.lxmedia_button_hover or beautiful.bg_focus or "#444444",
+        outer_bg = beautiful.lxmedia_popup_bg or beautiful.bg_normal or "#222222",
+        selected_bg = beautiful.lxmedia_selected_border or beautiful.border_focus or beautiful.bg_focus or "#666666",
+        on_hover = function()
+            instance:set_devices_popup_selection(index)
+        end,
+    })
+end
+
 local function make_info_line(text, opts)
     opts = opts or {}
     opts.text_opts = opts.text_opts or {
@@ -44,8 +57,8 @@ local function make_click_row(text, onclick, opts)
     return popup_ui.make_click_row(text, onclick, opts)
 end
 
-local function make_card_row(text, onclick, opts)
-    return make_row_card(make_click_row(text, onclick, opts))
+local function make_selectable_card_row(instance, text, selected, index, onclick, opts)
+    return make_row_card(selectable_card(instance, make_info_line(text, opts), selected, index, onclick))
 end
 
 local function make_card_info_row(text, opts)
@@ -82,7 +95,7 @@ local function build_header(default_sink_label, default_source_label)
     return make_card(layout)
 end
 
-local function build_outputs_card(instance, sinks)
+local function build_outputs_card(instance, sinks, popup_items)
     local audio = require("lxmedia.audio")
 
     local layout = wibox.widget {
@@ -108,7 +121,8 @@ local function build_outputs_card(instance, sinks)
     else
         for _, sink in ipairs(sinks) do
             local prefix = sink.is_default and "■ " or "□ "
-            layout:add(make_card_row(prefix .. (sink.label or sink.name), function()
+            local next_index = #popup_items + 1
+            local row = make_selectable_card_row(instance, prefix .. (sink.label or sink.name), instance.devices_popup_selected_index == next_index, next_index, function()
                 audio.set_default_sink(sink.name)
                 instance:refresh()
                 M.rebuild(instance)
@@ -117,7 +131,16 @@ local function build_outputs_card(instance, sinks)
                 right = 8,
                 top = 4,
                 bottom = 4,
-            }))
+            })
+            layout:add(row)
+            popup_items[#popup_items + 1] = {
+                widget = row,
+                on_enter = function()
+                    audio.set_default_sink(sink.name)
+                    instance:refresh()
+                    M.rebuild(instance)
+                end,
+            }
         end
     end
 
@@ -126,7 +149,7 @@ local function build_outputs_card(instance, sinks)
     return card
 end
 
-local function build_inputs_card(instance, sources)
+local function build_inputs_card(instance, sources, popup_items)
     local audio = require("lxmedia.audio")
 
     local layout = wibox.widget {
@@ -152,7 +175,8 @@ local function build_inputs_card(instance, sources)
     else
         for _, source in ipairs(sources) do
             local prefix = source.is_default and "● " or "○ "
-            layout:add(make_card_row(prefix .. (source.label or source.name), function()
+            local next_index = #popup_items + 1
+            local row = make_selectable_card_row(instance, prefix .. (source.label or source.name), instance.devices_popup_selected_index == next_index, next_index, function()
                 audio.set_default_source(source.name)
                 instance:refresh()
                 M.rebuild(instance)
@@ -161,7 +185,16 @@ local function build_inputs_card(instance, sources)
                 right = 8,
                 top = 4,
                 bottom = 4,
-            }))
+            })
+            layout:add(row)
+            popup_items[#popup_items + 1] = {
+                widget = row,
+                on_enter = function()
+                    audio.set_default_source(source.name)
+                    instance:refresh()
+                    M.rebuild(instance)
+                end,
+            }
         end
     end
 
@@ -170,7 +203,7 @@ local function build_inputs_card(instance, sources)
     return card
 end
 
-local function build_stream_route_rows(instance, stream, sinks, layout)
+local function build_stream_route_rows(instance, stream, sinks, layout, popup_items)
     local audio = require("lxmedia.audio")
 
     layout:add(make_info_line("Route to:", {
@@ -182,7 +215,8 @@ local function build_stream_route_rows(instance, stream, sinks, layout)
 
     for _, sink in ipairs(sinks) do
         local prefix = (sink.id == stream.sink_id) and "■ " or "□ "
-        layout:add(make_card_row(prefix .. (sink.label or sink.name), function()
+        local next_index = #popup_items + 1
+        local row = make_selectable_card_row(instance, prefix .. (sink.label or sink.name), instance.devices_popup_selected_index == next_index, next_index, function()
             audio.move_sink_input(stream.id, sink.name)
             instance:refresh()
             M.rebuild(instance)
@@ -191,11 +225,20 @@ local function build_stream_route_rows(instance, stream, sinks, layout)
             right = 8,
             top = 4,
             bottom = 4,
-        }))
+        })
+        layout:add(row)
+        popup_items[#popup_items + 1] = {
+            widget = row,
+            on_enter = function()
+                audio.move_sink_input(stream.id, sink.name)
+                instance:refresh()
+                M.rebuild(instance)
+            end,
+        }
     end
 end
 
-local function build_streams_card(instance, streams, sinks)
+local function build_streams_card(instance, streams, sinks, popup_items)
     instance.ui_state = instance.ui_state or {}
     instance.ui_state.devices_stream_expanded = instance.ui_state.devices_stream_expanded or {}
 
@@ -233,7 +276,8 @@ local function build_streams_card(instance, streams, sinks)
         local muted_prefix = stream.muted and ((beautiful.lxmedia_icon_muted or "M") .. "  ") or ""
         local title = prefix .. muted_prefix .. (stream.label or ("Stream " .. tostring(stream.id)))
 
-        sublayout:add(make_card_row(title, function()
+        local stream_index = #popup_items + 1
+        local stream_row = make_selectable_card_row(instance, title, instance.devices_popup_selected_index == stream_index, stream_index, function()
             instance.ui_state.devices_stream_expanded[stream.id] = not expanded
             M.rebuild(instance)
         end, {
@@ -241,7 +285,15 @@ local function build_streams_card(instance, streams, sinks)
             right = 8,
             top = 4,
             bottom = 2,
-        }))
+        })
+        sublayout:add(stream_row)
+        popup_items[#popup_items + 1] = {
+            widget = stream_row,
+            on_enter = function()
+                instance.ui_state.devices_stream_expanded[stream.id] = not expanded
+                M.rebuild(instance)
+            end,
+        }
 
         if stream.detail then
             sublayout:add(make_card_info_row(stream.detail, {
@@ -267,7 +319,7 @@ local function build_streams_card(instance, streams, sinks)
         }))
 
         if expanded then
-            build_stream_route_rows(instance, stream, sinks, sublayout)
+            build_stream_route_rows(instance, stream, sinks, sublayout, popup_items)
         end
 
         layout:add(sublayout)
@@ -276,7 +328,7 @@ local function build_streams_card(instance, streams, sinks)
     return make_card(layout)
 end
 
-local function build_advanced_card(instance)
+local function build_advanced_card(instance, popup_items)
     local audio = require("lxmedia.audio")
 
     local layout = wibox.widget {
@@ -292,7 +344,8 @@ local function build_advanced_card(instance)
         forced_height = 20,
     }))
 
-    local pavucontrol_row = make_card_row("Open pavucontrol", function()
+    local next_index = #popup_items + 1
+    local pavucontrol_row = make_selectable_card_row(instance, "Open pavucontrol", instance.devices_popup_selected_index == next_index, next_index, function()
         audio.open_pavucontrol()
         if instance._devices_popup then
             instance._devices_popup.visible = false
@@ -305,6 +358,15 @@ local function build_advanced_card(instance)
     })
     pavucontrol_row.forced_height = 28
     layout:add(pavucontrol_row)
+    popup_items[#popup_items + 1] = {
+        widget = pavucontrol_row,
+        on_enter = function()
+            audio.open_pavucontrol()
+            if instance._devices_popup then
+                instance._devices_popup.visible = false
+            end
+        end,
+    }
 
     local card = make_card(layout)
     card.forced_height = 69
@@ -313,6 +375,7 @@ end
 
 local function build_widget(instance)
     local audio = require("lxmedia.audio")
+    local popup_items = {}
 
     local sinks = audio.list_sinks() or {}
     local sources = audio.list_sources() or {}
@@ -341,10 +404,13 @@ local function build_widget(instance)
     }
 
     list:add(build_header(default_sink_label, default_source_label))
-    list:add(build_advanced_card(instance))
-    list:add(build_outputs_card(instance, sinks))
-    list:add(build_inputs_card(instance, sources))
-    list:add(build_streams_card(instance, streams, sinks))
+    list:add(build_advanced_card(instance, popup_items))
+    list:add(build_outputs_card(instance, sinks, popup_items))
+    list:add(build_inputs_card(instance, sources, popup_items))
+    list:add(build_streams_card(instance, streams, sinks, popup_items))
+
+    instance._devices_popup_items = popup_items
+    instance:_ensure_devices_popup_selection()
 
     return wibox.widget {
         {
