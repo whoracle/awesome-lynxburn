@@ -110,6 +110,9 @@ Rationale:
   appears
 - expand transient-display behavior only if the current narrow action set
   proves insufficient
+- consider making startup default-profile application state-aware so `lxdisplay`
+  skips the apply step when the already-live XRandR state matches the chosen
+  default profile closely enough
 
 ### `lxsecrets`
 
@@ -119,6 +122,9 @@ Rationale:
 - support VPN-gated refresh/login flows where required
 - surface failures in `~/.xsession-errors` and via notifications
 - define a pragmatic plugin API for adding more secret providers later
+- consider delaying `at_start` refresh runs by a small configurable startup
+  grace period so the first pass does not race NetworkManager or other session
+  services
 
 ### `themes/lynxburn`
 
