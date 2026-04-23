@@ -9,7 +9,12 @@ are linked below.
 
 ### Next Session Priority Order
 
-Use this order for the next fresh session unless new bugs force a reprioritization:
+Doc refactoring first:
+- Move all "planned features" out of the SPEC.md files. SPEC should only describe what the tool does/doesn't going forward. So a "real" SPEC
+- Create a centralized ROADMAP.md - either linking to per-module ROADMAP or have one central file
+- Remove MIGRATE.md - everything is currently migrated
+
+Then, use this order for the next fresh session unless new bugs force a reprioritization:
 
 1. `lxbar` spacing/composition polish
 2. `themes/lynxburn` split / asset pruning / further ownership cleanup

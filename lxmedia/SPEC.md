@@ -18,6 +18,7 @@
   logic into focused files.
 - Retain both event subscription and polling so the widget stays responsive
   without depending on one backend path only.
+- Introduce some kind of easing into top-level bar display/collapse
 
 ## Known issues
 
