@@ -265,10 +265,15 @@ If there is no existing action id for the behavior:
 Current theme ownership:
 
 - `config/theme.lua`
-  Chooses the active theme and applies user overrides.
+  Chooses the active theme and color scheme, then applies user overrides.
 - `themes/lynxburn/theme.lua`
-  Defines theme values and merges flat `theme = { ... }` overrides from
-  `config.lua`.
+  Composes the structural theme layer with the selected color scheme and merges
+  flat `theme = { ... }` overrides from `config.lua`.
+- `themes/lynxburn/structure.lua`
+  Owns non-color theme values such as spacing, sizing, placements, icon paths,
+  and other layout-oriented knobs.
+- `themes/lynxburn/colors/*.lua`
+  Own color-scheme palette/fonts plus the color-bearing `beautiful.*` keys.
 - `themes/lynxburn/widgets.lua`
   Builds the per-screen wibar composition used by the theme.
 

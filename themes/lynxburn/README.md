@@ -2,9 +2,10 @@
 
 `lynxburn` is the bundled AwesomeWM theme used by this config.
 
-It owns the visual layer: colors, spacing, fonts, icon paths, Awesome core
-theme keys, and theme-scoped values consumed by the bundled `lx*` modules. It
-also provides the per-screen wibar assembly used by the current desktop.
+It owns the visual layer: spacing, fonts, icon paths, Awesome core theme keys,
+and theme-scoped values consumed by the bundled `lx*` modules. It also
+provides the per-screen wibar assembly used by the current desktop and now
+supports swappable color schemes inside the same theme shell.
 
 ## Dependencies
 
@@ -26,7 +27,9 @@ Internal:
 ## Features
 
 - central bundled theme entrypoint for this repo
-- palette/role-based color assignment for Awesome core and bundled modules
+- swappable color-scheme layer for Awesome core and bundled modules
+- structural theme layer for spacing, sizing, placement, icon paths, and other
+  non-color theme values
 - per-screen wibar assembly in `widgets.lua`
 - support for user theme overrides through top-level `config.lua`
 - bundled theme keys for `lxmedia`, `lxnotify`, `lxdisplay`, `lxrunner`,
@@ -39,6 +42,7 @@ Top-level config override:
 ```lua
 theme = {
     name = "lynxburn",
+    color_scheme = "default",
     font = "Hack Nerd Font Mono 10",
     wallpaper = os.getenv("HOME") .. "/.wallpaper-alt",
     lxrunner_row_selected_bg = "#4a2f25",
@@ -62,13 +66,17 @@ The theme is configured through the top-level `theme` table in `config.lua`.
 Supported top-level knobs:
 
 - `name`
+- `color_scheme`
 - any `beautiful.*` key defined by `themes/lynxburn/theme.lua`
 
 The current flow is:
 
 1. `config.theme.name()` chooses the theme name, defaulting to `lynxburn`
-2. `config.theme.init(beautiful)` loads `themes/<name>/theme.lua`
-3. keys from `config.lua` under `theme = { ... }` are applied as final overrides
+2. `config.theme.color_scheme()` chooses the color scheme, defaulting to `default`
+3. `config.theme.init(beautiful)` loads `themes/<name>/theme.lua`
+4. `themes/<name>/theme.lua` composes the structural layer plus the chosen
+   color scheme
+5. keys from `config.lua` under `theme = { ... }` are applied as final overrides
 
 ## Theme Variables
 
@@ -328,7 +336,11 @@ Layout label values:
 
 ## File Layout
 
-- `theme.lua`: theme table, palette/role mapping, and final override merge
+- `theme.lua`: theme composition entrypoint and final override merge
+- `structure.lua`: spacing, sizing, icon paths, placements, and other
+  non-color theme values
+- `colors/default.lua`: default palette, role mapping, fonts, and color-bearing
+  theme keys
 - `widgets.lua`: per-screen wibar assembly and theme-specific widget setup
 
 ## Notes
@@ -337,4 +349,5 @@ Layout label values:
   per-module config
 - `widgets.lua` still contains older non-`lx*` widget assembly that will likely
   be reduced later as more functionality moves into modules
-- the current theme is singular; multiple color schemes are a later concern
+- `color_scheme` changes only the scheme layer; spacing/layout/widget placement
+  remains owned by the `lynxburn` theme shell
