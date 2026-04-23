@@ -50,6 +50,9 @@ Rationale:
 
 - keep popup keyboard, hover-close, outside-click, and placement behavior
   consistent across modules
+- revisit popup input handling so open `lx*` popups do not block unrelated
+  global shortcuts; prefer a focus-based model or otherwise preserve normal key
+  bindings while popups are open
 - keep `lxcommon` small and utility-focused rather than turning it into a
   generic dumping ground
 
@@ -128,6 +131,8 @@ Rationale:
 ### `themes/lynxburn`
 
 - split structural values from color-scheme values later
+- align popup/action button border treatment across modules during the theme
+  split pass; some current buttons still mix orange and gray border behavior
 - keep moving repo-specific behavior out of `themes/lynxburn/widgets.lua`
   where that improves ownership boundaries
 - prune unused inherited assets once the remaining legacy widget usage is gone
