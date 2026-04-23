@@ -38,6 +38,31 @@ local function make_status_line(instance, text)
     ))
 end
 
+local function wrap_card(child)
+    return popup_common.make_card(child, {
+        margins = 6,
+        radius = 8,
+    })
+end
+
+local function wrap_selectable_card(child)
+    local card = wrap_card(child)
+
+    function card:_lx_set_selected(selected)
+        if child and child._lx_set_selected then
+            child:_lx_set_selected(selected)
+        end
+    end
+
+    function card:_lx_set_feedback_active(active)
+        if child and child._lx_set_feedback_active then
+            child:_lx_set_feedback_active(active)
+        end
+    end
+
+    return card
+end
+
 local function device_metadata(device)
     local parts = {}
 
@@ -101,13 +126,13 @@ local function make_device_row(instance, device, selected, onclick)
         layout = wibox.layout.align.horizontal,
     })
 
-    return popup_common.make_selectable_click_container(row, onclick, {
+    return wrap_selectable_card(popup_common.make_selectable_click_container(row, onclick, {
         selected = selected,
         inner_bg = instance:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
         hover_bg = instance:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
         outer_bg = instance:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
         selected_bg = instance:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-    })
+    }))
 end
 
 ---Attach popup rendering and selection-state methods to the lxbluetooth instance.
@@ -159,10 +184,18 @@ function popup.extend(instance_methods)
             status_parts[#status_parts + 1] = string.format("%d connected", self.state.connected_count)
         end
 
-        refs.status:add(make_section_header(self, "Status"))
-        refs.status:add(make_status_line(self, table.concat(status_parts, " • ")))
+        refs.status:add(wrap_card(wibox.widget({
+            make_section_header(self, "Status"),
+            make_status_line(self, table.concat(status_parts, " • ")),
+            spacing = 2,
+            layout = wibox.layout.fixed.vertical,
+        })))
 
-        refs.list:add(make_section_header(self, "Devices"))
+        refs.list:add(wrap_card(wibox.widget({
+            make_section_header(self, "Devices"),
+            spacing = 2,
+            layout = wibox.layout.fixed.vertical,
+        })))
 
         for _, device in ipairs(self.state.devices) do
             local next_index = #self._popup_items + 1
@@ -192,12 +225,12 @@ function popup.extend(instance_methods)
         end
 
         if #self.state.devices == 0 then
-            refs.list:add(make_status_line(self, "No paired devices found."))
+            refs.list:add(wrap_card(make_status_line(self, "No paired devices found.")))
         end
     end
 
     function instance_methods:_build_popup()
-        local open_manager_action = popup_common.make_selectable_click_row("Open blueman-manager", function()
+        local open_manager_action = wrap_selectable_card(popup_common.make_selectable_click_row("Open blueman-manager", function()
             self:close_popup()
             self:open_manager()
         end, {
@@ -209,8 +242,8 @@ function popup.extend(instance_methods)
             on_hover = function()
                 self:_set_popup_selection(1)
             end,
-        })
-        local toggle_power_action = popup_common.make_selectable_click_row("Toggle controller power", function()
+        }))
+        local toggle_power_action = wrap_selectable_card(popup_common.make_selectable_click_row("Toggle controller power", function()
             self:toggle_power()
         end, {
             selected = self._popup_selected_index == 2,
@@ -221,7 +254,7 @@ function popup.extend(instance_methods)
             on_hover = function()
                 self:_set_popup_selection(2)
             end,
-        })
+        }))
         local status = wibox.layout.fixed.vertical()
         local list = wibox.layout.fixed.vertical()
 

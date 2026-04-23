@@ -7,11 +7,19 @@ local M = {}
 
 local COLORS = {
     hover = beautiful.lxmedia_bg_hover or beautiful.bg_focus or "#535d6c",
+    idle = beautiful.lxmedia_button_bg or beautiful.bg_minimize or "#333333",
 }
 
 local function make_card(child)
     return popup_ui.make_card(child, {
         margins = 10,
+        radius = 8,
+    })
+end
+
+local function make_row_card(child)
+    return popup_ui.make_card(child, {
+        margins = 0,
         radius = 8,
     })
 end
@@ -27,12 +35,21 @@ end
 
 local function make_click_row(text, onclick, opts)
     opts = opts or {}
+    opts.idle_bg = opts.idle_bg or COLORS.idle
     opts.hover_bg = opts.hover_bg or COLORS.hover
     opts.text_opts = opts.text_opts or {
         ellipsize = "end",
         valign = "center",
     }
     return popup_ui.make_click_row(text, onclick, opts)
+end
+
+local function make_card_row(text, onclick, opts)
+    return make_row_card(make_click_row(text, onclick, opts))
+end
+
+local function make_card_info_row(text, opts)
+    return make_row_card(make_info_line(text, opts))
 end
 
 local function build_header(default_sink_label, default_source_label)
@@ -62,7 +79,7 @@ local function build_header(default_sink_label, default_source_label)
         forced_height = 18,
     }))
 
-    return layout
+    return make_card(layout)
 end
 
 local function build_outputs_card(instance, sinks)
@@ -82,7 +99,7 @@ local function build_outputs_card(instance, sinks)
     }))
 
     if #sinks == 0 then
-        layout:add(make_info_line("(none)", {
+        layout:add(make_card_info_row("(none)", {
             left = 12,
             right = 8,
             top = 2,
@@ -91,7 +108,7 @@ local function build_outputs_card(instance, sinks)
     else
         for _, sink in ipairs(sinks) do
             local prefix = sink.is_default and "■ " or "□ "
-            layout:add(make_click_row(prefix .. (sink.label or sink.name), function()
+            layout:add(make_card_row(prefix .. (sink.label or sink.name), function()
                 audio.set_default_sink(sink.name)
                 instance:refresh()
                 M.rebuild(instance)
@@ -126,7 +143,7 @@ local function build_inputs_card(instance, sources)
     }))
 
     if #sources == 0 then
-        layout:add(make_info_line("(none)", {
+        layout:add(make_card_info_row("(none)", {
             left = 12,
             right = 8,
             top = 2,
@@ -135,7 +152,7 @@ local function build_inputs_card(instance, sources)
     else
         for _, source in ipairs(sources) do
             local prefix = source.is_default and "● " or "○ "
-            layout:add(make_click_row(prefix .. (source.label or source.name), function()
+            layout:add(make_card_row(prefix .. (source.label or source.name), function()
                 audio.set_default_source(source.name)
                 instance:refresh()
                 M.rebuild(instance)
@@ -165,7 +182,7 @@ local function build_stream_route_rows(instance, stream, sinks, layout)
 
     for _, sink in ipairs(sinks) do
         local prefix = (sink.id == stream.sink_id) and "■ " or "□ "
-        layout:add(make_click_row(prefix .. (sink.label or sink.name), function()
+        layout:add(make_card_row(prefix .. (sink.label or sink.name), function()
             audio.move_sink_input(stream.id, sink.name)
             instance:refresh()
             M.rebuild(instance)
@@ -196,7 +213,7 @@ local function build_streams_card(instance, streams, sinks)
     }))
 
     if #streams == 0 then
-        layout:add(make_info_line("(none)", {
+        layout:add(make_card_info_row("(none)", {
             left = 12,
             right = 8,
             top = 2,
@@ -216,7 +233,7 @@ local function build_streams_card(instance, streams, sinks)
         local muted_prefix = stream.muted and ((beautiful.lxmedia_icon_muted or "M") .. "  ") or ""
         local title = prefix .. muted_prefix .. (stream.label or ("Stream " .. tostring(stream.id)))
 
-        sublayout:add(make_click_row(title, function()
+        sublayout:add(make_card_row(title, function()
             instance.ui_state.devices_stream_expanded[stream.id] = not expanded
             M.rebuild(instance)
         end, {
@@ -227,7 +244,7 @@ local function build_streams_card(instance, streams, sinks)
         }))
 
         if stream.detail then
-            sublayout:add(make_info_line(stream.detail, {
+            sublayout:add(make_card_info_row(stream.detail, {
                 left = 24,
                 right = 8,
                 top = 0,
@@ -241,7 +258,7 @@ local function build_streams_card(instance, streams, sinks)
             output_line = output_line .. "  [" .. tostring(stream.volume) .. "%]"
         end
 
-        sublayout:add(make_info_line(output_line, {
+        sublayout:add(make_card_info_row(output_line, {
             left = 24,
             right = 8,
             top = 0,
@@ -275,7 +292,7 @@ local function build_advanced_card(instance)
         forced_height = 20,
     }))
 
-    local pavucontrol_row = make_click_row("Open pavucontrol", function()
+    local pavucontrol_row = make_card_row("Open pavucontrol", function()
         audio.open_pavucontrol()
         if instance._devices_popup then
             instance._devices_popup.visible = false
