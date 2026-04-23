@@ -59,8 +59,14 @@ local function shell_assignment(key, value)
     return tostring(key) .. "=" .. util.shell_escape(value)
 end
 
+local function vpn_hold_path(vpn_name)
+    local safe = tostring(vpn_name or ""):gsub("[^%w_.-]", "_")
+    return "/tmp/lxsecrets-vpn-" .. safe .. ".hold"
+end
+
 local function wrap_vpn(command, vpn_name, timeout_seconds)
     local vpn = util.shell_escape(vpn_name)
+    local hold = util.shell_escape(vpn_hold_path(vpn_name))
     local seconds = tonumber(timeout_seconds) or DEFAULT_VPN_TIMEOUT_SECONDS
     local wrapped_command = "timeout --foreground "
         .. util.shell_escape(tostring(seconds))
@@ -69,15 +75,19 @@ local function wrap_vpn(command, vpn_name, timeout_seconds)
 
     return table.concat({
         "(",
+        "managed=0;",
         "if nmcli -t -f NAME connection show --active | grep -Fx -- " .. vpn .. " >/dev/null; then",
+        "if [ -f " .. hold .. " ]; then managed=1; fi;",
         wrapped_command .. ";",
         "rc=$?;",
         "else",
         "nmcli connection up " .. vpn .. " >/dev/null || { echo 'failed to activate vpn " .. tostring(vpn_name) .. "' >&2; exit 1; };",
+        "managed=1;",
         wrapped_command .. ";",
         "rc=$?;",
-        "if [ \"$rc\" -ne 10 ]; then nmcli connection down " .. vpn .. " >/dev/null || true; fi;",
         "fi;",
+        "if [ \"$managed\" -eq 1 ] && [ \"$rc\" -eq 10 ]; then : > " .. hold .. "; fi;",
+        "if [ \"$managed\" -eq 1 ] && [ \"$rc\" -ne 10 ]; then nmcli connection down " .. vpn .. " >/dev/null || true; rm -f " .. hold .. "; fi;",
         "if [ \"$rc\" -eq 124 ]; then echo 'vpn-gated refresh timed out' >&2; fi;",
         "exit $rc;",
         ")",

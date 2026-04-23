@@ -261,6 +261,7 @@ local function collect_secrets_dependencies(grouped)
         require_binary(grouped, "lxsecrets", "jq")
         require_binary(grouped, "lxsecrets", "secret-tool")
         require_binary(grouped, "lxsecrets", "notify-send")
+        require_binary(grouped, "lxsecrets", "mktemp")
     end
 
     if has_vpn then

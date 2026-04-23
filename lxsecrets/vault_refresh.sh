@@ -82,10 +82,24 @@ vault_renew_json() {
 }
 
 vault_oidc_login_token() {
-  VAULT_ADDR="$VAULT_ADDR" VAULT_SKIP_VERIFY=$VAULT_SKIP_VERIFY vault login \
+  local stdout_file stderr_file rc
+
+  stdout_file="$(mktemp)"
+  stderr_file="$(mktemp)"
+
+  if VAULT_ADDR="$VAULT_ADDR" VAULT_SKIP_VERIFY=$VAULT_SKIP_VERIFY vault login \
     -method=oidc \
     -path="$VAULT_AUTH_PATH" \
-    -token-only
+    -token-only >"$stdout_file" 2>"$stderr_file"; then
+    cat "$stdout_file"
+    rm -f "$stdout_file" "$stderr_file"
+    return 0
+  fi
+
+  rc=$?
+  cat "$stderr_file" >&2 || true
+  rm -f "$stdout_file" "$stderr_file"
+  return "$rc"
 }
 
 json_field() {
