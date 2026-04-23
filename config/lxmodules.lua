@@ -26,6 +26,18 @@ local function runtime_module_settings(id)
     return module_settings
 end
 
+local function normalize_bar_module_id(id)
+    if type(id) ~= "string" or id == "" then
+        return nil
+    end
+
+    if id:match("^lx[%w_]+$") then
+        return id:gsub("^lx", "")
+    end
+
+    return id
+end
+
 function M.order()
     local order = (lxmodules().lxbar or {}).order
 
@@ -33,7 +45,16 @@ function M.order()
         return {}
     end
 
-    return order
+    local normalized = {}
+
+    for _, id in ipairs(order) do
+        local normalized_id = normalize_bar_module_id(id)
+        if normalized_id then
+            normalized[#normalized + 1] = normalized_id
+        end
+    end
+
+    return normalized
 end
 
 function M.popup_side()

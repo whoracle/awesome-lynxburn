@@ -62,9 +62,9 @@ M.lxmodules = {
     lxbar = {
         popup_side = "right",
         order = {
-            "network",
-            "media",
-            "notify",
+            "lxnetwork",
+            "lxmedia",
+            "lxnotify",
         },
         modules = {
             media = {},

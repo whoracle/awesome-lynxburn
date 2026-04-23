@@ -51,12 +51,12 @@ return {
     --     lxbar = {
     --         popup_side = "right",
     --         order = {
-    --             "bluetooth",
-    --             "network",
-    --             "media",
-    --             "notify",
-    --             "display",
-    --             "power",
+    --             "lxbluetooth",
+    --             "lxnetwork",
+    --             "lxmedia",
+    --             "lxnotify",
+    --             "lxdisplay",
+    --             "lxpower",
     --         },
     --         modules = {
     --             bluetooth = {
