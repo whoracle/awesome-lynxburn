@@ -190,6 +190,7 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
 
     local selectable = popup_common.make_selectable_click_container(body, nil, {
         selected = selected,
+        selection_margin = 1,
         inner_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
         hover_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
         outer_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
