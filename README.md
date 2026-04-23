@@ -36,6 +36,17 @@ Common external commands used by the current config:
 - `xrandr`
 - `scrot`
 - `secret-tool` if you use the current IMAP password lookup flow
+  To store a secret, use something like this: `secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account me@example.org`.
+  Then configure the IMAP widget like this:
+  ```lua
+    commands = {
+`     lain = {
+        imap_mail = "me@example.org",
+        imap_secret = "secret-tool lookup service awesomewm-imap account me@example.org",
+        imap_server = "mail.example.org",
+      },
+    },
+  ```
 
 Common desktop programs referenced by the defaults:
 
