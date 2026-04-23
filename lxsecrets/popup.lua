@@ -59,20 +59,12 @@ local function wrap_selectable_card(child)
     return card
 end
 
-local function action_text(label, fg, onclick)
-    local widget = wibox.widget({
+local function action_text(label, fg)
+    return wibox.widget({
         markup = string.format("<span foreground='%s'>%s</span>", fg, label),
         valign = "center",
         widget = wibox.widget.textbox,
     })
-
-    if onclick then
-        widget:buttons(gears.table.join(
-            awful.button({}, 1, onclick)
-        ))
-    end
-
-    return widget
 end
 
 local function action_row(instance, label, selected, index, onclick)
@@ -119,26 +111,36 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
     end
 
     if secret.auth_required then
-        local auth_line = wibox.layout.fixed.horizontal()
-        auth_line.spacing = 8
-        auth_line:add(wibox.widget({
-            markup = string.format(
-                "<span size='x-small' foreground='%s'>login required</span>",
-                state_fg
-            ),
-            widget = wibox.widget.textbox,
-        }))
-        auth_line:add(action_text("login", state_fg, function()
+        local auth_line = popup_common.make_click_container(wibox.widget({
+            {
+                wibox.widget({
+                    markup = string.format(
+                        "<span size='x-small' foreground='%s'>login required</span>",
+                        state_fg
+                    ),
+                    widget = wibox.widget.textbox,
+                }),
+                action_text("login", state_fg),
+                spacing = 8,
+                layout = wibox.layout.fixed.horizontal,
+            },
+            layout = wibox.layout.fixed.horizontal,
+        }), function()
             instance:login_secret(secret_index)
-        end))
+        end, {
+            left = 0,
+            right = 0,
+            top = 0,
+            bottom = 0,
+            hover_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
+            press_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
+        })
         info:add(auth_line)
     end
 
     local actions = wibox.layout.fixed.horizontal()
     actions.spacing = 8
-    actions:add(action_text("refresh", state_fg, function()
-        instance:refresh_secret(secret_index)
-    end))
+    actions:add(action_text("refresh", state_fg))
 
     local row = wibox.widget({
         info,
