@@ -76,7 +76,7 @@ local function wrap_vpn(command, vpn_name, timeout_seconds)
         "nmcli connection up " .. vpn .. " >/dev/null || { echo 'failed to activate vpn " .. tostring(vpn_name) .. "' >&2; exit 1; };",
         wrapped_command .. ";",
         "rc=$?;",
-        "nmcli connection down " .. vpn .. " >/dev/null || true;",
+        "if [ \"$rc\" -ne 10 ]; then nmcli connection down " .. vpn .. " >/dev/null || true; fi;",
         "fi;",
         "if [ \"$rc\" -eq 124 ]; then echo 'vpn-gated refresh timed out' >&2; fi;",
         "exit $rc;",

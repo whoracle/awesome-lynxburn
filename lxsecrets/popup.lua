@@ -110,8 +110,35 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         }))
     end
 
+    local actions = wibox.layout.fixed.horizontal()
+    actions.spacing = 8
+    actions:add(action_text("refresh", state_fg))
+
+    local refresh_row = popup_common.make_selectable_click_container(wibox.widget({
+        info,
+        nil,
+        actions,
+        expand = "inside",
+        layout = wibox.layout.align.horizontal,
+    }), function()
+        instance:refresh_secret(secret_index)
+    end, {
+        selected = selected,
+        inner_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        hover_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
+        outer_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        selected_bg = instance:_theme_value("lxsecrets_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+        on_hover = function()
+            instance:_set_popup_selection(selection_index)
+        end,
+    })
+
+    local card_content = wibox.layout.fixed.vertical()
+    card_content.spacing = 4
+    card_content:add(refresh_row)
+
     if secret.auth_required then
-        local auth_line = popup_common.make_click_container(wibox.widget({
+        card_content:add(popup_common.make_click_container(wibox.widget({
             {
                 wibox.widget({
                     markup = string.format(
@@ -134,36 +161,22 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
             bottom = 0,
             hover_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
             press_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
-        })
-        info:add(auth_line)
+        }))
     end
 
-    local actions = wibox.layout.fixed.horizontal()
-    actions.spacing = 8
-    actions:add(action_text("refresh", state_fg))
+    function card_content:_lx_set_selected(value)
+        if refresh_row and refresh_row._lx_set_selected then
+            refresh_row:_lx_set_selected(value)
+        end
+    end
 
-    local row = wibox.widget({
-        info,
-        nil,
-        actions,
-        expand = "inside",
-        layout = wibox.layout.align.horizontal,
-    })
+    function card_content:_lx_set_feedback_active(value)
+        if refresh_row and refresh_row._lx_set_feedback_active then
+            refresh_row:_lx_set_feedback_active(value)
+        end
+    end
 
-    local container = popup_common.make_selectable_click_container(row, function()
-        instance:refresh_secret(secret_index)
-    end, {
-        selected = selected,
-        inner_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
-        hover_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
-        outer_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
-        selected_bg = instance:_theme_value("lxsecrets_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-        on_hover = function()
-            instance:_set_popup_selection(selection_index)
-        end,
-    })
-
-    return wrap_selectable_card(container)
+    return wrap_selectable_card(card_content)
 end
 
 function M.extend(instance_methods)
