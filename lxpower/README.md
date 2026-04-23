@@ -42,7 +42,7 @@ lxbar block:
 ```lua
 lxmodules = {
     lxbar = {
-        order = { "network", "media", "notify", "power" },
+        order = { "lxnetwork", "lxmedia", "lxnotify", "lxpower" },
     },
 }
 ```

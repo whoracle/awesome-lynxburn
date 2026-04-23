@@ -126,7 +126,7 @@ screens = {
 
 lxmodules = {
     lxbar = {
-        order = { "bluetooth", "network", "media", "notify", "display", "power" },
+        order = { "lxbluetooth", "lxnetwork", "lxmedia", "lxnotify", "lxdisplay", "lxpower" },
         popup_side = "right",
         modules = {
             bluetooth = { cycle = false },
