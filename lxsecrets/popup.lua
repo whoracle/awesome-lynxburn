@@ -38,25 +38,17 @@ local function status_line(instance, text)
     ))
 end
 
-local function wrap_selectable_card(child)
-    local card = popup_common.make_card(child, {
-        margins = 6,
-        radius = 6,
+local function selectable_card(instance, child, selected, index, onclick)
+    return popup_common.make_selectable_click_container(child, onclick, {
+        selected = selected,
+        inner_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        hover_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
+        outer_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        selected_bg = instance:_theme_value("lxsecrets_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+        on_hover = function()
+            instance:_set_popup_selection(index)
+        end,
     })
-
-    function card:_lx_set_selected(selected)
-        if child and child._lx_set_selected then
-            child:_lx_set_selected(selected)
-        end
-    end
-
-    function card:_lx_set_feedback_active(active)
-        if child and child._lx_set_feedback_active then
-            child:_lx_set_feedback_active(active)
-        end
-    end
-
-    return card
 end
 
 local function badge(label, fg)
@@ -101,16 +93,7 @@ local function action_button(instance, label, onclick)
 end
 
 local function action_row(instance, label, selected, index, onclick)
-    return wrap_selectable_card(popup_common.make_selectable_click_row(label, onclick, {
-        selected = selected,
-        inner_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
-        hover_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
-        outer_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
-        selected_bg = instance:_theme_value("lxsecrets_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-        on_hover = function()
-            instance:_set_popup_selection(index)
-        end,
-    }))
+    return selectable_card(instance, popup_common.make_text(label), selected, index, onclick)
 end
 
 local function secret_row(instance, secret, selected, selection_index, secret_index)
@@ -177,36 +160,20 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         end))
     end
 
-    local selectable = popup_common.make_selectable_click_container(info, nil, {
-        selected = selected,
-        selection_margin = 1,
-        inner_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
-        hover_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
-        outer_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
-        selected_bg = instance:_theme_value("lxsecrets_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-        on_hover = function()
-            instance:_set_popup_selection(selection_index)
-        end,
+    local body = wibox.widget({
+        info,
+        {
+            buttons,
+            top = 8,
+            widget = wibox.container.margin,
+        },
+        spacing = 0,
+        layout = wibox.layout.fixed.vertical,
     })
 
-    local card = wibox.layout.fixed.vertical()
-    card.spacing = 8
-    card:add(selectable)
-    card:add(buttons)
-
-    function card:_lx_set_selected(value)
-        if selectable and selectable._lx_set_selected then
-            selectable:_lx_set_selected(value)
-        end
-    end
-
-    function card:_lx_set_feedback_active(value)
-        if selectable and selectable._lx_set_feedback_active then
-            selectable:_lx_set_feedback_active(value)
-        end
-    end
-
-    return wrap_selectable_card(card)
+    return selectable_card(instance, body, selected, selection_index, function()
+        instance:refresh_secret(secret_index)
+    end)
 end
 
 function M.extend(instance_methods)
