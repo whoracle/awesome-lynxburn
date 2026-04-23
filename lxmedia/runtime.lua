@@ -145,6 +145,7 @@ function M.extend(instance_methods)
         end
         if self._refs.output_bar_margin then
             self._refs.output_bar_margin.visible = show_bars
+            self._refs.output_bar_margin.forced_width = show_bars and self._refs.output_bar_shown_width or self._refs.output_bar_hidden_width
         end
 
         if self._refs.mic_bar_slot then
@@ -152,6 +153,9 @@ function M.extend(instance_methods)
         end
         if self._refs.mic_bar_margin then
             self._refs.mic_bar_margin.visible = show_bars and (self.opts.show_mic_activity and self.state.mic_active or false)
+            self._refs.mic_bar_margin.forced_width = (show_bars and (self.opts.show_mic_activity and self.state.mic_active or false))
+                and self._refs.mic_bar_shown_width
+                or self._refs.mic_bar_hidden_width
         end
 
         widget_feedback.sync(self, function()
