@@ -76,12 +76,12 @@ local function action_button(instance, label, onclick)
             widget = wibox.container.margin,
         },
         shape = gears.shape.rounded_rect,
-        bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        bg = instance:_theme_value("lxsecrets_button_bg", beautiful.bg_minimize or "#222222"),
         widget = wibox.container.background,
     })
 
     popup_common.attach_button_feedback(button, {
-        idle_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        idle_bg = instance:_theme_value("lxsecrets_button_bg", beautiful.bg_minimize or "#222222"),
         hover_bg = instance:_theme_value("lxsecrets_button_hover", beautiful.bg_focus or "#444444"),
     })
 

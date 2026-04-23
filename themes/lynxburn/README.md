@@ -292,6 +292,7 @@ Layout label values:
 - `lxsecrets_popup_bg`
 - `lxsecrets_popup_width`
 - `lxsecrets_popup_placement`
+- `lxsecrets_button_bg`
 - `lxsecrets_button_hover`
 - `lxsecrets_selected_bg`
 - `lxsecrets_meta_fg`

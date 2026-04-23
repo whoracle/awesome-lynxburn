@@ -264,6 +264,7 @@ local theme = {
     lxsecrets_popup_bg = roles.panel_bg,
     lxsecrets_popup_width = 380,
     lxsecrets_popup_placement = "side",
+    lxsecrets_button_bg = roles.raised_bg,
     lxsecrets_button_hover = roles.hover_bg,
     lxsecrets_selected_bg = roles.text_accent,
     lxsecrets_meta_fg = roles.text_meta,
