@@ -58,6 +58,13 @@ local function make_click_row(text, onclick, opts)
 end
 
 local function make_selectable_card_row(instance, text, selected, index, onclick, opts)
+    opts = opts or {}
+    if opts.top == nil then
+        opts.top = 2
+    end
+    if opts.bottom == nil then
+        opts.bottom = 2
+    end
     return make_row_card(selectable_card(instance, make_info_line(text, opts), selected, index, onclick))
 end
 
