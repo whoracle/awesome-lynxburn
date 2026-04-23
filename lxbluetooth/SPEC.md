@@ -1,18 +1,18 @@
 # lxbluetooth SPEC
 
-## Planned
+Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 
-- Keep `lxbluetooth` as a compact controller/device popup rather than growing
-  it into a full Bluetooth management frontend.
-- Preserve the current popup shape:
+## Scope
+
+- `lxbluetooth` is a compact controller/device popup rather than a full
+  Bluetooth management frontend
+- the popup stays focused on:
   - open external manager
   - toggle controller power
   - list paired devices
   - connect/disconnect selected device
-- Keep popup cycling and keyboard navigation aligned with the shared `lxbar`
-  popup model.
-- Continue splitting popup/session logic into dedicated files instead of
-  regrowing a large `init.lua`.
+- popup cycling and keyboard navigation stay aligned with the shared `lxbar`
+  popup model
 
 ## Unplanned
 

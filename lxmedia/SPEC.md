@@ -1,23 +1,26 @@
 # lxmedia SPEC
 
-## Planned
+Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 
-- Keep `lxmedia` as the combined audio widget for:
+## Scope
+
+- `lxmedia` is the combined audio widget for:
   - default output volume/mute
   - microphone activity and input volume
   - playback stream inspection
   - output/input device switching
   - basic MPRIS transport controls
-- Preserve the two-popup model:
+- it keeps the two-popup model:
   - primary popup for playback streams and transport
   - secondary popup for devices and routing
-- Keep top-level controls compact and bar-friendly.
-- Continue using shared popup/session semantics so popup cycling and keyboard
-  behavior stay aligned with the rest of the lx* modules.
-- Keep `init.lua` thin by moving lifecycle/runtime helpers and popup-controller
-  logic into focused files.
-- Retain both event subscription and polling so the widget stays responsive
-  without depending on one backend path only.
+- top-level controls stay compact and bar-friendly
+- popup/session behavior stays aligned with the shared `lxbar` model
+- the module may use both event subscription and polling so responsiveness does
+  not depend on one backend path only
+
+## Known issues
+
+- README.md is missing the keyboard controls contract. Only mouse interactions and "how to spawn the widget" keybindings are documented.
 
 ## Unplanned
 

@@ -1,25 +1,21 @@
 # lxnotify SPEC
 
-## Planned
+Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 
-- Keep `lxnotify` as the retained notification inbox for this config, not a
-  full replacement for every live `naughty` popup behavior.
-- Preserve the current split between:
+## Scope
+
+- `lxnotify` is the retained in-session notification inbox for this config, not
+  a full replacement for every live `naughty` popup behavior
+- it preserves the current split between:
   - daemon suspension (`naughty.suspended`)
   - inbox interception pause
-- Keep grouped notification handling, keyboard navigation, popup cycling
-  participation, and action invocation as first-class features.
-- Continue shrinking `init.lua` into a thin constructor/public entry point,
-  with state, popup control, and rendering concerns split into dedicated files.
-- Reduce duplicated popup/session behavior where it can move into `lxcommon`
-  without making `lxcommon` notification-specific.
-- Keep the popup model compact:
+- grouped notification handling, keyboard navigation, popup cycling
+  participation, and action invocation are first-class features
+- the popup model stays compact:
   - top-level grouped inbox
   - per-group detail view
   - no separate alternate popup variants
-- Harden notification action invocation for browser/web-app cases where client
-  matching and action objects are less predictable.
-- Keep denylist-driven filtering configurable from `lxmodules.lxnotify`.
+- denylist-driven filtering stays configurable from `lxmodules.lxnotify`
 
 ## Unplanned
 

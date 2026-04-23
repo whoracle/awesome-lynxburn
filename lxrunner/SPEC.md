@@ -1,14 +1,14 @@
-# lxrunner Remaining Work
+# lxrunner Spec
 
-`lxrunner` already exists and is no longer just a proposal.
+Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 
-This file only tracks what is still wanted for the module.
+## Scope
 
-## Still Wanted
-
-- consider later result-row metadata such as a small source indicator or
-  description when it clearly improves usability
-  Why: useful, but lower priority than finishing broader repo work
+- `lxrunner` is a narrow Awesome-native launcher/history tool
+- it owns:
+  - command history
+  - alias expansion
+  - compact launcher UI
 
 ## Explicit Non-Goals For Now
 

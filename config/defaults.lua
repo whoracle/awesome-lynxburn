@@ -4,6 +4,7 @@ local default_keys = require("config.default_keys")
 
 M.theme = {
     name = "lynxburn",
+    color_scheme = "default",
 }
 
 M.screens = {
@@ -62,19 +63,19 @@ M.lxmodules = {
     lxbar = {
         popup_side = "right",
         order = {
-            "network",
-            "media",
-            "notify",
+            "lxnetwork",
+            "lxmedia",
+            "lxnotify",
         },
         modules = {
-            media = {},
-            bluetooth = {},
-            display = {},
-            network = {
+            lxmedia = {},
+            lxbluetooth = {},
+            lxdisplay = {},
+            lxnetwork = {
                 -- cycle = false,
             },
-            notify = {},
-            power = {},
+            lxnotify = {},
+            lxpower = {},
         },
     },
     lxmedia = {
@@ -156,6 +157,23 @@ M.lxmodules = {
         history_limit = 10,
         prompt = "Run",
         aliases = {},
+    },
+    lxsecrets = {
+        at_start = true,
+        interval = "30m",
+        top_level = "always",
+        cycle_exclude = true,
+        browser = nil,
+        vpn_timeout = "5m",
+        interactive_vpn_timeout = "15m",
+        thresholds = {
+            gitlab = "30d",
+            hashicorp_vault = "7d",
+        },
+        lifetimes = {
+            gitlab = "365d",
+        },
+        secrets = {},
     },
 }
 

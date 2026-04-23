@@ -26,7 +26,7 @@ Internal:
 - desktop entry discovery
 - alias support from `lxmodules.lxrunner.aliases`
 - alias decorations via icon or glyph
-- launch history with recency bias
+- launch history with recency and invocation-count bias
 - tab completion
 - middle-click primary-selection paste in the input box
 
@@ -159,6 +159,8 @@ Alias `type` values currently used:
 ## Notes
 
 - `lxrunner` stores launch history in `~/.lxrunner_history` by default
+- persisted history entries also track invocation counts and use them during
+  ranking
 - the top-level startup preflight checks `find` because command and
   desktop-entry discovery depend on it
 - no secrets or credentials are embedded in the module

@@ -21,12 +21,26 @@ function M.name()
     return "lynxburn"
 end
 
+function M.color_scheme()
+    local theme = config_data.theme()
+
+    if type(theme.color_scheme) == "string" and theme.color_scheme ~= "" then
+        return theme.color_scheme
+    end
+
+    if type(theme.scheme) == "string" and theme.scheme ~= "" then
+        return theme.scheme
+    end
+
+    return "default"
+end
+
 function M.overrides()
     local theme = config_data.theme()
     local overrides = {}
 
     for key, value in pairs(theme) do
-        if key ~= "name" then
+        if key ~= "name" and key ~= "color_scheme" and key ~= "scheme" then
             overrides[key] = value
         end
     end

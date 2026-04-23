@@ -9,6 +9,7 @@ return {
     -- },
     -- theme = {
     --     name = "lynxburn",
+    --     color_scheme = "default",
     --     -- Flat keys override `beautiful.*` values after the theme loads.
     --     wallpaper = os.getenv("HOME") .. "/Pictures/wallpaper.png",
     --     wibar_height = 24,
@@ -51,18 +52,18 @@ return {
     --     lxbar = {
     --         popup_side = "right",
     --         order = {
-    --             "bluetooth",
-    --             "network",
-    --             "media",
-    --             "notify",
-    --             "display",
-    --             "power",
+    --             "lxbluetooth",
+    --             "lxnetwork",
+    --             "lxmedia",
+    --             "lxnotify",
+    --             "lxdisplay",
+    --             "lxpower",
     --         },
     --         modules = {
-    --             bluetooth = {
+    --             lxbluetooth = {
     --                 -- cycle = false,
     --             },
-    --             network = {
+    --             lxnetwork = {
     --                 -- cycle = false,
     --             },
     --         },
@@ -129,6 +130,44 @@ return {
     --         preferred_profiles = {
     --             battery = "power-saver",
     --             ac = "balanced",
+    --         },
+    --     },
+    --     lxsecrets = {
+    --         at_start = true,
+    --         interval = "30m",
+    --         top_level = "urgent",
+    --         cycle_exclude = true,
+    --         browser = "vivaldi-stable --profile-directory=Profile\\ 1",
+    --         vpn_timeout = "5m",
+    --         interactive_vpn_timeout = "15m",
+    --         thresholds = {
+    --             gitlab = "30d",
+    --             hashicorp_vault = "7d",
+    --         },
+    --         secrets = {
+    --             {
+    --                 name = "GitLab PAT",
+    --                 selectors = {
+    --                     type = "gitlab",
+    --                     gitlab_url = "https://gitlab.example.org",
+    --                     label = "SHELL_GIT_TOKEN",
+    --                     service = "gitlab-example",
+    --                     account = "me@example.org",
+    --                 },
+    --             },
+    --             {
+    --                 name = "Vault token",
+    --                 vpn = "corp-vpn",
+    --                 selectors = {
+    --                     type = "hashicorp_vault",
+    --                     vault_url = "https://vault.example.org",
+    --                     label = "Vault token for https://vault.example.org",
+    --                     service = "vault-example",
+    --                     account = "me@example.org",
+    --                     auth_path = "oidc",
+    --                     skip_verify = false,
+    --                 },
+    --             },
     --         },
     --     },
     --     lxrunner = {

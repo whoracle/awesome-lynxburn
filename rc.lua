@@ -31,6 +31,7 @@ local lxnetwork = nil
 local lxnotify = nil
 local lxpower = nil
 local lxrunner = nil
+local lxsecrets = nil
 
 config.helpers.setup_error_handling(awesome, naughty)
 
@@ -39,6 +40,7 @@ config.theme.init(beautiful)
 -- Long-lived shared services are created only after the theme is loaded so
 -- their widgets read final `beautiful` values rather than partial defaults.
 local services = config.services.bootstrap()
+lxsecrets = services.secrets
 lxmedia = services.media
 lxnotify = services.notify
 lxrunner = services.runner

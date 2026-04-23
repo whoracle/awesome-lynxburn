@@ -4,6 +4,7 @@ local beautiful = require("beautiful")
 local keygrabber = require("awful.keygrabber")
 local unpack = table.unpack or unpack
 local popup_control = require("lxcommon.popup_control")
+local devices_popup_controller = require("lxmedia.devices_popup_controller")
 local media_popup_controller = require("lxmedia.media_popup_controller")
 local popup_controller = require("lxmedia.popup_controller")
 local runtime = require("lxmedia.runtime")
@@ -39,6 +40,7 @@ local function merge_defaults(opts)
 end
 
 runtime.extend(M)
+devices_popup_controller.extend(M)
 media_popup_controller.extend(M)
 popup_controller.extend(M)
 
@@ -144,7 +146,9 @@ function M.new(opts)
         mic_active = false,
     }
     self.media_popup_selected_index = 1
+    self.devices_popup_selected_index = 1
     self._media_popup_items = {}
+    self._devices_popup_items = {}
 
     self.ui_state = self.ui_state or {
         media_players_expanded = true,

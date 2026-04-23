@@ -320,6 +320,7 @@ Fallbacks:
 - The widget both polls and subscribes. That keeps it responsive, but it can still momentarily lag behind fast external changes depending on backend timing.
 - Hover-close behavior depends on pointer geometry and popup anchoring. On unusual layouts or rapid mouse movement, the close timing may feel slightly aggressive or slightly delayed.
 - Keyboard-invoked popups should usually be shown with `hover_close = false`; otherwise they may close immediately if the pointer is already outside the popup.
+
 ## File Overview
 
 - [init.lua](/home/anthrax/tmp/awesome/lxmedia/init.lua): constructor plus core volume/input actions

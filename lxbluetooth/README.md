@@ -44,7 +44,7 @@ lxbar block:
 ```lua
 lxmodules = {
     lxbar = {
-        order = { "bluetooth", "network", "media", "notify" },
+        order = { "lxbluetooth", "lxnetwork", "lxmedia", "lxnotify" },
     },
 }
 ```

@@ -103,3 +103,5 @@ the calling module rather than by `lxcommon`-specific theme variables.
 - `popup_ui.lua`: reusable popup rows, cards, and button-feedback helpers
 - `registry.lua`: shared top-level widget registry used by `lxbar`
 - `widget_feedback.lua`: shared top-level widget highlight syncing helpers
+- `dkjson.lua`: vendored JSON helper used by repo-owned modules without
+  depending on `lain` internals

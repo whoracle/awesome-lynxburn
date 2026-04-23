@@ -6,6 +6,26 @@ local popup_ui = require("lxcommon.popup_ui")
 
 local popup = {}
 
+local function wrap_card(child)
+    return popup_ui.make_card(child, {
+        margins = 6,
+        radius = 8,
+    })
+end
+
+local function selectable_card(instance, child, selected, index, onclick)
+    return popup_ui.make_selectable_click_container(child, onclick, {
+        selected = selected,
+        inner_bg = instance:_theme_value("lxpower_popup_bg", beautiful.bg_normal or "#222222"),
+        hover_bg = instance:_theme_value("lxpower_button_hover", beautiful.bg_focus or "#444444"),
+        outer_bg = instance:_theme_value("lxpower_popup_bg", beautiful.bg_normal or "#222222"),
+        selected_bg = instance:_theme_value("lxpower_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+        on_hover = function()
+            instance:_set_popup_selection(index)
+        end,
+    })
+end
+
 ---Attach popup rendering and selection-state methods to the lxpower instance.
 function popup.extend(instance_methods)
     function instance_methods:_set_popup_selection(index)
@@ -66,14 +86,14 @@ function popup.extend(instance_methods)
         local profile = wibox.widget({ markup = "", widget = wibox.widget.textbox })
         local gpu = wibox.widget({ markup = "", widget = wibox.widget.textbox })
         local time = wibox.widget({ markup = "", widget = wibox.widget.textbox })
-        local status = wibox.widget({
+        local status = wrap_card(wibox.widget({
             source,
             profile,
             gpu,
             time,
             spacing = 2,
             layout = wibox.layout.fixed.vertical,
-        })
+        }))
         local list = wibox.layout.fixed.vertical()
         self._popup_items = {}
 
@@ -85,18 +105,9 @@ function popup.extend(instance_methods)
                 label = self:_theme_value("lxpower_icon_pinned", "") .. " " .. label
             end
 
-            local row = popup_ui.make_selectable_click_row(label, function()
+            local row = selectable_card(self, popup_ui.make_text(label), selected, next_index, function()
                 self:set_profile(profile_name)
-            end, {
-                selected = selected,
-                inner_bg = self:_theme_value("lxpower_popup_bg", beautiful.bg_normal or "#222222"),
-                hover_bg = self:_theme_value("lxpower_button_hover", beautiful.bg_focus or "#444444"),
-                outer_bg = self:_theme_value("lxpower_popup_bg", beautiful.bg_normal or "#222222"),
-                selected_bg = self:_theme_value("lxpower_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-                on_hover = function()
-                    self:_set_popup_selection(next_index)
-                end,
-            })
+            end)
             list:add(row)
             self._popup_items[#self._popup_items + 1] = {
                 widget = row,

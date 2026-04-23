@@ -1,24 +1,17 @@
-# lynxburn Remaining Work
+# lynxburn Spec
 
-`lynxburn` is the active bundled theme and no longer a placeholder.
+Planned work lives in [`../../ROADMAP.md`](../../ROADMAP.md).
 
-This file tracks what is still wanted from the theme layer.
+## Scope
 
-## Still Wanted
-
-- split the theme later into structural values and color-scheme values
-  Why: the current single-file theme is workable, but palette swapping will be
-  cleaner once colors and non-color theme settings are separated
-
-- keep moving repo-specific behavior out of `themes/lynxburn/widgets.lua` and
-  into dedicated modules where that produces a cleaner ownership boundary
-  Why: the theme should own appearance and final composition, not accumulate
-  unrelated business logic
-
-- prune unused inherited theme assets once the remaining old widget usage is
-  reduced or removed
-  Why: the theme tree still contains older bundled assets that should not live
-  forever if they no longer serve the current config
+- `lynxburn` is the active bundled theme
+- the theme owns colors, sizing, spacing, and other appearance-level knobs
+- color schemes may vary palette/fonts while the `lynxburn` theme shell keeps
+  structural layout, spacing, and widget composition stable
+- `widgets.lua` still owns the current wibar assembly and the remaining
+  non-`lx*` theme widgets until they are intentionally replaced or extracted
+- repo-specific business logic should not accumulate in theme code unless the
+  behavior is genuinely presentation-specific
 
 ## Explicit Non-Goals For Now
 
@@ -27,7 +20,8 @@ This file tracks what is still wanted from the theme layer.
   change it
 
 - no multi-theme framework yet
-  Why: there is one active bundled theme and broader feature work matters more
+  Why: multiple color schemes inside `lynxburn` are fine, but broader theme
+  packaging/framework work still matters less than module behavior
 
 - no nesting of theme config under per-module config trees
   Why: theme overrides are intentionally kept under the top-level `theme` key in

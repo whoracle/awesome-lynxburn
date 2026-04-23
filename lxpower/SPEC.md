@@ -1,20 +1,19 @@
 # lxpower SPEC
 
-## Planned
+Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 
-- Keep `lxpower` as a compact power-profile switcher rather than expanding it
-  into a large system monitor.
-- Preserve the current split between:
+## Scope
+
+- `lxpower` is a compact power-profile switcher rather than a large system
+  monitor
+- it preserves the current split between:
   - quick top-level toggle behavior
   - explicit popup profile selection
   - optional pinning
-- Keep preferred profiles remembered per source (`battery` vs `ac`).
-- Keep battery timing and dGPU status as compact status metadata, not as the
-  main focus of the popup.
-- Continue using the shared popup/session model so cycling and keyboard
-  navigation stay consistent with other lx* modules.
-- Keep the implementation split into focused files instead of regrowing a large
-  `init.lua`.
+- preferred profiles stay remembered per source (`battery` vs `ac`)
+- battery timing and dGPU status stay compact metadata, not the main focus of
+  the popup
+- popup/session behavior stays aligned with shared `lx*` popup conventions
 
 ## Unplanned
 

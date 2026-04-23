@@ -20,9 +20,66 @@ end
 
 ---Attach popup show/toggle/close flow helpers to the lxmedia instance.
 function M.extend(instance_methods)
+    function instance_methods:_start_devices_popup_outside_click_dismiss()
+        popup_control.start_outside_click_dismiss(self, {
+            binding_key = "_devices_popup_outside_click_binding",
+            saved_root_buttons_key = "_devices_popup_saved_root_buttons",
+            handler_key = "_devices_popup_outside_click_handler",
+            is_open = function()
+                return self._devices_popup and self._devices_popup.visible or false
+            end,
+            geometry_providers = {
+                function()
+                    return self._devices_popup and self._devices_popup:geometry() or nil
+                end,
+            },
+            on_outside_click = function()
+                self:close_popups()
+            end,
+        })
+    end
+
+    function instance_methods:_stop_devices_popup_outside_click_dismiss()
+        popup_control.stop_outside_click_dismiss(self, {
+            binding_key = "_devices_popup_outside_click_binding",
+            saved_root_buttons_key = "_devices_popup_saved_root_buttons",
+            handler_key = "_devices_popup_outside_click_handler",
+        })
+    end
+
+    function instance_methods:_handle_devices_popup_keygrabber(_, modifiers, key, event)
+        local handled = self:_handle_devices_popup_navigation_key(modifiers, key, event)
+
+        if handled then
+            return
+        end
+    end
+
+    function instance_methods:focus_devices_popup_keyboard_navigation()
+        popup_control.focus_popup_keygrabber(self, {
+            grabber_key = "_devices_popup_keygrabber",
+            active_key = "_devices_popup_keyboard_navigation_active",
+            handler = function(grabber, modifiers, key, event)
+                self:_handle_devices_popup_keygrabber(grabber, modifiers, key, event)
+            end,
+            on_start = function()
+                self:_start_devices_popup_outside_click_dismiss()
+            end,
+        })
+    end
+
     function instance_methods:blur_devices_popup_keyboard_navigation()
-        -- Placeholder to keep popup close/open flows symmetric if devices-side
-        -- keyboard navigation is added later.
+        self._devices_popup_keyboard_navigation_active = false
+        self._devices_popup_toggle_key = nil
+        self._devices_popup_prev_keychain = nil
+        self._devices_popup_next_keychain = nil
+        self._devices_popup_on_cycle_prev = nil
+        self._devices_popup_on_cycle_next = nil
+        self:_stop_devices_popup_outside_click_dismiss()
+        popup_control.blur_popup_keygrabber(self, {
+            grabber_key = "_devices_popup_keygrabber",
+            active_key = "_devices_popup_keyboard_navigation_active",
+        })
     end
 
     function instance_methods:_start_media_popup_outside_click_dismiss()
@@ -129,17 +186,27 @@ function M.extend(instance_methods)
                     self._media_popup_on_cycle_next = opts.on_cycle_next
                     self:focus_media_popup_keyboard_navigation()
                 else
+                    self._devices_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
+                    self._devices_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
+                    self._devices_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
+                    self._devices_popup_on_cycle_prev = opts.on_cycle_prev
+                    self._devices_popup_on_cycle_next = opts.on_cycle_next
                     self:blur_media_popup_keyboard_navigation()
+                    self:focus_devices_popup_keyboard_navigation()
                 end
             else
                 if kind == "media" then
                     self:blur_media_popup_keyboard_navigation()
+                else
+                    self:blur_devices_popup_keyboard_navigation()
                 end
                 self:_start_hover_close_timer(kind, is_geometry(anchor_geo) and anchor_geo or nil)
             end
         else
             if kind == "media" then
                 self:blur_media_popup_keyboard_navigation()
+            else
+                self:blur_devices_popup_keyboard_navigation()
             end
             self:_stop_hover_close_timer()
         end
@@ -183,11 +250,19 @@ function M.extend(instance_methods)
                 self._media_popup_on_cycle_next = opts.on_cycle_next
                 self:focus_media_popup_keyboard_navigation()
             else
+                self._devices_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
+                self._devices_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
+                self._devices_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
+                self._devices_popup_on_cycle_prev = opts.on_cycle_prev
+                self._devices_popup_on_cycle_next = opts.on_cycle_next
                 self:blur_media_popup_keyboard_navigation()
+                self:focus_devices_popup_keyboard_navigation()
             end
         else
             if kind == "media" then
                 self:blur_media_popup_keyboard_navigation()
+            else
+                self:blur_devices_popup_keyboard_navigation()
             end
             self:_start_hover_close_timer(kind, is_geometry(anchor_geo) and anchor_geo or nil)
         end

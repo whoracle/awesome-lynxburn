@@ -2,9 +2,10 @@
 
 `lynxburn` is the bundled AwesomeWM theme used by this config.
 
-It owns the visual layer: colors, spacing, fonts, icon paths, Awesome core
-theme keys, and theme-scoped values consumed by the bundled `lx*` modules. It
-also provides the per-screen wibar assembly used by the current desktop.
+It owns the visual layer: spacing, fonts, icon paths, Awesome core theme keys,
+and theme-scoped values consumed by the bundled `lx*` modules. It also
+provides the per-screen wibar assembly used by the current desktop and now
+supports swappable color schemes inside the same theme shell.
 
 ## Dependencies
 
@@ -26,11 +27,13 @@ Internal:
 ## Features
 
 - central bundled theme entrypoint for this repo
-- palette/role-based color assignment for Awesome core and bundled modules
+- swappable color-scheme layer for Awesome core and bundled modules
+- structural theme layer for spacing, sizing, placement, icon paths, and other
+  non-color theme values
 - per-screen wibar assembly in `widgets.lua`
 - support for user theme overrides through top-level `config.lua`
 - bundled theme keys for `lxmedia`, `lxnotify`, `lxdisplay`, `lxrunner`,
-  `lxbluetooth`, `lxnetwork`, and `lxpower`
+  `lxbluetooth`, `lxnetwork`, `lxpower`, and `lxsecrets`
 
 ## Example Usage
 
@@ -39,6 +42,7 @@ Top-level config override:
 ```lua
 theme = {
     name = "lynxburn",
+    color_scheme = "default",
     font = "Hack Nerd Font Mono 10",
     wallpaper = os.getenv("HOME") .. "/.wallpaper-alt",
     lxrunner_row_selected_bg = "#4a2f25",
@@ -62,13 +66,17 @@ The theme is configured through the top-level `theme` table in `config.lua`.
 Supported top-level knobs:
 
 - `name`
+- `color_scheme`
 - any `beautiful.*` key defined by `themes/lynxburn/theme.lua`
 
 The current flow is:
 
 1. `config.theme.name()` chooses the theme name, defaulting to `lynxburn`
-2. `config.theme.init(beautiful)` loads `themes/<name>/theme.lua`
-3. keys from `config.lua` under `theme = { ... }` are applied as final overrides
+2. `config.theme.color_scheme()` chooses the color scheme, defaulting to `default`
+3. `config.theme.init(beautiful)` loads `themes/<name>/theme.lua`
+4. `themes/<name>/theme.lua` composes the structural layer plus the chosen
+   color scheme
+5. keys from `config.lua` under `theme = { ... }` are applied as final overrides
 
 ## Theme Variables
 
@@ -82,7 +90,6 @@ Core/theme-shell values:
 - `wibar_height`
 - `wibar_position`
 - `space`
-- `systray_icon_spacing`
 - `widget_padding_top`
 - `widget_padding_bottom`
 - `widget_padding_left`
@@ -101,8 +108,6 @@ Core/theme-shell values:
 
 Awesome core widget values:
 
-- `tasklist_plain_task_name`
-- `tasklist_disable_icon`
 - `tasklist_bg_normal`
 - `tasklist_bg_focus`
 - `tasklist_fg_normal`
@@ -161,6 +166,7 @@ Layout label values:
 `lxmedia` values:
 
 - `lxmedia_bg_hover`
+- `lxmedia_popup_bg`
 - `lxmedia_button_bg`
 - `lxmedia_button_hover`
 - `lxmedia_hover_close_poll_interval`
@@ -182,6 +188,8 @@ Layout label values:
 - `lxmedia_bar_fg`
 - `lxmedia_mic_bar_bg`
 - `lxmedia_mic_bar_fg`
+- `lxmedia_osd_bar_bg`
+- `lxmedia_osd_bar_fg`
 - `lxmedia_widget_fg`
 - `lxmedia_widget_muted_fg`
 - `lxmedia_widget_mic_fg`
@@ -232,6 +240,7 @@ Layout label values:
 - `lxdisplay_popup_width`
 - `lxdisplay_popup_placement`
 - `lxdisplay_popup_bg`
+- `lxdisplay_button_bg`
 - `lxdisplay_button_hover`
 - `lxdisplay_selected_bg`
 - `lxdisplay_meta_fg`
@@ -250,8 +259,14 @@ Layout label values:
 - `lxbluetooth_icon`
 - `lxbluetooth_popup_placement`
 - `lxbluetooth_icon_width`
+- `lxbluetooth_widget_fg`
+- `lxbluetooth_widget_disabled_fg`
 - `lxbluetooth_widget_hover_bg`
 - `lxbluetooth_widget_press_bg`
+- `lxbluetooth_popup_bg`
+- `lxbluetooth_button_hover`
+- `lxbluetooth_selected_bg`
+- `lxbluetooth_meta_fg`
 - `lxbluetooth_popup_width`
 
 `lxnetwork` values:
@@ -260,9 +275,17 @@ Layout label values:
 - `lxnetwork_icon_disabled`
 - `lxnetwork_popup_placement`
 - `lxnetwork_icon_width`
+- `lxnetwork_widget_fg`
+- `lxnetwork_widget_disabled_fg`
 - `lxnetwork_widget_hover_bg`
 - `lxnetwork_widget_press_bg`
+- `lxnetwork_popup_bg`
+- `lxnetwork_button_hover`
+- `lxnetwork_selected_bg`
+- `lxnetwork_meta_fg`
 - `lxnetwork_widget_vpn_fg`
+- `lxnetwork_signal_bar_bg`
+- `lxnetwork_signal_bar_fg`
 - `lxnetwork_popup_width`
 
 `lxpower` values:
@@ -270,14 +293,37 @@ Layout label values:
 - `lxpower_icon_ac`
 - `lxpower_icon_battery`
 - `lxpower_popup_placement`
+- `lxpower_popup_width`
 - `lxpower_icon_pinned`
 - `lxpower_icon_width`
+- `lxpower_widget_fg`
 - `lxpower_widget_hover_bg`
 - `lxpower_widget_press_bg`
+- `lxpower_popup_bg`
+- `lxpower_button_hover`
+- `lxpower_selected_bg`
+- `lxpower_meta_fg`
 - `lxpower_profile_fg_powersave`
 - `lxpower_profile_fg_balanced`
 - `lxpower_profile_fg_performance`
-- `lxpower_popup_width`
+
+`lxsecrets` values:
+
+- `lxsecrets_icon`
+- `lxsecrets_icon_font`
+- `lxsecrets_icon_width`
+- `lxsecrets_widget_fg`
+- `lxsecrets_widget_suspended_fg`
+- `lxsecrets_widget_attention_fg`
+- `lxsecrets_widget_hover_bg`
+- `lxsecrets_widget_press_bg`
+- `lxsecrets_popup_bg`
+- `lxsecrets_popup_width`
+- `lxsecrets_popup_placement`
+- `lxsecrets_button_bg`
+- `lxsecrets_button_hover`
+- `lxsecrets_selected_bg`
+- `lxsecrets_meta_fg`
 
 `lxrunner` values:
 
@@ -310,13 +356,25 @@ Layout label values:
 
 ## File Layout
 
-- `theme.lua`: theme table, palette/role mapping, and final override merge
+- `theme.lua`: theme composition entrypoint and final override merge
+- `structure.lua`: spacing, sizing, icon paths, placements, and other
+  non-color theme values
+- `colors/default.lua`: default palette, role mapping, fonts, and color-bearing
+  theme keys
 - `widgets.lua`: per-screen wibar assembly and theme-specific widget setup
 
 ## Notes
 
 - user-facing theme overrides belong in top-level `config.lua`, not in
   per-module config
+- `widgets.lua` still intentionally owns:
+  - wallpaper application
+  - wibar assembly
+  - tasklist/taglist/layout switcher composition
+  - systray / clock / date placement
 - `widgets.lua` still contains older non-`lx*` widget assembly that will likely
-  be reduced later as more functionality moves into modules
-- the current theme is singular; multiple color schemes are a later concern
+  be reduced later as more functionality moves into modules; the main likely
+  future move candidates are the IMAP mail widget, the lain metric widgets, and
+  the custom power menu popup
+- `color_scheme` changes only the scheme layer; spacing/layout/widget placement
+  remains owned by the `lynxburn` theme shell

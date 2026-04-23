@@ -52,8 +52,18 @@ local function desktop_entry_dirs()
     end
 
     local data_dirs = os.getenv("XDG_DATA_DIRS") or "/usr/local/share:/usr/share"
+    local data_home = os.getenv("XDG_DATA_HOME") or (os.getenv("HOME") .. "/.local/share")
 
     for _, base_dir in ipairs(split_path(data_dirs)) do
+        local dir = base_dir .. "/applications"
+
+        if not seen[dir] then
+            seen[dir] = true
+            table.insert(dirs, dir)
+        end
+    end
+
+    for _, base_dir in ipairs(split_path(data_home)) do
         local dir = base_dir .. "/applications"
 
         if not seen[dir] then
@@ -67,7 +77,7 @@ end
 
 local function shell_escape(s)
     s = tostring(s or "")
-    return "'" .. s:gsub("'", [["'"']]) .. "'"
+    return "'" .. s:gsub("'", "'\\''") .. "'"
 end
 
 local function upsert_alias(target, alias)

@@ -81,6 +81,20 @@ end
 
 ---Attach history, ranking, and query/filter helpers to lxrunner.
 function M.extend(instance_methods)
+    ---Keep persisted history sorted by most recently used first.
+    function instance_methods:_sort_history()
+        table.sort(self._history, function(a, b)
+            local a_used = tonumber(a.last_used) or 0
+            local b_used = tonumber(b.last_used) or 0
+
+            if a_used ~= b_used then
+                return a_used > b_used
+            end
+
+            return tostring(a.name or "") < tostring(b.name or "")
+        end)
+    end
+
     ---Load persisted launch history from disk.
     function instance_methods:_load_history()
         self._history = {}
@@ -91,32 +105,47 @@ function M.extend(instance_methods)
         end
 
         for line in handle:lines() do
-            local ts, launch_source, name, command = line:match("^([^\t]*)\t([^\t]*)\t([^\t]*)\t(.*)$")
-            if ts and launch_source and name and command then
+            local ts, launch_source, count, name, command = line:match("^([^\t]*)\t([^\t]*)\t([^\t]*)\t([^\t]*)\t(.*)$")
+            if ts and launch_source and count and name and command then
                 table.insert(self._history, {
                     last_used = tonumber(ts) or 0,
                     launch_source = launch_source,
+                    count = math.max(1, tonumber(count) or 1),
                     name = unescape_field(name),
                     command = unescape_field(command),
                     source = "history",
                 })
             else
-                ts, name, command = line:match("^([^\t]*)\t([^\t]*)\t(.*)$")
-                if ts and name and command then
+                ts, launch_source, name, command = line:match("^([^\t]*)\t([^\t]*)\t([^\t]*)\t(.*)$")
+                if ts and launch_source and name and command then
                     table.insert(self._history, {
                         last_used = tonumber(ts) or 0,
+                        launch_source = launch_source,
+                        count = 1,
                         name = unescape_field(name),
                         command = unescape_field(command),
                         source = "history",
                     })
+                else
+                    ts, name, command = line:match("^([^\t]*)\t([^\t]*)\t(.*)$")
+                    if ts and name and command then
+                        table.insert(self._history, {
+                            last_used = tonumber(ts) or 0,
+                            count = 1,
+                            name = unescape_field(name),
+                            command = unescape_field(command),
+                            source = "history",
+                        })
+                    end
                 end
             end
         end
 
         handle:close()
+        self:_sort_history()
     end
 
-    ---Prefer recently launched items without fully hiding weaker fuzzy matches.
+    ---Prefer recently and frequently launched items without hiding weaker matches.
     function instance_methods:_history_rank_bonus(entry)
         local best_bonus = 0
 
@@ -130,7 +159,9 @@ function M.extend(instance_methods)
             local same_alias = entry.alias_name ~= nil and history_entry.name == entry.alias_name
 
             if same_command or same_name or same_alias then
-                local bonus = math.max(0, (self.opts.history_limit - index + 1) * 10)
+                local recency_bonus = math.max(0, (self.opts.history_limit - index + 1) * 10)
+                local count_bonus = math.min(math.max(1, tonumber(history_entry.count) or 1), 50) * 2
+                local bonus = recency_bonus + count_bonus
 
                 if bonus > best_bonus then
                     best_bonus = bonus
@@ -151,9 +182,10 @@ function M.extend(instance_methods)
         for i = 1, math.min(#self._history, self.opts.history_limit) do
             local entry = self._history[i]
             handle:write(string.format(
-                "%s\t%s\t%s\t%s\n",
+                "%s\t%s\t%s\t%s\t%s\n",
                 tostring(entry.last_used or 0),
                 tostring(entry.launch_source or entry.source or ""),
+                tostring(math.max(1, tonumber(entry.count) or 1)),
                 escape_field(entry.name),
                 escape_field(entry.command)
             ))
@@ -197,15 +229,21 @@ function M.extend(instance_methods)
             source = "history",
             launch_source = entry.launch_source or entry.source,
             last_used = os.time(),
+            count = 1,
         }
 
+        local existing_count = 0
         local new_history = { updated }
 
         for _, existing in ipairs(self._history) do
-            if existing.command ~= updated.command then
+            if existing.command == updated.command then
+                existing_count = math.max(existing_count, tonumber(existing.count) or 1)
+            else
                 table.insert(new_history, existing)
             end
         end
+
+        updated.count = existing_count + 1
 
         while #new_history > self.opts.history_limit do
             table.remove(new_history)

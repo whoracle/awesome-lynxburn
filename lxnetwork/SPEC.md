@@ -1,18 +1,18 @@
 # lxnetwork SPEC
 
-## Planned
+Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 
-- Keep `lxnetwork` as a compact WiFi status-and-connect module rather than
-  growing it into a broad connection-management UI.
-- Preserve the current popup flow:
+## Scope
+
+- `lxnetwork` is a compact WiFi status-and-connect module, not a broad
+  connection-management UI
+- its popup flow stays focused on:
   - current connection
   - visible known networks
   - visible additional networks
   - inline actions for scan and WiFi enable/disable
-- Keep keyboard navigation and popup cycling support aligned with the shared
-  `lxbar` popup model.
-- Continue splitting popup/session logic into dedicated files instead of
-  regrowing a large `init.lua`.
+- keyboard navigation and popup cycling stay aligned with the shared `lxbar`
+  popup model
 
 ## Unplanned
 

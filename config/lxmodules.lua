@@ -7,7 +7,11 @@ end
 
 local function bar_module_settings(id)
     local modules = (lxmodules().lxbar or {}).modules or {}
-    local module_settings = modules[id]
+    local module_settings = modules["lx" .. id]
+
+    if type(module_settings) ~= "table" then
+        module_settings = modules[id]
+    end
 
     if type(module_settings) ~= "table" then
         return {}
@@ -26,6 +30,18 @@ local function runtime_module_settings(id)
     return module_settings
 end
 
+local function normalize_bar_module_id(id)
+    if type(id) ~= "string" or id == "" then
+        return nil
+    end
+
+    if id:match("^lx[%w_]+$") then
+        return id:gsub("^lx", "")
+    end
+
+    return id
+end
+
 function M.order()
     local order = (lxmodules().lxbar or {}).order
 
@@ -33,7 +49,16 @@ function M.order()
         return {}
     end
 
-    return order
+    local normalized = {}
+
+    for _, id in ipairs(order) do
+        local normalized_id = normalize_bar_module_id(id)
+        if normalized_id then
+            normalized[#normalized + 1] = normalized_id
+        end
+    end
+
+    return normalized
 end
 
 function M.popup_side()

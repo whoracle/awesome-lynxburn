@@ -36,6 +36,17 @@ Common external commands used by the current config:
 - `xrandr`
 - `scrot`
 - `secret-tool` if you use the current IMAP password lookup flow
+  To store a secret, use something like this: `secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account me@example.org`.
+  Then configure the IMAP widget like this:
+  ```lua
+    commands = {
+`     lain = {
+        imap_mail = "me@example.org",
+        imap_secret = "secret-tool lookup service awesomewm-imap account me@example.org",
+        imap_server = "mail.example.org",
+      },
+    },
+  ```
 
 Common desktop programs referenced by the defaults:
 
@@ -115,10 +126,10 @@ screens = {
 
 lxmodules = {
     lxbar = {
-        order = { "bluetooth", "network", "media", "notify", "display", "power" },
+        order = { "lxbluetooth", "lxnetwork", "lxmedia", "lxnotify", "lxdisplay", "lxpower" },
         popup_side = "right",
         modules = {
-            bluetooth = { cycle = false },
+            lxbluetooth = { cycle = false },
         },
     },
     lxrunner = {
@@ -179,14 +190,15 @@ Modules:
 - [`lxbluetooth`](./lxbluetooth/README.md)
 - [`lxpower`](./lxpower/README.md)
 - [`lxdisplay`](./lxdisplay/README.md)
+- [`lxsecrets`](./lxsecrets/README.md)
 - [`lxrunner`](./lxrunner/README.md)
 
 Theme:
 
 - [`lynxburn`](./themes/lynxburn/README.md)
 
-Planned work lives in the corresponding module/theme SPEC files plus the
-top-level [`SPEC.md`](./SPEC.md).
+Planned work lives in [`ROADMAP.md`](./ROADMAP.md) plus the corresponding
+module/theme `SPEC.md` files.
 
 ## Screenshots
 
@@ -197,9 +209,10 @@ top-level [`SPEC.md`](./SPEC.md).
 
 ## Further Docs
 
-- [`SPEC.md`](./SPEC.md): top-level planned work
+- [`SPEC.md`](./SPEC.md): top-level scope and explicit non-goals
+- [`ROADMAP.md`](./ROADMAP.md): current implementation backlog and priority order
 - [`DEVELOPMENT.md`](./DEVELOPMENT.md): internal architecture and extension notes
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md): contribution scope and expectations
 - [`CHANGELOG.md`](./CHANGELOG.md): repository changelog generated from commit history
-- [`MIGRATE.md`](./MIGRATE.md): temporary notes for older machines still moving from the `migrate` tag
+- [`MIGRATE.md`](./MIGRATE.md): tagged-release migration notes for user-facing config changes
 - [`LICENSE.md`](./LICENSE.md): repository licensing and third-party notices
