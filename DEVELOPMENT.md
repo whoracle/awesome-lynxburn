@@ -32,6 +32,9 @@ High-level ownership:
 - `lxcommon/`
   Shared helpers for popup control, placement, widget feedback, registry, and
   OSD behavior.
+- `lxcommon/dkjson.lua`
+  Vendored JSON helper used by repo-owned modules so JSON support does not
+  depend on `lain` internals.
 - `lxbar/`
   Shared compact-widget bar integration and popup cycling.
 - `lx*/`
@@ -47,7 +50,9 @@ Top-level docs split:
 - `DEVELOPMENT.md`
   This file.
 - `SPEC.md`
-  Top-level planned work.
+  Top-level scope and non-goals.
+- `ROADMAP.md`
+  Current implementation backlog and priority order.
 - `CHANGELOG.md`
   Repository change history generated from commit metadata.
 - module/theme `README.md` and `SPEC.md`
@@ -105,6 +110,7 @@ Current allowed components:
 - `lxnotify`
 - `lxpower`
 - `lxrunner`
+- `lxsecrets`
 
 Version/changelog rules currently are:
 

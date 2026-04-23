@@ -28,6 +28,7 @@ The following repository-owned code is intended to be covered by
 - `lxnotify/`
 - `lxpower/`
 - `lxrunner/`
+- `lxsecrets/`
 
 This code is distributed in the hope that it will be useful, but **WITHOUT ANY
 WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or
@@ -42,8 +43,12 @@ The following vendored components retain their upstream licenses:
 - `freedesktop/`
   Upstream ships a GPL v2 license file in
   [`freedesktop/LICENSE`](./freedesktop/LICENSE).
+- `lxcommon/dkjson.lua`
+  Vendored from David Kolf's `dkjson`; see the header in
+  [`lxcommon/dkjson.lua`](./lxcommon/dkjson.lua) for upstream attribution and
+  licensing terms.
 
-These directories are not relicensed by this file.
+These vendored components are not relicensed by this file.
 
 ## Theme And Asset Notes
 

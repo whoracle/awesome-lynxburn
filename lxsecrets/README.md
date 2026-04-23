@@ -2,8 +2,8 @@
 
 `lxsecrets` is the secret/token refresh helper for this config.
 
-It wraps the existing GitLab and Vault refresh logic in an Awesome-native
-module with a compact top-level widget plus a grouped popup.
+It owns native GitLab and Vault refresh/login handling inside Awesome, with a
+compact top-level widget plus a grouped popup.
 
 ## Dependencies
 
@@ -16,6 +16,7 @@ External:
 
 Internal:
 
+- `lxcommon.dkjson`
 - `lxcommon.popup_controller`
 - `lxcommon.popup_ui`
 - `lxcommon.popup_placement`
@@ -31,11 +32,15 @@ Internal:
 - pause/resume checks
 - compact healthy/suspended/attention widget state
 - optional VPN-gated refresh execution per secret
+- refresh-all batching that keeps shared VPN runs together
 - Vault cards surface an inline login action only after a refresh determines
   that interactive auth is required
 - interactive Vault login keeps VPN-gated runs alive until success or timeout
 - Vault login can use an explicit browser command instead of ambient desktop
   browser resolution
+- expiry information is shown per card and synced back into the keyring as
+  `expiry_date` metadata when a live check succeeds
+- popup sorting groups by provider, then VPN, then expiry urgency
 
 ## Example Usage
 
@@ -191,3 +196,5 @@ Current provider support:
   periodic or retry use
 - `browser` or `secrets[].browser` is exported as `BROWSER` for Vault OIDC
   login when set
+- if `expiry_date` is missing from the keyring item, the card shows `unknown`
+  until the next successful live refresh writes it

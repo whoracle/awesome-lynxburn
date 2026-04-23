@@ -10,7 +10,7 @@ main backlog.
 Use this order for the next fresh session unless new bugs force a
 reprioritization:
 
-1. `lxsecrets` implementation
+1. `lxsecrets` UX polish
 2. `lxbar` spacing/composition polish
 3. `themes/lynxburn` split / asset pruning / further ownership cleanup
 4. `lxdisplay` UX refinements only if daily-driving reveals real friction
@@ -19,8 +19,8 @@ reprioritization:
 
 Rationale:
 
-- `lxsecrets` already exists in shell form and has the highest remaining
-  feature value
+- `lxsecrets` now works end-to-end and the next value is making its popup and
+  state presentation feel as polished as the older modules
 - `lxbar` polish is visible and useful, but lower risk than larger new module
   work
 - theme cleanup is structural and best done after the most visible behavior is
@@ -116,15 +116,10 @@ Rationale:
 
 ### `lxsecrets`
 
-- implement the module from the existing shell scripts
-- provide:
-  - a top-level widget with healthy/suspended/attention states
-  - a popup grouped by upstream/provider
-  - active refresh/recheck actions
-  - startup and interval-based standalone refresh support
-  - preflight dependency checks
+- keep the native provider runtime stable for GitLab and Vault
+- continue polishing popup card layout, sorting, and state presentation
 - keep secret definitions in `config.lua`
-- support VPN-gated refresh blocks for secrets that require them
+- support VPN-gated refresh/login flows where required
 - surface failures in `~/.xsession-errors` and via notifications
 - define a pragmatic plugin API for adding more secret providers later
 

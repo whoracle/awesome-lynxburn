@@ -190,14 +190,15 @@ Modules:
 - [`lxbluetooth`](./lxbluetooth/README.md)
 - [`lxpower`](./lxpower/README.md)
 - [`lxdisplay`](./lxdisplay/README.md)
+- [`lxsecrets`](./lxsecrets/README.md)
 - [`lxrunner`](./lxrunner/README.md)
 
 Theme:
 
 - [`lynxburn`](./themes/lynxburn/README.md)
 
-Planned work lives in the corresponding module/theme SPEC files plus the
-top-level [`SPEC.md`](./SPEC.md).
+Planned work lives in [`ROADMAP.md`](./ROADMAP.md) plus the corresponding
+module/theme `SPEC.md` files.
 
 ## Screenshots
 
@@ -208,7 +209,8 @@ top-level [`SPEC.md`](./SPEC.md).
 
 ## Further Docs
 
-- [`SPEC.md`](./SPEC.md): top-level planned work
+- [`SPEC.md`](./SPEC.md): top-level scope and explicit non-goals
+- [`ROADMAP.md`](./ROADMAP.md): current implementation backlog and priority order
 - [`DEVELOPMENT.md`](./DEVELOPMENT.md): internal architecture and extension notes
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md): contribution scope and expectations
 - [`CHANGELOG.md`](./CHANGELOG.md): repository changelog generated from commit history
