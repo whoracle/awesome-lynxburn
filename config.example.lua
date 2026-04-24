@@ -39,6 +39,7 @@ return {
     --     terminal = "alacritty",
     --     launcher = "rofi -show drun",
     --     filebrowser = "xdg-open",
+    --     browser = "firefox",
     --     autostart_once = {
     --         "nm-applet --sm-disable",
     --     },
@@ -64,6 +65,9 @@ return {
     --                 -- cycle = false,
     --             },
     --             lxnetwork = {
+    --                 -- cycle = false,
+    --             },
+    --             lxnotify = {
     --                 -- cycle = false,
     --             },
     --         },
@@ -134,7 +138,8 @@ return {
     --     },
     --     lxsecrets = {
     --         at_start = true,
-    --         interval = "30m",
+    --         at_start_delay = "60s",
+    --         interval = false,
     --         top_level = "urgent",
     --         cycle_exclude = true,
     --         browser = "vivaldi-stable --profile-directory=Profile\\ 1",
@@ -180,6 +185,11 @@ return {
     --                 type = "template",
     --                 glyph = "󰖟",
     --                 command = "firefox %s",
+    --             },
+    --             {
+    --                 name = "vpn-up",
+    --                 command = "nmcli connection up senec",
+    --                 notify = "lxnetwork",
     --             },
     --         },
     --     },

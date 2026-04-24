@@ -31,8 +31,6 @@ Rationale:
 
 ## Repo-Wide Work
 
-- finish the public-defaults pass so `config/defaults.lua` reads like shipped
-  defaults instead of local machine state
 - keep `config.example.lua` as an example/override file rather than a second
   defaults file
 - preserve top-level `config.lua` as gitignored local machine state

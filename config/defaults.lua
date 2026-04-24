@@ -67,16 +67,7 @@ M.lxmodules = {
             "lxmedia",
             "lxnotify",
         },
-        modules = {
-            lxmedia = {},
-            lxbluetooth = {},
-            lxdisplay = {},
-            lxnetwork = {
-                -- cycle = false,
-            },
-            lxnotify = {},
-            lxpower = {},
-        },
+        modules = {},
     },
     lxmedia = {
         show_mic_activity = true,

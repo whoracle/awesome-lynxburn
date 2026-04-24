@@ -100,7 +100,7 @@ theme = {
 
 commands = {
     terminal = "alacritty",
-    filebrowser = "thunar",
+    filebrowser = "xdg-open",
 }
 
 screens = {
@@ -144,9 +144,9 @@ lxmodules = {
 The current config layers are:
 
 - `config/defaults.lua`
-  Repository defaults
+  Narrow shipped baseline
 - `config.example.lua`
-  Tracked example override file
+  Tracked example override file with more opinionated/expanded examples
 - `config.lua`
   Your local machine-specific overrides
 
