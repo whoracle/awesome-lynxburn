@@ -68,9 +68,16 @@ Custom widget example:
 ```lua
 lxmodules = {
     lxbar = {
-        order = { "lxnetwork", "custom:mail", "lxmedia", "custom:systray" },
+        order = {
+            "lxnetwork",
+            "lxmedia",
+            "custom:mail",
+            "custom:cpu",
+            "custom:systray",
+        },
         custom_widgets = {
             mail = require("widgets.mail_imap"),
+            cpu = require("widgets.lain_cpu"),
             systray = require("widgets.systray"),
         },
     },
