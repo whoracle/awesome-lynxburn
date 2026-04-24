@@ -42,7 +42,7 @@ Top-level config override:
 ```lua
 theme = {
     name = "lynxburn",
-    color_scheme = "zenburn",
+    color_scheme = "lynxburn",
     font = "Hack Nerd Font Mono 10",
     wallpaper = os.getenv("HOME") .. "/.wallpaper-alt",
     lxrunner_row_selected_bg = "#4a2f25",
@@ -71,14 +71,16 @@ Supported top-level knobs:
 
 Bundled color schemes:
 
-- `default`
+- `lynxburn`
 - `nord`
 - `zenburn`
+- `catppuccin`
+- `solarized_light`
 
 The current flow is:
 
 1. `config.theme.name()` chooses the theme name, defaulting to `lynxburn`
-2. `config.theme.color_scheme()` chooses the color scheme, defaulting to `default`
+2. `config.theme.color_scheme()` chooses the color scheme, defaulting to `lynxburn`
 3. `config.theme.init(beautiful)` loads `themes/<name>/theme.lua`
 4. `themes/<name>/theme.lua` composes the structural layer plus the chosen
    color scheme
@@ -361,14 +363,24 @@ Layout label values:
 - `[placeholder] full desktop with wibar`
 - `[placeholder] widget cluster close-up`
 - `[placeholder] popup-heavy workflow with theme colors`
+- `[placeholder] palette: lynxburn`
+- `[placeholder] palette: zenburn`
+- `[placeholder] palette: nord`
+- `[placeholder] palette: catppuccin`
+- `[placeholder] palette: solarized_light`
 
 ## File Layout
 
 - `theme.lua`: theme composition entrypoint and final override merge
 - `structure.lua`: spacing, sizing, icon paths, placements, and other
   non-color theme values
-- `colors/default.lua`: default palette, role mapping, fonts, and color-bearing
-  theme keys
+- `colors/lynxburn.lua`: the bundled house palette, role mapping, fonts, and
+  color-bearing theme keys
+- `colors/default.lua`: compatibility alias for the `lynxburn` color scheme
+- `colors/nord.lua`: bundled cool dark alternative
+- `colors/zenburn.lua`: bundled classic Zenburn-inspired alternative
+- `colors/catppuccin.lua`: bundled soft dark alternative
+- `colors/solarized_light.lua`: bundled light alternative
 - `widgets.lua`: per-screen wibar assembly and theme-specific widget setup
 
 ## Notes
