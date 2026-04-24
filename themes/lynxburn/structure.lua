@@ -21,6 +21,8 @@ function M.build(opts)
         widget_padding_bottom = padding,
         widget_padding_left = padding,
         widget_padding_right = padding,
+        tasklist_plain_task_name = true,
+        tasklist_disable_icon = false,
 
         taglist_squares_sel = theme_dir .. "/icons/square_sel.png",
         taglist_squares_unsel = theme_dir .. "/icons/square_unsel.png",

@@ -94,6 +94,8 @@ Core/theme-shell values:
 - `widget_padding_bottom`
 - `widget_padding_left`
 - `widget_padding_right`
+- `tasklist_plain_task_name`
+- `tasklist_disable_icon`
 - `fg_normal`
 - `fg_focus`
 - `fg_minimize`
