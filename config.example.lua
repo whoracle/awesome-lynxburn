@@ -9,7 +9,7 @@ return {
     -- },
     -- theme = {
     --     name = "lynxburn",
-    --     color_scheme = "default",
+    --     color_scheme = "lynxburn",
     --     -- Flat keys override `beautiful.*` values after the theme loads.
     --     wallpaper = os.getenv("HOME") .. "/Pictures/wallpaper.png",
     --     wibar_height = 24,
@@ -39,6 +39,7 @@ return {
     --     terminal = "alacritty",
     --     launcher = "rofi -show drun",
     --     filebrowser = "xdg-open",
+    --     browser = "firefox",
     --     autostart_once = {
     --         "nm-applet --sm-disable",
     --     },
@@ -58,6 +59,12 @@ return {
     --             "lxnotify",
     --             "lxdisplay",
     --             "lxpower",
+    --             "custom:mail",
+    --             "custom:sysload",
+    --             "custom:cpu",
+    --             "custom:mem",
+    --             "custom:fs_root",
+    --             "custom:systray",
     --         },
     --         modules = {
     --             lxbluetooth = {
@@ -66,6 +73,17 @@ return {
     --             lxnetwork = {
     --                 -- cycle = false,
     --             },
+    --             lxnotify = {
+    --                 -- cycle = false,
+    --             },
+    --         },
+    --         custom_widgets = {
+    --             mail = require("widgets.mail_imap"),
+    --             sysload = require("widgets.lain_sysload"),
+    --             cpu = require("widgets.lain_cpu"),
+    --             mem = require("widgets.lain_mem"),
+    --             fs_root = require("widgets.lain_fs_root"),
+    --             systray = require("widgets.systray"),
     --         },
     --     },
     --     lxmedia = {
@@ -134,7 +152,8 @@ return {
     --     },
     --     lxsecrets = {
     --         at_start = true,
-    --         interval = "30m",
+    --         at_start_delay = "60s",
+    --         interval = false,
     --         top_level = "urgent",
     --         cycle_exclude = true,
     --         browser = "vivaldi-stable --profile-directory=Profile\\ 1",
@@ -180,6 +199,11 @@ return {
     --                 type = "template",
     --                 glyph = "󰖟",
     --                 command = "firefox %s",
+    --             },
+    --             {
+    --                 name = "vpn-up",
+    --                 command = "nmcli connection up senec",
+    --                 notify = "lxnetwork",
     --             },
     --         },
     --     },

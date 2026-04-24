@@ -13,8 +13,8 @@ reprioritization:
 1. `lxsecrets` UX polish
 2. `lxdisplay` UX refinements only if daily-driving reveals real friction
 3. `themes/lynxburn` follow-up polish
-4. future systray / non-`lx*` widget hosting in `lxbar`
-5. `lxnotify` browser/web-app action hardening
+4. `lxnotify` browser/web-app action hardening
+5. `lxcommon` popup-input cleanup from real daily-driver evidence
 
 Rationale:
 
@@ -24,15 +24,13 @@ Rationale:
   usage feedback, not speculation
 - theme cleanup already landed the larger split/pruning work, so what remains
   is follow-up polish rather than structural cleanup
-- systray/non-`lx*` hosting is still underspecified and likely to churn config
-  shape
 - `lxnotify` hardening stays deliberately late until daily-driver evidence says
   it matters
+- popup-input cleanup still matters, but it should be driven by real failures
+  rather than another speculative framework rewrite
 
 ## Repo-Wide Work
 
-- finish the public-defaults pass so `config/defaults.lua` reads like shipped
-  defaults instead of local machine state
 - keep `config.example.lua` as an example/override file rather than a second
   defaults file
 - preserve top-level `config.lua` as gitignored local machine state
@@ -54,14 +52,23 @@ Rationale:
 - revisit popup input handling so open `lx*` popups do not block unrelated
   global shortcuts; prefer a focus-based model or otherwise preserve normal key
   bindings while popups are open
+- fix the current partial popup key fallback path; global shortcuts still do not
+  reliably work while popups are open
+- when a popup opened via mouse is also keyboard-active, keep it from closing
+  immediately just because the pointer is not hovering the popup; hover-close
+  and keyboard-focus need a cleaner coexistence model
 - keep `lxcommon` small and utility-focused rather than turning it into a
   generic dumping ground
 
 ### `lxbar`
 
 - keep popup cycling strictly derived from final top-level widget order
-- support future optional systray-style non-`lx*` widget integration once the
-  config shape is clear enough
+- keep `custom:<name>` hosting simple:
+  - no popup cycling
+  - no implicit `lx*` interaction contract
+  - explicit `style = "lxbar" | "raw"` visual ownership
+- continue migrating remaining simple non-`lx*` bar widgets into `lxbar` where
+  that makes the overall bar composition cleaner
 
 ### `lxmedia`
 
@@ -75,6 +82,11 @@ Rationale:
 
 - keep grouped notification handling, keyboard navigation, and popup cycling
   stable
+- fix right click on notifications inside a group so it reliably triggers the
+  secondary action (`dismiss`) instead of sometimes firing the primary action
+- consider auto-pausing popups while a screen share is active, if there is a
+  reliable detection path that is not too environment-specific; PipeWire or
+  portal-session state is the most likely signal source to investigate
 
 ### `lxrunner`
 
@@ -122,9 +134,14 @@ Rationale:
 - support VPN-gated refresh/login flows where required
 - surface failures in `~/.xsession-errors` and via notifications
 - define a pragmatic plugin API for adding more secret providers later
-- consider delaying `at_start` refresh runs by a small configurable startup
-  grace period so the first pass does not race NetworkManager or other session
-  services
+- write back `expiry_date` metadata reliably even when the original keyring
+  entry did not already contain that attribute
+- improve startup refresh behavior so the first pass waits for usable network
+  availability instead of relying only on a blind timer delay
+- add a secondary card action to open the corresponding secret in a keyring UI
+  such as Seahorse
+- define plugin scaffolding for providers, then migrate the current GitLab and
+  Vault implementations onto that plugin interface once the contract is stable
 
 ### `themes/lynxburn`
 
@@ -133,11 +150,21 @@ Rationale:
   Awesome fallbacks
 - align popup/action button border treatment across modules during the theme
   split pass; some current buttons still mix orange and gray border behavior
+- discuss UI and maintenance feasibility before adding many more bundled color
+  schemes beyond the current set
+- likely future scheme candidates from daily-driving:
+  - `gruvbox` (`dark`, `light`)
+  - `dracula`
+  - `everforest`
+- consider an opt-in startup mode that picks a random bundled color scheme on
+  each Awesome start as an easter egg feature
+- smooth top-level widget bar reveal/hide behavior with a delayed ease-in/out
+  animation instead of the current delayed pop-in
 - keep these as theme-owned unless the repo shape changes materially:
   - wallpaper application
   - wibar assembly
   - tasklist/taglist/layout switcher composition
-  - systray / clock / date placement
+  - clock / date / power-menu placement
 
 ### Proposed `lxmenu`
 

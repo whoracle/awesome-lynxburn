@@ -25,7 +25,7 @@ Internal:
 
 ## Features
 
-- startup and interval-based refresh runs
+- startup refresh runs plus optional periodic refresh
 - grouped popup by provider
 - per-secret manual refresh
 - global refresh-all action
@@ -86,7 +86,8 @@ Module config:
 lxmodules = {
     lxsecrets = {
         at_start = true,
-        interval = "30m",
+        at_start_delay = "60s",
+        interval = false,
         top_level = "urgent",
         cycle_exclude = true,
         browser = "vivaldi-stable --profile-directory=Profile\\ 1",
@@ -102,8 +103,12 @@ lxmodules = {
                 selectors = {
                     type = "gitlab",
                     gitlab_url = "https://gitlab.example.org",
-                    label = "SHELL_GIT_TOKEN",
-                    service = "gitlab-example",
+                    label = "GitLab managed PAT",
+                    service = "gitlab-managed",
+                    account = "me@example.org",
+                },
+                admin_selector = {
+                    service = "gitlab-admin",
                     account = "me@example.org",
                 },
             },
@@ -130,7 +135,11 @@ lxmodules = {
 Supported knobs:
 
 - `at_start`
+- `at_start_delay`
 - `interval`
+
+Set `interval = false` to disable periodic background refresh. This is the
+shipped default. Use a duration like `"30m"` only if you want periodic checks.
 - `top_level`
 - `cycle_exclude`
 - `browser`
@@ -157,7 +166,11 @@ Supported knobs:
 - `secrets[].selectors.auth_path`
 - `secrets[].selectors.skip_verify`
 - `secrets[].admin_selector`
-- `secrets[].token_selector`
+
+For GitLab secrets, `selectors` is the canonical selector for the managed token.
+Use `admin_selector` only when the admin PAT lives under different keyring
+attributes. `token_selector` is no longer needed for normal configs and remains
+only as a backwards-compatibility override.
 
 Current provider support:
 

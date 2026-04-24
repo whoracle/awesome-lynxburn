@@ -7,6 +7,13 @@ and theme-scoped values consumed by the bundled `lx*` modules. It also
 provides the per-screen wibar assembly used by the current desktop and now
 supports swappable color schemes inside the same theme shell.
 
+Normal in-bar widgets should now go through `lxbar`, including custom
+non-`lx*` widgets such as the bundled `systray`, IMAP mail, and `lain`
+metric examples.
+`themes/lynxburn/widgets.lua` remains the right place only for theme-owned
+shell composition and for extra widgets you intentionally place outside
+`lxbar`.
+
 ## Dependencies
 
 External:
@@ -42,7 +49,7 @@ Top-level config override:
 ```lua
 theme = {
     name = "lynxburn",
-    color_scheme = "nord",
+    color_scheme = "lynxburn",
     font = "Hack Nerd Font Mono 10",
     wallpaper = os.getenv("HOME") .. "/.wallpaper-alt",
     lxrunner_row_selected_bg = "#4a2f25",
@@ -71,13 +78,20 @@ Supported top-level knobs:
 
 Bundled color schemes:
 
-- `default`
+- `lynxburn`
 - `nord`
+- `zenburn`
+- `catppuccin`
+- `solarized_light`
+- `solarized_dark`
+- `kanagawa_wave`
+- `kanagawa_dragon`
+- `kanagawa_lotus`
 
 The current flow is:
 
 1. `config.theme.name()` chooses the theme name, defaulting to `lynxburn`
-2. `config.theme.color_scheme()` chooses the color scheme, defaulting to `default`
+2. `config.theme.color_scheme()` chooses the color scheme, defaulting to `lynxburn`
 3. `config.theme.init(beautiful)` loads `themes/<name>/theme.lua`
 4. `themes/<name>/theme.lua` composes the structural layer plus the chosen
    color scheme
@@ -360,14 +374,32 @@ Layout label values:
 - `[placeholder] full desktop with wibar`
 - `[placeholder] widget cluster close-up`
 - `[placeholder] popup-heavy workflow with theme colors`
+- `[placeholder] palette: lynxburn`
+- `[placeholder] palette: zenburn`
+- `[placeholder] palette: nord`
+- `[placeholder] palette: catppuccin`
+- `[placeholder] palette: solarized_light`
+- `[placeholder] palette: solarized_dark`
+- `[placeholder] palette: kanagawa_wave`
+- `[placeholder] palette: kanagawa_dragon`
+- `[placeholder] palette: kanagawa_lotus`
 
 ## File Layout
 
 - `theme.lua`: theme composition entrypoint and final override merge
 - `structure.lua`: spacing, sizing, icon paths, placements, and other
   non-color theme values
-- `colors/default.lua`: default palette, role mapping, fonts, and color-bearing
-  theme keys
+- `colors/lynxburn.lua`: the bundled house palette, role mapping, fonts, and
+  color-bearing theme keys
+- `colors/default.lua`: compatibility alias for the `lynxburn` color scheme
+- `colors/nord.lua`: bundled cool dark alternative
+- `colors/zenburn.lua`: bundled classic Zenburn-inspired alternative
+- `colors/catppuccin.lua`: bundled soft dark alternative
+- `colors/solarized_light.lua`: bundled light alternative
+- `colors/solarized_dark.lua`: bundled classic dark Solarized alternative
+- `colors/kanagawa_wave.lua`: bundled Kanagawa Wave variant
+- `colors/kanagawa_dragon.lua`: bundled Kanagawa Dragon variant
+- `colors/kanagawa_lotus.lua`: bundled Kanagawa Lotus light variant
 - `widgets.lua`: per-screen wibar assembly and theme-specific widget setup
 
 ## Notes
@@ -378,10 +410,8 @@ Layout label values:
   - wallpaper application
   - wibar assembly
   - tasklist/taglist/layout switcher composition
-  - systray / clock / date placement
-- `widgets.lua` still contains older non-`lx*` widget assembly that will likely
-  be reduced later as more functionality moves into modules; the main likely
-  future move candidates are the IMAP mail widget, the lain metric widgets, and
-  the custom power menu popup
+  - clock / date / power-menu placement
+- `widgets.lua` no longer owns the old IMAP, systray, or `lain` metric bar
+  widgets; those now belong in `lxbar` via `lxmodules.lxbar.custom_widgets`
 - `color_scheme` changes only the scheme layer; spacing/layout/widget placement
   remains owned by the `lynxburn` theme shell

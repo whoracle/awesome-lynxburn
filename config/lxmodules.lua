@@ -35,6 +35,10 @@ local function normalize_bar_module_id(id)
         return nil
     end
 
+    if id:match("^custom:[%w_%-]+$") then
+        return id
+    end
+
     if id:match("^lx[%w_]+$") then
         return id:gsub("^lx", "")
     end
@@ -102,6 +106,16 @@ function M.options(id)
     end
 
     return options
+end
+
+function M.custom_widgets()
+    local custom_widgets = ((lxmodules().lxbar or {}).custom_widgets)
+
+    if type(custom_widgets) ~= "table" then
+        return {}
+    end
+
+    return custom_widgets
 end
 
 return M

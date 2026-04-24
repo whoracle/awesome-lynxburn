@@ -32,7 +32,7 @@ function M.color_scheme()
         return theme.scheme
     end
 
-    return "default"
+    return "lynxburn"
 end
 
 function M.overrides()

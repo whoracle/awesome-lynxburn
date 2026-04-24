@@ -35,7 +35,7 @@ Common external commands used by the current config:
 - `xset`
 - `xrandr`
 - `scrot`
-- `secret-tool` if you use the current IMAP password lookup flow
+- `secret-tool` if you use the bundled IMAP custom widget
   To store a secret, use something like this: `secret-tool store --label="AwesomeWM IMAP" service awesomewm-imap account me@example.org`.
   Then configure the IMAP widget like this:
   ```lua
@@ -100,7 +100,7 @@ theme = {
 
 commands = {
     terminal = "alacritty",
-    filebrowser = "thunar",
+    filebrowser = "xdg-open",
 }
 
 screens = {
@@ -131,6 +131,9 @@ lxmodules = {
         modules = {
             lxbluetooth = { cycle = false },
         },
+        custom_widgets = {
+            systray = require("widgets.systray"),
+        },
     },
     lxrunner = {
         width = 640,
@@ -144,9 +147,9 @@ lxmodules = {
 The current config layers are:
 
 - `config/defaults.lua`
-  Repository defaults
+  Narrow shipped baseline
 - `config.example.lua`
-  Tracked example override file
+  Tracked example override file with more opinionated/expanded examples
 - `config.lua`
   Your local machine-specific overrides
 
@@ -165,6 +168,8 @@ General ownership rules:
 - put program/backend choices under `commands`
 - put user keybinding overrides under `keys`
 - put bar order and popup-cycle participation under `lxmodules.lxbar`
+- put simple non-`lx*` in-bar widgets under `lxmodules.lxbar.custom_widgets`
+  and reference them from `lxmodules.lxbar.order` as `custom:<name>`
 - put module behavior under `lxmodules.<module>`
 - put monitor, tag, and layout config under `screens`
 - put appearance overrides under `theme`

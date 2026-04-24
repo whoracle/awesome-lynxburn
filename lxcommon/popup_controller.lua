@@ -79,6 +79,11 @@ function M.extend(instance_methods, opts)
     local prepare_opts = opts.prepare_opts or function(_, popup_opts)
         return popup_opts
     end
+    local blocked_global_keys = {}
+
+    for key_name in pairs(resolve_actions({}, opts)) do
+        blocked_global_keys[#blocked_global_keys + 1] = key_name
+    end
 
     function instance_methods:_handle_popup_keygrabber(_, modifiers, key, event)
         local handled = popup_control.dispatch_popup_keypress({
@@ -100,6 +105,10 @@ function M.extend(instance_methods, opts)
                 self:close_popup()
             end,
             actions = resolve_actions(self, opts),
+            blocked_global_keys = blocked_global_keys,
+            on_global_fallback = function()
+                self:close_popup()
+            end,
         })
 
         if handled then
@@ -188,11 +197,11 @@ function M.extend(instance_methods, opts)
 
         self:_start_popup_outside_click_dismiss()
 
+        self:focus_popup_keyboard_navigation()
+
         if popup_opts.keyboard_navigation then
             self:_stop_hover_close_timer()
-            self:focus_popup_keyboard_navigation()
         else
-            self:blur_popup_keyboard_navigation()
             self:_start_hover_close_timer()
         end
     end

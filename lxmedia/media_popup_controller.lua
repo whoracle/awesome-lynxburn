@@ -215,6 +215,10 @@ function M.extend(instance_methods)
                     self:toggle_selected_media_stream_mute()
                 end,
             },
+            blocked_global_keys = {
+                "Up", "Down", "Return", "KP_Enter", "Left", "Right", "Home", "End", "Escape",
+            },
+            allow_global_fallback = false,
         })
 
         if handled then
@@ -223,6 +227,14 @@ function M.extend(instance_methods)
 
         if self:_handle_popup_media_action(popup_key_actions[key]) then
             return
+        end
+
+        if popup_control.dispatch_global_keybinding(modifiers, key, {
+            blocked_keys = {
+                "Up", "Down", "Return", "KP_Enter", "Left", "Right", "Home", "End", "Escape",
+            },
+        }) then
+            self:close_media_popup()
         end
     end
 

@@ -6,7 +6,7 @@ Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 
 - `lxsecrets` is the secret/token refresh helper for this config
 - it owns:
-  - startup and interval-based refresh runs
+  - startup refresh runs and optional periodic refresh
   - compact top-level healthy/suspended/attention state
   - a popup grouped by provider
   - per-secret refresh actions

@@ -10,7 +10,8 @@ M.__index = M
 
 local DEFAULTS = {
     at_start = true,
-    interval = "30m",
+    at_start_delay = "60s",
+    interval = false,
     top_level = "always",
     cycle_exclude = true,
     thresholds = {
@@ -22,6 +23,27 @@ local DEFAULTS = {
     },
     secrets = {},
 }
+
+local DURATION_UNITS = {
+    s = 1,
+    m = 60,
+    h = 3600,
+    d = 86400,
+    w = 604800,
+}
+
+local function parse_duration_seconds(value)
+    if type(value) == "number" then
+        return math.max(0, math.floor(value))
+    end
+
+    local amount, unit = tostring(value or ""):match("^(%d+)([smhdw])$")
+    if not amount or not unit then
+        return nil
+    end
+
+    return tonumber(amount) * (DURATION_UNITS[unit] or 0)
+end
 
 local function deep_copy(source)
     local out = {}
@@ -82,8 +104,14 @@ function M.new(opts)
     self:_start_timer()
 
     if self.opts.at_start ~= false and #self.state.secrets > 0 and not self.state.suspended then
-        gears.timer.delayed_call(function()
+        local startup_delay = parse_duration_seconds(self.opts.at_start_delay)
+        if startup_delay == nil then
+            startup_delay = 60
+        end
+
+        gears.timer.start_new(startup_delay, function()
             self:refresh_all()
+            return false
         end)
     end
 

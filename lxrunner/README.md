@@ -58,6 +58,11 @@ lxmodules = {
                 glyph = "󰖟",
                 command = "firefox %s",
             },
+            {
+                name = "vpn-up",
+                command = "nmcli connection up senec",
+                notify = "lxnetwork",
+            },
         },
     },
 }
@@ -101,6 +106,12 @@ Supported knobs:
 - `history_file`
 - `prompt`
 - `aliases`
+- `aliases[].notify`
+
+When `aliases[].notify` is set, `lxrunner` asks the named long-lived `lx*`
+service to refresh after that alias command exits. This is intended for
+one-shot commands like bringing up a VPN where the UI should update
+immediately without shorter poll intervals.
 
 Alias fields:
 

@@ -1,3 +1,8 @@
+local beautiful = require("beautiful")
+local gears = require("gears")
+local naughty = require("naughty")
+local wibox = require("wibox")
+
 local M = {}
 
 local module_config = require("config.lxmodules")
@@ -29,8 +34,137 @@ local function runner_options()
     -- Aliases are loaded directly from config data inside lxrunner so the
     -- service does not need to pass a duplicated copy.
     options.aliases = nil
+    options.service_refresh = M.refresh
 
     return options
+end
+
+local function wrap_custom_bar_widget(widget)
+    if not widget then
+        return nil
+    end
+
+    local margin = wibox.container.margin(widget)
+    margin.left = beautiful.widget_padding_left or 0
+    margin.top = beautiful.widget_padding_top or 0
+    margin.bottom = beautiful.widget_padding_bottom or 0
+    margin.right = beautiful.widget_padding_right or 0
+    margin.draw_empty = false
+
+    local background = wibox.container.background(margin)
+    background.bg = beautiful.tasklist_bg_normal or beautiful.bg_normal
+    background.shape = gears.shape.rectangle
+    background.shape_clip = true
+
+    return background
+end
+
+local function notify_custom_widget_failure(name, err)
+    naughty.notify({
+        preset = naughty.config.presets.critical,
+        title = "Custom lxbar widget failed",
+        text = string.format("Widget: %s\nError: %s", tostring(name), tostring(err)),
+    })
+end
+
+local function normalize_custom_widget_spec(name, custom_widget)
+    local context = {
+        beautiful = beautiful,
+        gears = gears,
+        services = M,
+        state = state,
+        wibox = wibox,
+    }
+    local resolved = custom_widget
+
+    if type(custom_widget) == "function" then
+        resolved = custom_widget(context)
+    end
+
+    if type(resolved) ~= "table" then
+        return nil
+    end
+
+    if resolved.widget then
+        if resolved.style == nil then
+            resolved.style = "lxbar"
+        end
+        return resolved
+    end
+
+    return {
+        widget = resolved,
+        style = "lxbar",
+    }
+end
+
+local function register_custom_widgets()
+    for name, custom_widget in pairs(module_config.custom_widgets()) do
+        local ok, spec_or_err = pcall(normalize_custom_widget_spec, name, custom_widget)
+
+        if not ok then
+            notify_custom_widget_failure(name, spec_or_err)
+        else
+            local spec = spec_or_err
+
+            if spec and spec.widget then
+                local widget = spec.widget
+                local wrap_ok, wrapped_or_err = pcall(function()
+                    if spec.style ~= "raw" then
+                        widget = wrap_custom_bar_widget(widget)
+                    end
+
+                    if spec.width then
+                        widget = wibox.container.constraint(widget, "exact", spec.width)
+                    end
+
+                    registry.register_widget("custom:" .. tostring(name), widget, spec.default_order or 1000, {
+                        include_in_popup_cycle = false,
+                    })
+                end)
+
+                if not wrap_ok then
+                    notify_custom_widget_failure(name, wrapped_or_err)
+                end
+            end
+        end
+    end
+end
+
+local function normalize_service_id(id)
+    if type(id) ~= "string" or id == "" then
+        return nil
+    end
+
+    return id:gsub("^lx", "")
+end
+
+local function refresh_instance(instance)
+    if not instance then
+        return false
+    end
+
+    if type(instance.refresh) == "function" then
+        instance:refresh()
+        return true
+    end
+
+    if type(instance.refresh_all) == "function" then
+        instance:refresh_all()
+        return true
+    end
+
+    if type(instance.brightness_refresh) == "function" then
+        instance:brightness_refresh({ show_osd = false })
+        return true
+    end
+
+    if type(instance.reload) == "function" then
+        instance:reload()
+        return true
+    end
+
+    return false
 end
 
 ---Return the shared lxmedia instance.
@@ -64,6 +198,7 @@ end
 function M.bar()
     local bar = state.ensure("bar", function()
         registry.configure_widget_registry()
+        register_custom_widgets()
         return require("lxbar").new()
     end)
 
@@ -149,6 +284,23 @@ function M.runner()
     return state.ensure("runner", function()
         return require("lxrunner").new(runner_options())
     end)
+end
+
+---Request an immediate refresh for one long-lived lx service.
+---@param id string
+---@return boolean
+function M.refresh(id)
+    local service_id = normalize_service_id(id)
+    if not service_id then
+        return false
+    end
+
+    local instance = state.get(service_id)
+    if not instance then
+        return false
+    end
+
+    return refresh_instance(instance)
 end
 
 ---Return the shared lxpower instance.

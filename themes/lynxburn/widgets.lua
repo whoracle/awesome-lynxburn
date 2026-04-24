@@ -7,7 +7,7 @@ local lain = require("lain")
 local awful = require("awful")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
-local config_data = require("config.config_data")
+local naughty = require("naughty")
 local services = require("config.services")
 local tags = require("config.tags")
 local layouts = require("config.layouts")
@@ -18,13 +18,59 @@ local markup = lain.util.markup
 local M = {}
 
 ---Wrap a widget in the standard LynxBurn wibar background and padding shell.
-local programs = config_data.commands()
-local lain_commands = programs.lain or {}
-local mail_account = lain_commands.imap_mail
-local mail_password_lookup = lain_commands.imap_secret
-local mail_server = lain_commands.imap_server
-local mail_login_options = lain_commands.imap_login_options or "AUTH=LOGIN"
-local mail_timeout = tonumber(lain_commands.imap_timeout) or 60
+local function wallpaper_exists(path)
+    if type(path) ~= "string" or path == "" then
+        return false
+    end
+
+    local handle = io.open(path, "rb")
+    if handle then
+        handle:close()
+        return true
+    end
+
+    return false
+end
+
+local function fallback_wallpaper_color(theme)
+    return theme.bg_normal or beautiful.bg_normal or "#333333"
+end
+
+local function notify_wallpaper_fallback(theme, configured)
+    if beautiful._lynxburn_wallpaper_fallback_notified then
+        return
+    end
+
+    beautiful._lynxburn_wallpaper_fallback_notified = true
+    naughty.notify({
+        preset = naughty.config.presets.critical,
+        title = "Wallpaper not found",
+        text = string.format(
+            "Configured wallpaper: %s\nFalling back to flat color %s.",
+            tostring(configured or "<nil>"),
+            fallback_wallpaper_color(theme)
+        ),
+    })
+end
+
+local function apply_wallpaper(theme, screen_obj)
+    local wallpaper = theme.wallpaper
+    if type(wallpaper) == "function" then
+        wallpaper = wallpaper(screen_obj)
+    end
+
+    if not wallpaper_exists(wallpaper) then
+        notify_wallpaper_fallback(theme, wallpaper)
+        gears.wallpaper.set(fallback_wallpaper_color(theme))
+        return
+    end
+
+    local ok = pcall(gears.wallpaper.maximized, wallpaper, screen_obj, true)
+    if not ok then
+        notify_wallpaper_fallback(theme, wallpaper)
+        gears.wallpaper.set(fallback_wallpaper_color(theme))
+    end
+end
 
 local function wrap_widget(theme, widget, background, opts)
     opts = opts or {}
@@ -50,28 +96,6 @@ end
 local function build_text_widget(theme, text_widget)
     text_widget.font = theme.font
     return wrap_widget(theme, text_widget)
-end
-
-local function make_metric_icon(icon_path)
-    local icon = wibox.widget.imagebox(icon_path)
-    icon.forced_width = 0
-    icon.forced_height = 0
-
-    return icon
-end
-
-local function build_metric_widget(theme, icon, widget)
-    local container = wibox.widget({
-        {
-            icon,
-            widget,
-            layout = wibox.layout.fixed.horizontal,
-        },
-        draw_empty = false,
-        widget = wibox.container.margin,
-    })
-
-    return wrap_widget(theme, container)
 end
 
 local function build_power_menu(theme)
@@ -228,129 +252,6 @@ function M.build(theme)
         },
     })
 
-    local mail_icon = wibox.widget.imagebox(theme.icon_mail)
-    mail_icon.forced_width = 0
-    mail_icon.forced_height = 0
-    local mail = lain.widget.imap({
-        timeout = mail_timeout,
-        server = mail_server,
-        mail = mail_account,
-        password = mail_password_lookup,
-        login_options = mail_login_options,
-        settings = function()
-            local count = ""
-
-            if mailcount > 0 then
-                count = markup.font(theme.font, theme.space .. mailcount .. theme.space)
-                mail_icon.forced_width = nil
-                mail_icon.forced_height = nil
-            else
-                mail_icon.forced_width = 0
-                mail_icon.forced_height = 0
-            end
-
-            widget:set_markup(count)
-        end,
-    })
-    local mailwidget
-    if mail and mail.widget then
-        mailwidget = wrap_widget(theme, wibox.widget({
-            {
-                mail_icon,
-                mail.widget,
-                layout = wibox.layout.fixed.horizontal,
-            },
-            draw_empty = false,
-            widget = wibox.container.margin,
-        }))
-    else
-        mailwidget = wibox.widget.textbox("")
-    end
-
-    local cpu_icon = make_metric_icon(theme.icon_cpu)
-    local cpu = lain.widget.cpu({
-        settings = function()
-            local cpu_p = ""
-
-            if cpu_now.usage >= 75 then
-                cpu_p = theme.space .. cpu_now.usage .. markup(theme.tasklist_fg_normal, "%" .. theme.space)
-                cpu_icon.forced_width = nil
-                cpu_icon.forced_height = nil
-            else
-                cpu_icon.forced_width = 0
-                cpu_icon.forced_height = 0
-            end
-
-            widget:set_markup(cpu_p)
-        end,
-    })
-    local cpuwidget = build_metric_widget(theme, cpu_icon, cpu.widget)
-
-    local sysload_icon = make_metric_icon(theme.icon_sysload)
-    local sysload = lain.widget.sysload({
-        settings = function()
-            local load_p = ""
-
-            if tonumber(load_1) >= 8 then
-                load_p = markup.font(theme.font, theme.space .. load_1 .. theme.space)
-                sysload_icon.forced_width = nil
-                sysload_icon.forced_height = nil
-            else
-                sysload_icon.forced_width = 0
-                sysload_icon.forced_height = 0
-            end
-
-            widget:set_markup(load_p)
-        end,
-    })
-    local sysloadwidget = build_metric_widget(theme, sysload_icon, sysload.widget)
-
-    local mem_icon = make_metric_icon(theme.icon_mem)
-    local mem = lain.widget.mem({
-        settings = function()
-            local mem_p = ""
-
-            if mem_now.perc >= 75 then
-                mem_p = markup.font(theme.font, theme.space .. mem_now.perc .. markup(theme.tasklist_fg_normal, "%" .. theme.space))
-                mem_icon.forced_width = nil
-                mem_icon.forced_height = nil
-            else
-                mem_icon.forced_width = 0
-                mem_icon.forced_height = 0
-            end
-
-            widget:set_markup(mem_p)
-        end,
-    })
-    local memwidget = build_metric_widget(theme, mem_icon, mem.widget)
-
-    local fs_root_icon = make_metric_icon(theme.icon_fs)
-    local fs_root = lain.widget.fs({
-        partition = "/",
-        threshold = 95,
-        followtag = true,
-        settings = function()
-            local fs_p = ""
-            local root_fs = fs_now["/"]
-
-            if root_fs and root_fs.percentage >= 90 then
-                fs_p = markup.font(
-                    theme.font,
-                    theme.space .. markup(theme.tasklist_fg_normal, "root ")
-                    .. root_fs.percentage .. markup(theme.tasklist_fg_normal, "%" .. theme.space)
-                )
-                fs_root_icon.forced_width = nil
-                fs_root_icon.forced_height = nil
-            else
-                fs_root_icon.forced_width = 0
-                fs_root_icon.forced_height = 0
-            end
-
-            widget:set_markup(fs_p)
-        end,
-    })
-    local fs_rootwidget = build_metric_widget(theme, fs_root_icon, fs_root.widget)
-
     local powermenu_widget = build_power_menu(theme)
 
     local spacer = wibox.widget({
@@ -369,50 +270,19 @@ function M.build(theme)
     })
 
     return function(s)
-        local lxmedia = services.media()
         local lxbar = services.bar()
-        local lxbluetooth = services.bluetooth()
-        local lxdisplay = services.display()
-        local lxnetwork = services.network()
-        local lxnotify = services.notify()
-        local lxpower = services.power()
         local lxbar_widget = wrap_widget(theme, lxbar.widget)
         local right_widgets = {
             layout = wibox.layout.fixed.horizontal,
-            mailwidget,
-            sysloadwidget,
-            cpuwidget,
-            memwidget,
-            fs_rootwidget,
-            spacer,
             lxbar_widget,
         }
 
-        local wallpaper = theme.wallpaper
-        if type(wallpaper) == "function" then
-            wallpaper = wallpaper(s)
-        end
-        gears.wallpaper.maximized(wallpaper, s, true)
+        apply_wallpaper(theme, s)
 
         tags.create_for_screen(s)
 
         beautiful.bg_systray = theme.tasklist_bg_focus
         beautiful.systray_icon_spacing = theme.widget_padding_left
-
-        local mysystray = wibox.widget({
-            {
-                wibox.widget.systray(),
-                left = theme.widget_padding_left,
-                top = theme.widget_padding_top,
-                bottom = theme.widget_padding_bottom,
-                right = theme.widget_padding_right,
-                widget = wibox.container.margin,
-            },
-            bg = theme.tasklist_bg_normal,
-            shape = gears.shape.rectangle,
-            shape_clip = true,
-            widget = wibox.container.background,
-        })
 
         s.mytaglist = awful.widget.taglist(
             s,
@@ -462,13 +332,12 @@ function M.build(theme)
             layout = wibox.layout.align.horizontal,
             {
                 layout = wibox.layout.fixed.horizontal,
-                s.mytags,
-                s.mylayoutswitcher,
-                spacer,
-            },
-            s.mytasklist,
-            (function()
-                table.insert(right_widgets, mysystray)
+            s.mytags,
+            s.mylayoutswitcher,
+            spacer,
+        },
+        s.mytasklist,
+        (function()
                 table.insert(right_widgets, myclock)
                 table.insert(right_widgets, mydate)
                 table.insert(right_widgets, powermenu_widget)

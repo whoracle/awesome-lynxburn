@@ -30,6 +30,7 @@ through `config.services` and `lxcommon.registry`.
 ## Feature List
 
 - horizontal composition of registered module widgets
+- hosting of configured custom non-`lx*` widgets inside the same bar flow
 - bar order based on registry order / configured `lxmodules.lxbar.order`
 - popup open/toggle routing by module id and popup id
 - popup open/toggle routing by semantic popup role
@@ -62,6 +63,39 @@ lxbar:cycle_popups(1, {
 })
 ```
 
+Custom widget example:
+
+```lua
+lxmodules = {
+    lxbar = {
+        order = {
+            "lxnetwork",
+            "lxmedia",
+            "custom:mail",
+            "custom:cpu",
+            "custom:systray",
+        },
+        custom_widgets = {
+            mail = require("widgets.mail_imap"),
+            cpu = require("widgets.lain_cpu"),
+            systray = require("widgets.systray"),
+        },
+    },
+}
+```
+
+Constructor shape:
+
+```lua
+return function(context)
+    return {
+        widget = ...,
+        width = 32,
+        style = "lxbar",
+    }
+end
+```
+
 ## Configuration
 
 User-facing config lives under `lxmodules.lxbar`.
@@ -76,6 +110,24 @@ Current knobs:
 
 - `lxmodules.lxbar.modules.<lxmodule>.cycle`
   Whether a visible module participates in popup cycling.
+
+- `lxmodules.lxbar.custom_widgets`
+  Map of custom widget constructors keyed by the name used in `custom:<name>`
+  order entries.
+
+Custom widgets are hosted visually inside `lxbar`, but they do not participate
+in popup cycling and do not get `lx*` interaction semantics automatically.
+
+Supported custom widget spec keys:
+
+- `widget`
+  The widget instance to host.
+- `width`
+  Optional exact-width constraint.
+- `style`
+  Visual wrapping mode:
+  - `"lxbar"`: default; wrap in the normal bar shell
+  - `"raw"`: host without the extra `lxbar` background/padding shell
 
 ## Theme Variables
 

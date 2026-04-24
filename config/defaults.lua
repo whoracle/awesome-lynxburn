@@ -4,7 +4,7 @@ local default_keys = require("config.default_keys")
 
 M.theme = {
     name = "lynxburn",
-    color_scheme = "default",
+    color_scheme = "lynxburn",
 }
 
 M.screens = {
@@ -66,16 +66,21 @@ M.lxmodules = {
             "lxnetwork",
             "lxmedia",
             "lxnotify",
+            "custom:mail",
+            "custom:sysload",
+            "custom:cpu",
+            "custom:mem",
+            "custom:fs_root",
+            "custom:systray",
         },
-        modules = {
-            lxmedia = {},
-            lxbluetooth = {},
-            lxdisplay = {},
-            lxnetwork = {
-                -- cycle = false,
-            },
-            lxnotify = {},
-            lxpower = {},
+        modules = {},
+        custom_widgets = {
+            mail = require("widgets.mail_imap"),
+            sysload = require("widgets.lain_sysload"),
+            cpu = require("widgets.lain_cpu"),
+            mem = require("widgets.lain_mem"),
+            fs_root = require("widgets.lain_fs_root"),
+            systray = require("widgets.systray"),
         },
     },
     lxmedia = {
@@ -160,7 +165,8 @@ M.lxmodules = {
     },
     lxsecrets = {
         at_start = true,
-        interval = "30m",
+        at_start_delay = "60s",
+        interval = false,
         top_level = "always",
         cycle_exclude = true,
         browser = nil,
