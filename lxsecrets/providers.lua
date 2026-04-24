@@ -1,5 +1,4 @@
 local awful = require("awful")
-local gears = require("gears")
 local config_data = require("config.config_data")
 local json = require("lxcommon.dkjson")
 
@@ -480,117 +479,10 @@ local function keyring_selector(secret)
     }
 end
 
-local sync_secret_expiry
-
-local function after_delay(seconds, fn)
-    gears.timer.start_new(seconds, function()
-        fn()
-        return false
-    end)
-end
-
 local function update_secret_expiry(secret, display_value, expired)
     secret.expires_at_display = display_value or "unknown"
     secret.expires_at_sort = parse_display_epoch(display_value)
     secret.expired = expired and true or false
-end
-
-local function sync_keyring_expiry(secret, token, callback)
-    return sync_secret_expiry(secret, keyring_selector(secret), token, callback)
-end
-
-sync_secret_expiry = function(secret, selector_pairs_list, token, callback)
-    local display_value = secret.expires_at_display
-    callback = callback or function() end
-
-    if not display_value or display_value == "unknown" or display_value == "expired" then
-        callback(true)
-        return
-    end
-
-    secret_search_records(selector_pairs_list, function(records)
-        local replacement_selector = selector_pairs_list
-        local pending_clears = 0
-        local started_store = false
-        local retries_left = 5
-
-        local function maybe_store()
-            if started_store or pending_clears > 0 then
-                return
-            end
-
-            secret_search_records(selector_pairs_list, function(remaining_records)
-                if #remaining_records > 0 then
-                    if retries_left <= 0 then
-                        callback(false)
-                        return
-                    end
-
-                    retries_left = retries_left - 1
-
-                    for _, record in ipairs(remaining_records) do
-                        local record_pairs = attrs_to_pairs(record.attrs or {})
-                        if #record_pairs > 0 then
-                            pending_clears = pending_clears + 1
-                            secret_clear(record_pairs, function()
-                                pending_clears = pending_clears - 1
-                            end)
-                        end
-                    end
-
-                    after_delay(0.15, maybe_store)
-                    return
-                end
-
-                started_store = true
-                secret_store(
-                    keyring_label(secret),
-                    replacement_selector,
-                    { "expiry_date", tostring(display_value) },
-                    token,
-                    function(ok)
-                        callback(ok)
-                    end
-                )
-            end)
-        end
-
-        local function queue_clear(record_pairs)
-            if #record_pairs == 0 then
-                return
-            end
-
-            pending_clears = pending_clears + 1
-            secret_clear(record_pairs, function()
-                pending_clears = pending_clears - 1
-                if pending_clears == 0 then
-                    after_delay(0.05, maybe_store)
-                end
-            end)
-        end
-
-        if #records > 0 then
-            local base_attrs = {}
-
-            for key, value in pairs(records[1].attrs or {}) do
-                if key ~= "expiry_date" then
-                    base_attrs[key] = value
-                end
-            end
-
-            if next(base_attrs) then
-                replacement_selector = attrs_to_pairs(base_attrs)
-            end
-
-            for _, record in ipairs(records) do
-                queue_clear(attrs_to_pairs(record.attrs or {}))
-            end
-        else
-            queue_clear(selector_pairs_list)
-        end
-
-        maybe_store()
-    end)
 end
 
 local function vault_env(secret, token, browser_override)
@@ -689,13 +581,18 @@ local function gitlab_refresh(secret, callback)
                 end
 
                 if days_left > (secret.gitlab_threshold_days or 30) then
-                    sync_secret_expiry(secret, token_selector, current_pat, function()
-                        if bootstrapping then
+                    if bootstrapping then
+                        secret_store(store_label, token_selector, {}, current_pat, function(stored, store_err)
+                            if not stored then
+                                callback("error", store_err)
+                                return
+                            end
+
                             callback("ok", string.format("bootstrapped managed PAT from admin selector; ~%dd left", days_left))
-                        else
-                            callback("ok", string.format("token healthy; ~%dd left", days_left))
-                        end
-                    end)
+                        end)
+                    else
+                        callback("ok", string.format("token healthy; ~%dd left", days_left))
+                    end
                     return
                 end
 
@@ -827,7 +724,6 @@ local function vault_login(secret, opts, callback)
                             update_secret_expiry(secret, format_expiry(os.time() + ttl), false)
                         end
 
-                        sync_keyring_expiry(secret, token, function() end)
                     end
 
                     callback("ok", "login succeeded")
@@ -891,9 +787,7 @@ local function vault_refresh(secret, opts, callback)
             end
 
             if ttl > (secret.threshold_seconds or 604800) then
-                sync_keyring_expiry(secret, token, function()
-                    callback("ok", "token healthy; ttl=" .. tostring(ttl) .. "s")
-                end)
+                callback("ok", "token healthy; ttl=" .. tostring(ttl) .. "s")
                 return
             end
 
@@ -904,9 +798,7 @@ local function vault_refresh(secret, opts, callback)
                         if renewed then
                             local new_ttl = tonumber(((renewed.auth or {}).lease_duration) or renewed.lease_duration) or 0
                             update_secret_expiry(secret, format_expiry(os.time() + new_ttl), new_ttl <= 0)
-                            sync_keyring_expiry(secret, token, function()
-                                callback("ok", "renewal succeeded; new ttl=" .. tostring(new_ttl) .. "s")
-                            end)
+                            callback("ok", "renewal succeeded; new ttl=" .. tostring(new_ttl) .. "s")
                             return
                         end
 
