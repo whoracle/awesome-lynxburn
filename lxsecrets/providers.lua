@@ -1,4 +1,5 @@
 local awful = require("awful")
+local gears = require("gears")
 local config_data = require("config.config_data")
 local json = require("lxcommon.dkjson")
 
@@ -481,6 +482,13 @@ end
 
 local sync_secret_expiry
 
+local function after_delay(seconds, fn)
+    gears.timer.start_new(seconds, function()
+        fn()
+        return false
+    end)
+end
+
 local function update_secret_expiry(secret, display_value, expired)
     secret.expires_at_display = display_value or "unknown"
     secret.expires_at_sort = parse_display_epoch(display_value)
@@ -504,22 +512,61 @@ sync_secret_expiry = function(secret, selector_pairs_list, token, callback)
         local replacement_selector = selector_pairs_list
         local pending_clears = 0
         local started_store = false
+        local retries_left = 5
 
         local function maybe_store()
             if started_store or pending_clears > 0 then
                 return
             end
 
-            started_store = true
-            secret_store(
-                keyring_label(secret),
-                replacement_selector,
-                { "expiry_date", tostring(display_value) },
-                token,
-                function(ok)
-                    callback(ok)
+            secret_search_records(selector_pairs_list, function(remaining_records)
+                if #remaining_records > 0 then
+                    if retries_left <= 0 then
+                        callback(false)
+                        return
+                    end
+
+                    retries_left = retries_left - 1
+
+                    for _, record in ipairs(remaining_records) do
+                        local record_pairs = attrs_to_pairs(record.attrs or {})
+                        if #record_pairs > 0 then
+                            pending_clears = pending_clears + 1
+                            secret_clear(record_pairs, function()
+                                pending_clears = pending_clears - 1
+                            end)
+                        end
+                    end
+
+                    after_delay(0.15, maybe_store)
+                    return
                 end
-            )
+
+                started_store = true
+                secret_store(
+                    keyring_label(secret),
+                    replacement_selector,
+                    { "expiry_date", tostring(display_value) },
+                    token,
+                    function(ok)
+                        callback(ok)
+                    end
+                )
+            end)
+        end
+
+        local function queue_clear(record_pairs)
+            if #record_pairs == 0 then
+                return
+            end
+
+            pending_clears = pending_clears + 1
+            secret_clear(record_pairs, function()
+                pending_clears = pending_clears - 1
+                if pending_clears == 0 then
+                    after_delay(0.05, maybe_store)
+                end
+            end)
         end
 
         if #records > 0 then
@@ -536,21 +583,10 @@ sync_secret_expiry = function(secret, selector_pairs_list, token, callback)
             end
 
             for _, record in ipairs(records) do
-                local record_pairs = attrs_to_pairs(record.attrs or {})
-                if #record_pairs > 0 then
-                    pending_clears = pending_clears + 1
-                    secret_clear(record_pairs, function()
-                        pending_clears = pending_clears - 1
-                        maybe_store()
-                    end)
-                end
+                queue_clear(attrs_to_pairs(record.attrs or {}))
             end
         else
-            pending_clears = 1
-            secret_clear(selector_pairs_list, function()
-                pending_clears = pending_clears - 1
-                maybe_store()
-            end)
+            queue_clear(selector_pairs_list)
         end
 
         maybe_store()
