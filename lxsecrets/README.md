@@ -170,7 +170,9 @@ shipped default. Use a duration like `"30m"` only if you want periodic checks.
 For GitLab secrets, `selectors` is the canonical selector for the managed token.
 Use `admin_selector` only when the admin PAT lives under different keyring
 attributes. `token_selector` is no longer needed for normal configs and remains
-only as a backwards-compatibility override.
+only as a backwards-compatibility override. If the managed PAT is not yet in the
+keyring but the admin PAT exists, `lxsecrets` will bootstrap from the admin PAT
+and store the managed selector entry on the first successful check or rotation.
 
 Current provider support:
 

@@ -72,6 +72,36 @@ local function append_all(target, values)
     end
 end
 
+local function format_selector_pairs(selector_pairs_list)
+    local parts = {}
+
+    for index = 1, #selector_pairs_list, 2 do
+        local key = selector_pairs_list[index]
+        local value = selector_pairs_list[index + 1]
+        parts[#parts + 1] = tostring(key) .. "=" .. tostring(value)
+    end
+
+    return table.concat(parts, " ")
+end
+
+local function nonempty_table(value)
+    return type(value) == "table" and next(value) ~= nil
+end
+
+local function pair_lists_equal(left, right)
+    if #left ~= #right then
+        return false
+    end
+
+    for index = 1, #left do
+        if left[index] ~= right[index] then
+            return false
+        end
+    end
+
+    return true
+end
+
 local function run_process(args, callback)
     awful.spawn.easy_async(args, function(stdout, stderr, _, exit_code)
         callback(stdout or "", stderr or "", exit_code or 1)
@@ -293,15 +323,89 @@ local function secret_lookup(selector_pairs_list, callback)
 
     run_process(args, function(stdout, stderr, exit_code)
         if exit_code == 0 then
-            callback(util.trim(stdout or ""))
-            return
-        end
+        callback(util.trim(stdout or ""))
+        return
+    end
 
-        callback(nil, last_nonempty_line(stderr) or last_nonempty_line(stdout))
+        callback(nil, "secret-tool lookup failed for " .. format_selector_pairs(selector_pairs_list)
+            .. ": " .. tostring(last_nonempty_line(stderr) or last_nonempty_line(stdout) or "unknown error"))
     end)
 end
 
+local secret_search_records
+
 local function secret_search_metadata(selector_pairs_list, callback)
+    secret_search_records(selector_pairs_list, function(records)
+        local metadata = {}
+
+        if records[1] and records[1].attrs and records[1].attrs.expiry_date then
+            metadata.expiry_date = records[1].attrs.expiry_date
+        end
+
+        callback(metadata)
+    end)
+end
+
+local function unquote_search_value(value)
+    return tostring(value or ""):gsub("^['\"]", ""):gsub("['\"]$", "")
+end
+
+local function parse_secret_search_records(output)
+    local records = {}
+    local current = nil
+
+    local function push_current()
+        if current and next(current.attrs or {}) then
+            records[#records + 1] = current
+        end
+        current = nil
+    end
+
+    for _, line in ipairs(util.split_lines(output)) do
+        local trimmed = util.trim(line)
+
+        if trimmed == "" then
+            push_current()
+        elseif trimmed:match("^%[.+%]$") then
+            push_current()
+            current = { attrs = {} }
+        else
+            current = current or { attrs = {} }
+
+            local attr_key, attr_value = trimmed:match("^attribute%.([^%s=]+)%s*=%s*(.+)$")
+            if not attr_key then
+                attr_key, attr_value = trimmed:match("^attribute ([^%s=]+)%s*=%s*(.+)$")
+            end
+
+            if attr_key then
+                current.attrs[attr_key] = unquote_search_value(attr_value)
+            else
+                local label_value = trimmed:match("^label%s*=%s*(.+)$")
+                if label_value then
+                    current.label = unquote_search_value(label_value)
+                end
+            end
+        end
+    end
+
+    push_current()
+    return records
+end
+
+local function attrs_to_pairs(attrs, excluded_keys)
+    local pairs_out = {}
+
+    for _, key in ipairs(sorted_keys(attrs)) do
+        if not excluded_keys or not excluded_keys[key] then
+            pairs_out[#pairs_out + 1] = tostring(key)
+            pairs_out[#pairs_out + 1] = tostring(attrs[key])
+        end
+    end
+
+    return pairs_out
+end
+
+secret_search_records = function(selector_pairs_list, callback)
     local args = { "secret-tool", "search", "--all" }
     append_all(args, selector_pairs_list)
 
@@ -311,19 +415,7 @@ local function secret_search_metadata(selector_pairs_list, callback)
             return
         end
 
-        local metadata = {}
-
-        for _, line in ipairs(util.split_lines(stdout)) do
-            local value = line:match("^%s*attribute%.expiry_date%s*=%s*(.+)%s*$")
-                or line:match("^%s*expiry_date%s*=%s*(.+)%s*$")
-                or line:match("^%s*attribute expiry_date%s*=%s*(.+)%s*$")
-            if value then
-                metadata.expiry_date = value:gsub("^['\"]", ""):gsub("['\"]$", "")
-                break
-            end
-        end
-
-        callback(metadata)
+        callback(parse_secret_search_records(stdout))
     end)
 end
 
@@ -331,8 +423,14 @@ local function secret_clear(selector_pairs_list, callback)
     local args = { "secret-tool", "clear" }
     append_all(args, selector_pairs_list)
 
-    run_process(args, function(_, _, _)
-        callback(true)
+    run_process(args, function(stdout, stderr, exit_code)
+        if exit_code == 0 then
+            callback(true)
+            return
+        end
+
+        callback(false, "secret-tool clear failed for " .. format_selector_pairs(selector_pairs_list)
+            .. ": " .. tostring(last_nonempty_line(stderr) or last_nonempty_line(stdout) or "unknown error"))
     end)
 end
 
@@ -356,7 +454,10 @@ local function secret_store(label, selector_pairs_list, extra_pairs, secret_valu
             return
         end
 
-        callback(false, last_nonempty_line(stderr) or last_nonempty_line(stdout) or "failed to store secret")
+        callback(false, "secret-tool store failed for label=" .. tostring(label)
+            .. " " .. format_selector_pairs(selector_pairs_list)
+            .. " " .. format_selector_pairs(extra_pairs or {})
+            .. ": " .. tostring(last_nonempty_line(stderr) or last_nonempty_line(stdout) or "unknown error"))
     end)
 end
 
@@ -424,31 +525,6 @@ local function update_secret_expiry(secret, display_value, expired)
     secret.expired = expired and true or false
 end
 
-local function sync_keyring_expiry(secret, token, callback)
-    local display_value = secret.expires_at_display
-    callback = callback or function() end
-
-    if not display_value or display_value == "unknown" or display_value == "expired" then
-        callback(true)
-        return
-    end
-
-    -- secret-tool treats the full attribute set as the lookup identity. When
-    -- we add `expiry_date`, we need to replace the original item first or we
-    -- end up with a parallel entry instead of updating the existing one.
-    secret_clear(keyring_selector(secret), function()
-        secret_store(
-            keyring_label(secret),
-            keyring_selector(secret),
-            { "expiry_date", tostring(display_value) },
-            token,
-            function(ok)
-                callback(ok)
-            end
-        )
-    end)
-end
-
 local function vault_env(secret, token, browser_override)
     local selectors = secret.selectors or {}
     local browser = browser_override or secret.browser_command
@@ -474,10 +550,16 @@ end
 
 local function gitlab_refresh(secret, callback)
     local selectors = secret.selectors or {}
-    local admin_selector = selector_pairs(secret.admin_selector or selectors.admin_selector or selectors, GITLAB_SPECIAL_KEYS)
+    local admin_selector_source = nonempty_table(secret.admin_selector) and secret.admin_selector
+        or (nonempty_table(selectors.admin_selector) and selectors.admin_selector)
+        or selectors
+    local token_selector_source = nonempty_table(secret.token_selector) and secret.token_selector
+        or selectors
+    local admin_selector = selector_pairs(admin_selector_source, GITLAB_SPECIAL_KEYS)
     -- `selectors` is the canonical managed-token selector. `token_selector`
     -- remains as a compatibility override for older configs only.
-    local token_selector = selector_pairs(secret.token_selector or selectors, GITLAB_SPECIAL_KEYS)
+    local token_selector = selector_pairs(token_selector_source, GITLAB_SPECIAL_KEYS)
+    local shared_selector = pair_lists_equal(admin_selector, token_selector)
     local store_label = selectors.label or secret.name or "GitLab Personal Access Token"
     local api_base = tostring(selectors.gitlab_url or ""):gsub("/+$", "") .. "/api/v4"
 
@@ -488,19 +570,26 @@ local function gitlab_refresh(secret, callback)
         end
 
         secret_lookup(token_selector, function(managed_pat)
-            if not managed_pat or managed_pat == "" then
-                callback("error", "managed PAT not found in keyring")
-                return
+            local current_pat = managed_pat
+            local bootstrapping = false
+
+            if not current_pat or current_pat == "" then
+                current_pat = admin_pat
+                bootstrapping = true
             end
 
-            curl_json("GET", managed_pat, api_base .. "/personal_access_tokens/self", nil, function(code, body, err)
+            curl_json("GET", current_pat, api_base .. "/personal_access_tokens/self", nil, function(code, body, err)
                 if err then
                     callback("error", err)
                     return
                 end
 
                 if code == 401 then
-                    callback("error", "managed PAT is invalid, expired, or revoked")
+                    if bootstrapping then
+                        callback("error", "admin PAT is invalid, expired, or revoked")
+                    else
+                        callback("error", "managed PAT is invalid, expired, or revoked")
+                    end
                     return
                 end
 
@@ -533,14 +622,23 @@ local function gitlab_refresh(secret, callback)
                 update_secret_expiry(secret, expires_at, seconds_left <= 0)
 
                 if seconds_left <= 0 then
-                    callback("error", "managed PAT is already expired")
+                    callback("error", bootstrapping and "admin PAT is already expired" or "managed PAT is already expired")
                     return
                 end
 
                 if days_left > (secret.gitlab_threshold_days or 30) then
-                    sync_keyring_expiry(secret, managed_pat, function()
+                    if bootstrapping and not shared_selector then
+                        secret_store(store_label, token_selector, {}, current_pat, function(stored, store_err)
+                            if not stored then
+                                callback("error", store_err)
+                                return
+                            end
+
+                            callback("ok", string.format("bootstrapped managed PAT from admin selector; ~%dd left", days_left))
+                        end)
+                    else
                         callback("ok", string.format("token healthy; ~%dd left", days_left))
-                    end)
+                    end
                     return
                 end
 
@@ -608,7 +706,11 @@ local function gitlab_refresh(secret, callback)
                                         return
                                     end
 
-                                    callback("ok", "replaced PAT id=" .. tostring(token_id) .. " with new id=" .. tostring(new_id) .. " expiring " .. tostring(new_expires_at))
+                                    if bootstrapping then
+                                        callback("ok", "bootstrapped and rotated PAT id=" .. tostring(token_id) .. " to new id=" .. tostring(new_id) .. " expiring " .. tostring(new_expires_at))
+                                    else
+                                        callback("ok", "replaced PAT id=" .. tostring(token_id) .. " with new id=" .. tostring(new_id) .. " expiring " .. tostring(new_expires_at))
+                                    end
                                 end)
                             end)
                         end)
@@ -668,7 +770,6 @@ local function vault_login(secret, opts, callback)
                             update_secret_expiry(secret, format_expiry(os.time() + ttl), false)
                         end
 
-                        sync_keyring_expiry(secret, token, function() end)
                     end
 
                     callback("ok", "login succeeded")
@@ -732,9 +833,7 @@ local function vault_refresh(secret, opts, callback)
             end
 
             if ttl > (secret.threshold_seconds or 604800) then
-                sync_keyring_expiry(secret, token, function()
-                    callback("ok", "token healthy; ttl=" .. tostring(ttl) .. "s")
-                end)
+                callback("ok", "token healthy; ttl=" .. tostring(ttl) .. "s")
                 return
             end
 
@@ -745,9 +844,7 @@ local function vault_refresh(secret, opts, callback)
                         if renewed then
                             local new_ttl = tonumber(((renewed.auth or {}).lease_duration) or renewed.lease_duration) or 0
                             update_secret_expiry(secret, format_expiry(os.time() + new_ttl), new_ttl <= 0)
-                            sync_keyring_expiry(secret, token, function()
-                                callback("ok", "renewal succeeded; new ttl=" .. tostring(new_ttl) .. "s")
-                            end)
+                            callback("ok", "renewal succeeded; new ttl=" .. tostring(new_ttl) .. "s")
                             return
                         end
 

@@ -52,6 +52,7 @@ return {
     -- lxmodules = {
     --     lxbar = {
     --         popup_side = "right",
+    --         screens = { "left", "center" },
     --         order = {
     --             "lxbluetooth",
     --             "lxnetwork",

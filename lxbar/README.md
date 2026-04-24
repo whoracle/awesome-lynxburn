@@ -75,6 +75,7 @@ lxmodules = {
             "custom:cpu",
             "custom:systray",
         },
+        screens = { "center", "left" },
         custom_widgets = {
             mail = require("widgets.mail_imap"),
             cpu = require("widgets.lain_cpu"),
@@ -107,6 +108,10 @@ Current knobs:
 
 - `lxmodules.lxbar.popup_side`
   Global left/right side used when a popup chooses `"side"` placement.
+
+- `lxmodules.lxbar.screens`
+  Optional allowlist of configured screen names from `settings.monitors`.
+  When set, `lxbar` is shown only on those screens.
 
 - `lxmodules.lxbar.modules.<lxmodule>.cycle`
   Whether a visible module participates in popup cycling.
