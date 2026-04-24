@@ -85,7 +85,8 @@ Rationale:
 - fix right click on notifications inside a group so it reliably triggers the
   secondary action (`dismiss`) instead of sometimes firing the primary action
 - consider auto-pausing popups while a screen share is active, if there is a
-  reliable detection path that is not too environment-specific
+  reliable detection path that is not too environment-specific; PipeWire or
+  portal-session state is the most likely signal source to investigate
 
 ### `lxrunner`
 
