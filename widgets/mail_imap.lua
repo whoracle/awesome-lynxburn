@@ -2,11 +2,10 @@ local beautiful = require("beautiful")
 local lain = require("lain")
 local wibox = require("wibox")
 
-local config_data = require("config.config_data")
-
 local markup = lain.util.markup
 
 return function(context)
+    local config_data = require("config.config_data")
     local commands = config_data.commands()
     local lain_commands = commands.lain or {}
     local mail_account = lain_commands.imap_mail
