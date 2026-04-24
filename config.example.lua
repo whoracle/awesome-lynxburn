@@ -9,7 +9,7 @@ return {
     -- },
     -- theme = {
     --     name = "lynxburn",
-    --     color_scheme = "default",
+    --     color_scheme = "lynxburn",
     --     -- Flat keys override `beautiful.*` values after the theme loads.
     --     wallpaper = os.getenv("HOME") .. "/Pictures/wallpaper.png",
     --     wibar_height = 24,

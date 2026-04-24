@@ -4,7 +4,7 @@ local default_keys = require("config.default_keys")
 
 M.theme = {
     name = "lynxburn",
-    color_scheme = "default",
+    color_scheme = "lynxburn",
 }
 
 M.screens = {

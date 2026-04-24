@@ -14,7 +14,7 @@ local function load_color_scheme(name)
         return scheme
     end
 
-    return require("themes.lynxburn.colors.default")
+    return require("themes.lynxburn.colors.lynxburn")
 end
 
 local scheme_name = config_theme.color_scheme()

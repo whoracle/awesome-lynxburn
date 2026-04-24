@@ -35,7 +35,7 @@ Apply these user-facing config migrations:
 - update `lxmodules.lxbar.modules` to use the same full ids as keys:
   `lxmedia = { ... }`, not `media = { ... }`
 - if you want to select a bundled `lynxburn` color scheme explicitly, use
-  `theme = { color_scheme = "default" }`
+  `theme = { color_scheme = "lynxburn" }`
   Flat `theme.<key>` overrides continue to work as before.
 - `lxsecrets` is available as an optional new module
   No migration is required unless you want to enable/configure it.
