@@ -121,9 +121,7 @@ function brightness.extend(instance_methods)
                 end
             end),
             awful.button({}, 3, function()
-                if self.xrandr_enabled and self:xrandr_enabled() then
-                    self:toggle_popup(mouse.current_widget_geometry)
-                end
+                self:brightness_off()
             end),
             awful.button({}, 4, function()
                 self:brightness_up(nil, { show_osd = false })
