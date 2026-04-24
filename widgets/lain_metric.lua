@@ -13,9 +13,12 @@ local function metric_icon(icon_path)
     return icon
 end
 
-function M.build(context, icon_path, widget)
+function M.icon(icon_path)
+    return metric_icon(icon_path)
+end
+
+function M.wrap(context, icon, widget)
     local theme = context and context.beautiful or beautiful
-    local icon = metric_icon(icon_path)
 
     return {
         icon = icon,

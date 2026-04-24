@@ -4,7 +4,7 @@ local metric = require("widgets.lain_metric")
 
 return function(context)
     local theme = (context and context.beautiful) or require("beautiful")
-    local built
+    local icon = metric.icon(theme.icon_cpu)
 
     local cpu = lain.widget.cpu({
         settings = function()
@@ -12,15 +12,14 @@ return function(context)
 
             if cpu_now.usage >= 75 then
                 cpu_p = (theme.space or " ") .. cpu_now.usage .. metric.color(theme, "%" .. (theme.space or " "))
-                metric.show(built.icon)
+                metric.show(icon)
             else
-                metric.hide(built.icon)
+                metric.hide(icon)
             end
 
             widget:set_markup(cpu_p)
         end,
     })
 
-    built = metric.build(context, theme.icon_cpu, cpu.widget)
-    return built.metric
+    return metric.wrap(context, icon, cpu.widget).metric
 end

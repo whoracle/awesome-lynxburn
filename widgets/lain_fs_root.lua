@@ -4,7 +4,7 @@ local metric = require("widgets.lain_metric")
 
 return function(context)
     local theme = (context and context.beautiful) or require("beautiful")
-    local built
+    local icon = metric.icon(theme.icon_fs)
 
     local fs_root = lain.widget.fs({
         partition = "/",
@@ -22,15 +22,14 @@ return function(context)
                         .. root_fs.percentage
                         .. metric.color(theme, "%" .. (theme.space or " "))
                 )
-                metric.show(built.icon)
+                metric.show(icon)
             else
-                metric.hide(built.icon)
+                metric.hide(icon)
             end
 
             widget:set_markup(fs_p)
         end,
     })
 
-    built = metric.build(context, theme.icon_fs, fs_root.widget)
-    return built.metric
+    return metric.wrap(context, icon, fs_root.widget).metric
 end
