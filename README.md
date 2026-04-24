@@ -40,7 +40,7 @@ Common external commands used by the current config:
   Then configure the IMAP widget like this:
   ```lua
     commands = {
-`     lain = {
+      lain = {
         imap_mail = "me@example.org",
         imap_secret = "secret-tool lookup service awesomewm-imap account me@example.org",
         imap_server = "mail.example.org",
