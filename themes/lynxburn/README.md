@@ -42,7 +42,7 @@ Top-level config override:
 ```lua
 theme = {
     name = "lynxburn",
-    color_scheme = "nord",
+    color_scheme = "zenburn",
     font = "Hack Nerd Font Mono 10",
     wallpaper = os.getenv("HOME") .. "/.wallpaper-alt",
     lxrunner_row_selected_bg = "#4a2f25",
@@ -73,6 +73,7 @@ Bundled color schemes:
 
 - `default`
 - `nord`
+- `zenburn`
 
 The current flow is:
 
