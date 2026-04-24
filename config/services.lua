@@ -1,3 +1,7 @@
+local beautiful = require("beautiful")
+local gears = require("gears")
+local wibox = require("wibox")
+
 local M = {}
 
 local module_config = require("config.lxmodules")
@@ -32,6 +36,77 @@ local function runner_options()
     options.service_refresh = M.refresh
 
     return options
+end
+
+local function wrap_custom_bar_widget(widget)
+    if not widget then
+        return nil
+    end
+
+    return wibox.widget({
+        {
+            widget,
+            left = beautiful.widget_padding_left or 0,
+            top = beautiful.widget_padding_top or 0,
+            bottom = beautiful.widget_padding_bottom or 0,
+            right = beautiful.widget_padding_right or 0,
+            widget = wibox.container.margin,
+        },
+        bg = beautiful.tasklist_bg_normal or beautiful.bg_normal,
+        shape = gears.shape.rectangle,
+        shape_clip = true,
+        widget = wibox.container.background,
+    })
+end
+
+local function normalize_custom_widget_spec(name, custom_widget)
+    local context = {
+        beautiful = beautiful,
+        gears = gears,
+        services = M,
+        state = state,
+        wibox = wibox,
+    }
+    local resolved = custom_widget
+
+    if type(custom_widget) == "function" then
+        resolved = custom_widget(context)
+    end
+
+    if type(resolved) ~= "table" then
+        return nil
+    end
+
+    if resolved.widget then
+        return resolved
+    end
+
+    return {
+        widget = resolved,
+    }
+end
+
+local function register_custom_widgets()
+    for name, custom_widget in pairs(module_config.custom_widgets()) do
+        local spec = normalize_custom_widget_spec(name, custom_widget)
+
+        if spec and spec.widget then
+            local widget = wrap_custom_bar_widget(spec.widget)
+
+            if spec.width then
+                widget = wibox.widget({
+                    widget,
+                    strategy = "exact",
+                    width = spec.width,
+                    widget = wibox.container.constraint,
+                })
+            end
+
+            registry.register_widget("custom:" .. tostring(name), widget, spec.default_order or 1000, {
+                include_in_popup_cycle = false,
+            })
+        end
+    end
 end
 
 local function normalize_service_id(id)
@@ -101,6 +176,7 @@ end
 function M.bar()
     local bar = state.ensure("bar", function()
         registry.configure_widget_registry()
+        register_custom_widgets()
         return require("lxbar").new()
     end)
 

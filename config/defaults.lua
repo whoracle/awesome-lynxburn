@@ -66,8 +66,12 @@ M.lxmodules = {
             "lxnetwork",
             "lxmedia",
             "lxnotify",
+            "custom:systray",
         },
         modules = {},
+        custom_widgets = {
+            systray = require("widgets.systray"),
+        },
     },
     lxmedia = {
         show_mic_activity = true,

@@ -450,21 +450,6 @@ function M.build(theme)
         beautiful.bg_systray = theme.tasklist_bg_focus
         beautiful.systray_icon_spacing = theme.widget_padding_left
 
-        local mysystray = wibox.widget({
-            {
-                wibox.widget.systray(),
-                left = theme.widget_padding_left,
-                top = theme.widget_padding_top,
-                bottom = theme.widget_padding_bottom,
-                right = theme.widget_padding_right,
-                widget = wibox.container.margin,
-            },
-            bg = theme.tasklist_bg_normal,
-            shape = gears.shape.rectangle,
-            shape_clip = true,
-            widget = wibox.container.background,
-        })
-
         s.mytaglist = awful.widget.taglist(
             s,
             awful.widget.taglist.filter.all,
@@ -513,13 +498,12 @@ function M.build(theme)
             layout = wibox.layout.align.horizontal,
             {
                 layout = wibox.layout.fixed.horizontal,
-                s.mytags,
-                s.mylayoutswitcher,
-                spacer,
-            },
-            s.mytasklist,
-            (function()
-                table.insert(right_widgets, mysystray)
+            s.mytags,
+            s.mylayoutswitcher,
+            spacer,
+        },
+        s.mytasklist,
+        (function()
                 table.insert(right_widgets, myclock)
                 table.insert(right_widgets, mydate)
                 table.insert(right_widgets, powermenu_widget)

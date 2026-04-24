@@ -59,6 +59,7 @@ return {
     --             "lxnotify",
     --             "lxdisplay",
     --             "lxpower",
+    --             "custom:systray",
     --         },
     --         modules = {
     --             lxbluetooth = {
@@ -70,6 +71,9 @@ return {
     --             lxnotify = {
     --                 -- cycle = false,
     --             },
+    --         },
+    --         custom_widgets = {
+    --             systray = require("widgets.systray"),
     --         },
     --     },
     --     lxmedia = {

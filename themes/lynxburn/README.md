@@ -7,6 +7,11 @@ and theme-scoped values consumed by the bundled `lx*` modules. It also
 provides the per-screen wibar assembly used by the current desktop and now
 supports swappable color schemes inside the same theme shell.
 
+Normal in-bar widgets should now go through `lxbar`, including custom
+non-`lx*` widgets. `themes/lynxburn/widgets.lua` remains the right place only
+for theme-owned shell composition and for extra widgets you intentionally place
+outside `lxbar`.
+
 ## Dependencies
 
 External:
