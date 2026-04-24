@@ -15,6 +15,10 @@ local AVAILABLE_COLOR_SCHEMES = {
     "zenburn",
     "catppuccin",
     "solarized_light",
+    "solarized_dark",
+    "kanagawa_wave",
+    "kanagawa_dragon",
+    "kanagawa_lotus",
 }
 local COLOR_SCHEME_ALIASES = {
     default = DEFAULT_COLOR_SCHEME,

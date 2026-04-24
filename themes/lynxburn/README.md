@@ -76,6 +76,10 @@ Bundled color schemes:
 - `zenburn`
 - `catppuccin`
 - `solarized_light`
+- `solarized_dark`
+- `kanagawa_wave`
+- `kanagawa_dragon`
+- `kanagawa_lotus`
 
 The current flow is:
 
@@ -368,6 +372,10 @@ Layout label values:
 - `[placeholder] palette: nord`
 - `[placeholder] palette: catppuccin`
 - `[placeholder] palette: solarized_light`
+- `[placeholder] palette: solarized_dark`
+- `[placeholder] palette: kanagawa_wave`
+- `[placeholder] palette: kanagawa_dragon`
+- `[placeholder] palette: kanagawa_lotus`
 
 ## File Layout
 
@@ -381,6 +389,10 @@ Layout label values:
 - `colors/zenburn.lua`: bundled classic Zenburn-inspired alternative
 - `colors/catppuccin.lua`: bundled soft dark alternative
 - `colors/solarized_light.lua`: bundled light alternative
+- `colors/solarized_dark.lua`: bundled classic dark Solarized alternative
+- `colors/kanagawa_wave.lua`: bundled Kanagawa Wave variant
+- `colors/kanagawa_dragon.lua`: bundled Kanagawa Dragon variant
+- `colors/kanagawa_lotus.lua`: bundled Kanagawa Lotus light variant
 - `widgets.lua`: per-screen wibar assembly and theme-specific widget setup
 
 ## Notes
