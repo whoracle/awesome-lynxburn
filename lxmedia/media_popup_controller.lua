@@ -2,6 +2,22 @@ local popup_control = require("lxcommon.popup_control")
 
 local M = {}
 
+local function defer_media_popup_refresh(instance)
+    if instance._defer_media_popup_refresh then
+        instance:_defer_media_popup_refresh()
+        return
+    end
+
+    if instance._schedule_refresh then
+        instance:_schedule_refresh(0.12, { refresh_media_popup = true })
+        return
+    end
+
+    if instance.refresh then
+        instance:refresh()
+    end
+end
+
 ---Attach media-popup selection and keyboard-control helpers to lxmedia.
 function M.extend(instance_methods)
     function instance_methods:_ensure_media_popup_selection()
@@ -46,7 +62,7 @@ function M.extend(instance_methods)
             end
 
             audio.change_sink_input_volume(stream.id, delta)
-            self:_defer_media_popup_refresh()
+            defer_media_popup_refresh(self)
         end)
     end
 
@@ -62,7 +78,7 @@ function M.extend(instance_methods)
             end
 
             audio.toggle_sink_input_mute(stream.id)
-            self:_defer_media_popup_refresh()
+            defer_media_popup_refresh(self)
         end)
     end
 
@@ -82,7 +98,7 @@ function M.extend(instance_methods)
             end
 
             audio.set_sink_input_volume(stream.id, percent)
-            self:_defer_media_popup_refresh()
+            defer_media_popup_refresh(self)
         end)
     end
 
@@ -126,7 +142,7 @@ function M.extend(instance_methods)
             return
         end
 
-        self:_defer_media_popup_refresh()
+        defer_media_popup_refresh(self)
     end
 
     function instance_methods:set_popup_key_actions(map)
