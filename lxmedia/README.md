@@ -104,6 +104,7 @@ On the main widget:
 
 - primary click: toggle playback popup
 - secondary click: toggle devices popup
+- middle click on the widget shell: mute/unmute default sink
 - middle click on the output section: mute/unmute default sink
 - scroll on the output section: change default sink volume
 - middle click on the mic section: mute/unmute all non-monitor inputs
@@ -111,17 +112,23 @@ On the main widget:
 
 Inside the playback popup:
 
-- left click a stream card: expand/collapse routing details
-- middle click a stream card: mute/unmute that sink input
-- scroll over a stream card: change that sink input volume
-- click route targets: move the stream to another sink
+- left click a stream row/card: mute/unmute that sink input
+- right click a player-backed stream row/card: play/pause that player
+- middle click a stream row/card: mute/unmute that sink input
+- scroll over a stream row/card: change that sink input volume
 - click transport buttons: previous, play/pause, next
+- click bars/meters directly: set the corresponding level
+- if a stream is routed to a non-default sink, click its output target row to
+  move it to another sink
 
 Inside the devices popup:
 
-- click an output: set it as default sink
-- click an input: set it as default source
-- click "Open pavucontrol": launch `pavucontrol`
+- left click an output: set it as default sink
+- left click an input: set it as default source
+- left click a stream row: expand/collapse route targets
+- right click a stream row: mute/unmute that sink input
+- left click a route target: move the stream to another sink
+- left click "Open pavucontrol": launch `pavucontrol`
 
 ## Configuration
 
@@ -236,6 +243,20 @@ Notes:
 - popup placement follows the shared `"center"` / `"side"` contract; actual
   left/right side selection comes from `lxmodules.lxbar.popup_side`
 - For keyboard-driven volume control, `volume_up()`, `volume_down()`, and `toggle_mute()` use the same backend logic as the widget mouse bindings.
+
+Popup keyboard behavior:
+
+- playback popup:
+  - `Up` / `Down`: move selection
+  - `Enter`: mute/unmute the selected sink input
+  - `Left` / `Right`: decrease/increase selected sink input volume
+  - `Home`: set selected sink input volume to `100%`
+  - `End`: mute/unmute the selected sink input
+  - `Escape`: close popup
+- devices popup:
+  - `Up` / `Down`: move selection
+  - `Enter`: trigger the selected row's primary action
+  - `Escape`: close popup
 
 ## Theming
 

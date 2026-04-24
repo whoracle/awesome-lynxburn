@@ -38,17 +38,57 @@ local function status_line(instance, text)
     ))
 end
 
-local function selectable_card(instance, child, selected, index, onclick)
+local function selectable_card(instance, child, selected, index, onclick, opts)
+    opts = opts or {}
     return popup_common.make_selectable_click_container(child, onclick, {
         selected = selected,
         inner_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
         hover_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
         outer_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
         selected_bg = instance:_theme_value("lxsecrets_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+        on_right_click = opts.on_right_click,
+        on_middle_click = opts.on_middle_click,
+        on_scroll_up = opts.on_scroll_up,
+        on_scroll_down = opts.on_scroll_down,
         on_hover = function()
             instance:_set_popup_selection(index)
         end,
     })
+end
+
+local function selectable_shell(instance, child, selected, index)
+    local selection_margin = 2
+    local selection_wrapper = wibox.widget({
+        child,
+        margins = selected and selection_margin or 0,
+        widget = wibox.container.margin,
+    })
+
+    local outer = wibox.widget({
+        selection_wrapper,
+        bg = selected
+            and instance:_theme_value("lxsecrets_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
+            or instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        shape = gears.shape.rounded_rect,
+        widget = wibox.container.background,
+    })
+
+    outer:connect_signal("mouse::enter", function()
+        instance:_set_popup_selection(index)
+    end)
+
+    function outer:_lx_set_selected(value)
+        selection_wrapper.margins = value and selection_margin or 0
+        outer.bg = value
+            and instance:_theme_value("lxsecrets_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
+            or instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222")
+    end
+
+    function outer:_lx_set_feedback_active(value)
+        outer:_lx_set_selected(value)
+    end
+
+    return outer
 end
 
 local function badge(label, fg)
@@ -75,7 +115,6 @@ local function action_button(instance, label, onclick)
             bottom = 6,
             widget = wibox.container.margin,
         },
-        shape = gears.shape.rounded_rect,
         bg = instance:_theme_value("lxsecrets_button_bg", beautiful.bg_minimize or "#222222"),
         widget = wibox.container.background,
     })
@@ -92,8 +131,40 @@ local function action_button(instance, label, onclick)
     return button
 end
 
-local function action_row(instance, label, selected, index, onclick)
-    return selectable_card(instance, popup_common.make_text(label), selected, index, onclick)
+local function summary_controls_row(instance, selected, index)
+    local refresh_button = action_button(instance, "Refresh all", function()
+        instance:refresh_all()
+    end)
+    local suspend_label = instance.state.suspended and "Resume checks" or "Pause checks"
+    local suspend_button = action_button(instance, suspend_label, function()
+        instance:toggle_suspended()
+    end)
+
+    local row = wibox.widget({
+        {
+            {
+                refresh_button,
+                suspend_button,
+                spacing = 8,
+                layout = wibox.layout.fixed.horizontal,
+            },
+            widget = wibox.container.place,
+            halign = "center",
+        },
+        left = 12,
+        right = 8,
+        top = 6,
+        bottom = 6,
+        widget = wibox.container.margin,
+    })
+
+    return selectable_card(instance, row, selected, index, function()
+        instance:refresh_all()
+    end, {
+        on_right_click = function()
+            instance:toggle_suspended()
+        end,
+    })
 end
 
 local function secret_row(instance, secret, selected, selection_index, secret_index)
@@ -149,31 +220,59 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         }))
     end
 
-    local buttons = wibox.layout.fixed.horizontal()
-    buttons.spacing = 8
-    buttons:add(action_button(instance, "Refresh", function()
-        instance:refresh_secret(secret_index)
-    end))
-    if secret.auth_required then
-        buttons:add(action_button(instance, "Login", function()
+    local primary_label = secret.auth_required and "Login" or "Refresh"
+    local primary_action = function()
+        if secret.auth_required then
             instance:login_secret(secret_index)
-        end))
+        else
+            instance:refresh_secret(secret_index)
+        end
     end
 
-    local body = wibox.widget({
-        info,
+    local buttons = wibox.layout.fixed.horizontal()
+    buttons.spacing = 8
+    buttons:add(action_button(instance, primary_label, primary_action))
+
+    local info_card = popup_common.make_click_container(info, function()
+        primary_action()
+    end, {
+        left = 12,
+        right = 8,
+        top = 6,
+        bottom = 6,
+        idle_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        hover_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+    })
+    info_card:connect_signal("mouse::enter", function()
+        instance:_set_popup_selection(selection_index)
+    end)
+
+    local content = wibox.widget({
         {
-            buttons,
-            top = 8,
-            widget = wibox.container.margin,
+            info_card,
+            {
+                buttons,
+                top = 8,
+                left = 12,
+                right = 8,
+                bottom = 6,
+                widget = wibox.container.margin,
+            },
+            spacing = 0,
+            layout = wibox.layout.fixed.vertical,
         },
-        spacing = 0,
-        layout = wibox.layout.fixed.vertical,
+        bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        widget = wibox.container.background,
     })
 
-    return selectable_card(instance, body, selected, selection_index, function()
-        instance:refresh_secret(secret_index)
-    end)
+    local outer = popup_common.make_card({
+        content,
+        widget = wibox.container.background,
+    }, {
+        radius = 4,
+    })
+
+    return selectable_shell(instance, outer, selected, selection_index)
 end
 
 function M.extend(instance_methods)
@@ -208,26 +307,14 @@ function M.extend(instance_methods)
         refs.summary:add(status_line(self, self:popup_summary()))
 
         local next_index = 1
-        local refresh_row = action_row(self, "Refresh all", self._popup_selected_index == next_index, next_index, function()
-            self:refresh_all()
-        end)
+        local refresh_row = summary_controls_row(self, self._popup_selected_index == next_index, next_index)
         refs.summary:add(refresh_row)
         self._popup_items[#self._popup_items + 1] = {
             widget = refresh_row,
             on_enter = function()
                 self:refresh_all()
             end,
-        }
-
-        next_index = 2
-        local suspend_label = self.state.suspended and "Resume checks" or "Pause checks"
-        local suspend_row = action_row(self, suspend_label, self._popup_selected_index == next_index, next_index, function()
-            self:toggle_suspended()
-        end)
-        refs.summary:add(suspend_row)
-        self._popup_items[#self._popup_items + 1] = {
-            widget = suspend_row,
-            on_enter = function()
+            on_space = function()
                 self:toggle_suspended()
             end,
         }
@@ -254,7 +341,11 @@ function M.extend(instance_methods)
                 self._popup_items[#self._popup_items + 1] = {
                     widget = row,
                     on_enter = function()
-                        self:refresh_secret(secret.index)
+                        if secret.auth_required then
+                            self:login_secret(secret.index)
+                        else
+                            self:refresh_secret(secret.index)
+                        end
                     end,
                 }
             end
@@ -321,6 +412,14 @@ function M.extend(instance_methods)
         local item = (self._popup_items or {})[self._popup_selected_index or 1]
         if item and type(item.on_enter) == "function" then
             item.on_enter()
+        end
+    end
+
+    function instance_methods:activate_selected_popup_secondary()
+        self:_ensure_popup_selection()
+        local item = (self._popup_items or {})[self._popup_selected_index or 1]
+        if item and type(item.on_space) == "function" then
+            item.on_space()
         end
     end
 

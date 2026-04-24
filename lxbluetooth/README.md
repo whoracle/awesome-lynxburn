@@ -67,9 +67,13 @@ Top-level widget:
 
 Popup:
 
+- left click action row: trigger that action
+- left click device row: connect or disconnect that device
+- right click: no secondary action
 - `Up` / `Down`: move selection
 - `Enter`: activate selected action or connect/disconnect selected device
 - `Escape`: close popup
+- `Left` / `Right`: no special action
 
 ## Configuration
 

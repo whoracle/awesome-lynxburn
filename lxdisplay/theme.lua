@@ -1,4 +1,6 @@
+local awful = require("awful")
 local beautiful = require("beautiful")
+local gears = require("gears")
 local wibox = require("wibox")
 
 local common = require("lxcommon")
@@ -106,6 +108,13 @@ function theme.extend(instance_methods)
             fg = beautiful.lxdisplay_widget_fg or beautiful.fg_normal or "#ffffff",
             widget = wibox.container.background,
         })
+        self._icon_role:buttons(gears.table.join(
+            awful.button({}, 1, function()
+                if self.xrandr_enabled and self:xrandr_enabled() then
+                    self:toggle_popup(mouse.current_widget_geometry)
+                end
+            end)
+        ))
 
         local content = {
             self._icon_role,

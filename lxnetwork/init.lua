@@ -106,6 +106,9 @@ function M.new(opts)
         awful.button({}, 1, function()
             self:toggle_popup(mouse.current_widget_geometry)
         end),
+        awful.button({}, 2, function()
+            self:toggle_wifi_enabled()
+        end),
         awful.button({}, 3, function()
             self:scan()
         end)

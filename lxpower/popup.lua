@@ -13,13 +13,14 @@ local function wrap_card(child)
     })
 end
 
-local function selectable_card(instance, child, selected, index, onclick)
+local function selectable_card(instance, child, selected, index, onclick, on_right_click)
     return popup_ui.make_selectable_click_container(child, onclick, {
         selected = selected,
         inner_bg = instance:_theme_value("lxpower_popup_bg", beautiful.bg_normal or "#222222"),
         hover_bg = instance:_theme_value("lxpower_button_hover", beautiful.bg_focus or "#444444"),
         outer_bg = instance:_theme_value("lxpower_popup_bg", beautiful.bg_normal or "#222222"),
         selected_bg = instance:_theme_value("lxpower_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
+        on_right_click = on_right_click,
         on_hover = function()
             instance:_set_popup_selection(index)
         end,
@@ -105,15 +106,37 @@ function popup.extend(instance_methods)
                 label = self:_theme_value("lxpower_icon_pinned", "") .. " " .. label
             end
 
-            local row = selectable_card(self, popup_ui.make_text(label), selected, next_index, function()
-                self:set_profile(profile_name)
-            end)
+            local row = selectable_card(
+                self,
+                popup_ui.make_text(label),
+                selected,
+                next_index,
+                function()
+                    self:set_profile(profile_name)
+                end,
+                function()
+                    if self.state.profile == profile_name and self.state.pinned then
+                        self:set_pinned(false)
+                        return
+                    end
+
+                    self:set_profile(profile_name, { pin = true })
+                end
+            )
             list:add(row)
             self._popup_items[#self._popup_items + 1] = {
                 widget = row,
                 profile = profile_name,
                 on_enter = function()
                     self:set_profile(profile_name)
+                end,
+                on_space = function()
+                    if self.state.profile == profile_name and self.state.pinned then
+                        self:set_pinned(false)
+                        return
+                    end
+
+                    self:set_profile(profile_name, { pin = true })
                 end,
             }
         end

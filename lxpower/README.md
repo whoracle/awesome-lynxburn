@@ -59,11 +59,14 @@ lxbar:toggle_popup_by_role("power", "secondary", {
 
 Top-level widget:
 
-- left click: toggle between the active source profile pair
-- right click: toggle popup
+- left click: toggle popup
+- middle click: toggle between the active source profile pair
+- right click: toggle pinning for the current profile
 
 Popup:
 
+- left click profile row: activate that profile
+- right click profile row: pin that profile, or unpin it if it is already the active pinned profile
 - `Up` / `Down`: move selection
 - `Enter`: activate selected profile
 - `Right`: pin selected profile

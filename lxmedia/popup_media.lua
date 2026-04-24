@@ -399,6 +399,26 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
     }
 
     local mute_prefix = stream.muted and ((beautiful.lxmedia_icon_muted or "M") .. "  ") or ""
+    local function primary_click()
+        local audio = require("lxmedia.audio")
+        audio.toggle_sink_input_mute(stream.id)
+        if instance._defer_media_popup_refresh then
+            instance:_defer_media_popup_refresh()
+        end
+    end
+
+    local function secondary_click()
+        if not matched_player then
+            return
+        end
+
+        media.play_pause(matched_player)
+        if instance._defer_media_popup_refresh then
+            instance:_defer_media_popup_refresh()
+        else
+            M.rebuild(instance)
+        end
+    end
 
     local function scroll_up()
         local audio = require("lxmedia.audio")
@@ -426,11 +446,12 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
 
     local function wrap_output_scrollable(child, opts)
         opts = opts or {}
-        return make_click_container(child, nil, {
+        return make_click_container(child, opts.onclick, {
             left = opts.left or 0,
             right = opts.right or 0,
             top = opts.top or 0,
             bottom = opts.bottom or 0,
+            on_right_click = opts.on_right_click,
             on_middle_click = opts.on_middle_click,
             on_scroll_up = scroll_up,
             on_scroll_down = scroll_down,
@@ -448,6 +469,8 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
         top = 1,
         bottom = 1,
     }), {
+        onclick = primary_click,
+        on_right_click = secondary_click,
         on_middle_click = middle_click,
     })
     stream_row.forced_height = 20
@@ -508,6 +531,8 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
             })
             meta_row.forced_height = 15
             info_layout:add(wrap_output_scrollable(meta_row, {
+                onclick = primary_click,
+                on_right_click = secondary_click,
                 on_middle_click = middle_click,
             }))
         end
@@ -521,6 +546,8 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
             })
             status_row.forced_height = 15
             info_layout:add(wrap_output_scrollable(status_row, {
+                onclick = primary_click,
+                on_right_click = secondary_click,
                 on_middle_click = middle_click,
             }))
         end
@@ -541,6 +568,8 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
             bottom = 0,
             widget = wibox.container.margin,
         }, {
+            onclick = primary_click,
+            on_right_click = secondary_click,
             on_middle_click = middle_click,
         }))
 
@@ -571,6 +600,8 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
         })
         output_row.forced_height = 15
         info_layout:add(wrap_output_scrollable(output_row, {
+            onclick = primary_click,
+            on_right_click = secondary_click,
             on_middle_click = middle_click,
         }))
     end
@@ -581,6 +612,8 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
             right = 1,
             top = 4,
             bottom = 2,
+            onclick = primary_click,
+            on_right_click = secondary_click,
             on_middle_click = middle_click,
         }))
     end

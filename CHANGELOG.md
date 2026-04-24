@@ -1,3 +1,41 @@
+## v1.7.0 (2026-04-24)
+
+### Features
+
+- [theme] add a bundled nord color scheme and refresh stale roadmap/docs
+- [lxdisplay] include refresh rate in startup profile match check
+
+### Bug Fixes
+
+- [theme] raise nord panel text contrast for tasklist and clock widgets
+- [theme] restore plain tasklist labels in lynxburn
+- [lxsecrets] align popup button styling and restore secondary keyboard action
+- [core] fix bluetooth popup helper regression and media popup transport refresh
+- [lxsecrets] restore neutral card body under full-card selection border
+- [lxdisplay] skip startup profile apply when xrandr state already matches
+- [lxsecrets] include action buttons inside the selected card border
+- [lxsecrets] separate login button clicks from card refresh and sort attention first
+- [lxsecrets] only export explicit browser overrides for vault login
+- [lxrunner] sort empty history by invocation count before recency
+
+### Refactors
+
+- [lxsecrets] collapse per-secret actions into one stateful primary flow
+- [lxsecrets] align popup primary and secondary actions with the interaction contract
+- [lxdisplay] align widget and popup interactions while preserving bar brightness clicks
+- [lxpower] align top-level and popup interactions with primary and secondary actions
+- [lxnetwork] align top-level clicks and README with interaction contract
+- [lxnotify] align card interactions with primary and secondary action semantics
+- [lxmedia] align top-level and popup interactions with primary and secondary actions
+
+### Documentation
+
+- [core] record that no migration is required from v1.6.0 to v1.7.0
+- [core] note future lxrunner mouse-launch support in roadmap
+- [lxrunner] document current keyboard-first interaction model explicitly
+- [lxbluetooth] document popup mouse and keyboard interaction semantics
+- [lxsecrets] record partial card-border selection as known issue
+
 ## v1.6.0 (2026-04-23)
 
 ### Features

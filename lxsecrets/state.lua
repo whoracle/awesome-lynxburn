@@ -106,6 +106,7 @@ local PROVIDER_SORT_ORDER = {
 }
 
 local function secret_sort_key(secret)
+    local attention_rank = secret.needs_attention and 0 or 1
     local provider_order = PROVIDER_SORT_ORDER[secret.provider] or 99
     local has_vpn = (secret.vpn and secret.vpn ~= "") and 0 or 1
     local vpn_name = tostring(secret.vpn or "")
@@ -113,13 +114,13 @@ local function secret_sort_key(secret)
     local expiry_rank = secret.expires_at_sort and 0 or 1
     local expiry_value = secret.expires_at_sort or math.huge
 
-    return provider_order, has_vpn, vpn_name, expired_rank, expiry_rank, expiry_value, tostring(secret.name or "")
+    return attention_rank, provider_order, has_vpn, vpn_name, expired_rank, expiry_rank, expiry_value, tostring(secret.name or "")
 end
 
 local function sort_secrets_in_place(secrets)
     table.sort(secrets, function(a, b)
-        local ak1, ak2, ak3, ak4, ak5, ak6, ak7 = secret_sort_key(a)
-        local bk1, bk2, bk3, bk4, bk5, bk6, bk7 = secret_sort_key(b)
+        local ak1, ak2, ak3, ak4, ak5, ak6, ak7, ak8 = secret_sort_key(a)
+        local bk1, bk2, bk3, bk4, bk5, bk6, bk7, bk8 = secret_sort_key(b)
 
         if ak1 ~= bk1 then return ak1 < bk1 end
         if ak2 ~= bk2 then return ak2 < bk2 end
@@ -127,7 +128,8 @@ local function sort_secrets_in_place(secrets)
         if ak4 ~= bk4 then return ak4 < bk4 end
         if ak5 ~= bk5 then return ak5 < bk5 end
         if ak6 ~= bk6 then return ak6 < bk6 end
-        return ak7 < bk7
+        if ak7 ~= bk7 then return ak7 < bk7 end
+        return ak8 < bk8
     end)
 end
 

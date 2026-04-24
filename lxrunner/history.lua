@@ -81,11 +81,17 @@ end
 
 ---Attach history, ranking, and query/filter helpers to lxrunner.
 function M.extend(instance_methods)
-    ---Keep persisted history sorted by most recently used first.
+    ---Keep persisted history sorted by usage first, then recency.
     function instance_methods:_sort_history()
         table.sort(self._history, function(a, b)
+            local a_count = math.max(1, tonumber(a.count) or 1)
+            local b_count = math.max(1, tonumber(b.count) or 1)
             local a_used = tonumber(a.last_used) or 0
             local b_used = tonumber(b.last_used) or 0
+
+            if a_count ~= b_count then
+                return a_count > b_count
+            end
 
             if a_used ~= b_used then
                 return a_used > b_used
@@ -250,6 +256,7 @@ function M.extend(instance_methods)
         end
 
         self._history = new_history
+        self:_sort_history()
         self:_save_history()
     end
 

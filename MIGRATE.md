@@ -4,7 +4,7 @@ This file tracks only migrations between tagged releases.
 
 Current baseline:
 
-- assume users are already on `v1.5.0`
+- assume users are already on `v1.6.0`
 - document only incremental migrations from that point forward
 - do not use this file for one-off machine migration notes anymore
 
@@ -17,6 +17,13 @@ Current baseline:
   config-shape changes
 
 ## Documented Migrations
+
+### `v1.6.0` -> `v1.7.0`
+
+No user-facing config migration is currently required.
+
+The work since `v1.6.0` has been behavior, interaction, theme, and
+documentation refinement rather than a config-shape break.
 
 ### `v1.5.0` -> `v1.6.0`
 

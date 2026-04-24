@@ -103,11 +103,23 @@ lxmodules = {
 
 Top-level widget:
 
+- left click on display icon: open display-profile popup when profiles are enabled
 - left click on compact bar: set brightness to clicked position
-- right click: open display-profile popup
 - middle click: toggle redshift/night mode suspend state
+- right click: trigger the configured display-off command
 - scroll up: brightness up
 - scroll down: brightness down
+
+Popup:
+
+- left click profile card: activate that profile
+- left click detected-display action: trigger that action
+- left click `Detect Displays`: rescan for unassigned outputs
+- right click: no secondary action
+- `Up` / `Down`: move selection
+- `Enter`: activate the selected profile or detected-display action
+- `Escape`: close popup
+- `Left` / `Right`: no special action
 
 Programmatic actions:
 

@@ -202,11 +202,12 @@ function cards.build_notification_card(instance, entry, opts)
 
     attach_buttons({card, card_inner}, {
         awful.button({}, 1, function()
-            dismiss()
+            select_card()
+            invoke()
         end),
         awful.button({}, 3, function()
             select_card()
-            invoke()
+            dismiss()
         end),
         table.unpack(opts.extra_buttons or {})
     })
@@ -367,14 +368,16 @@ function cards.build_group_card(instance, group, opts)
         end),
         awful.button({}, 3, function()
             select_card()
-            enter_group()
+            instance:dismiss_group(group.key)
         end),
         table.unpack(opts.extra_buttons or {})
     })
 
     return {
         widget = header_bg,
-        on_space = enter_group,
+        on_space = function()
+            instance:dismiss_group(group.key)
+        end,
         on_enter = enter_group,
     }
 end

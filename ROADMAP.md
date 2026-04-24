@@ -15,7 +15,6 @@ reprioritization:
 3. `themes/lynxburn` follow-up polish
 4. future systray / non-`lx*` widget hosting in `lxbar`
 5. `lxnotify` browser/web-app action hardening
-6. `lxrunner` history-weighted result ordering
 
 Rationale:
 
@@ -29,8 +28,6 @@ Rationale:
   shape
 - `lxnotify` hardening stays deliberately late until daily-driver evidence says
   it matters
-- `lxrunner` history weighting is useful, but lower urgency than the current
-  popup/theme/module finish work
 
 ## Repo-Wide Work
 
@@ -78,6 +75,12 @@ Rationale:
 
 - keep grouped notification handling, keyboard navigation, and popup cycling
   stable
+
+### `lxrunner`
+
+- keep the keyboard-first launcher flow stable
+- add left-click launch on result rows later so mouse usage is possible without
+  changing the rest of the runner model
 - continue shrinking `init.lua` into thin entry-point/public API code
 - harden notification action invocation for browser/web-app edge cases if
   daily-driving proves it worthwhile
@@ -110,9 +113,6 @@ Rationale:
   appears
 - expand transient-display behavior only if the current narrow action set
   proves insufficient
-- consider making startup default-profile application state-aware so `lxdisplay`
-  skips the apply step when the already-live XRandR state matches the chosen
-  default profile closely enough
 
 ### `lxsecrets`
 
@@ -129,8 +129,6 @@ Rationale:
 ### `themes/lynxburn`
 
 - keep the structural-vs-color-scheme split stable and well-documented
-- add at least one second bundled color scheme once there is appetite to pick
-  real colors
 - continue normalizing explicit theme keys so modules rely less on generic
   Awesome fallbacks
 - align popup/action button border treatment across modules during the theme

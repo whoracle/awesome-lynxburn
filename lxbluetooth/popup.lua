@@ -216,31 +216,25 @@ function popup.extend(instance_methods)
     end
 
     function instance_methods:_build_popup()
-        local open_manager_action = wrap_selectable_card(popup_common.make_selectable_click_row("Open blueman-manager", function()
-            self:close_popup()
-            self:open_manager()
-        end, {
-            selected = self._popup_selected_index == 1,
-            inner_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
-            hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
-            outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
-            selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-            on_hover = function()
-                self:_set_popup_selection(1)
-            end,
-        }))
-        local toggle_power_action = wrap_selectable_card(popup_common.make_selectable_click_row("Toggle controller power", function()
-            self:toggle_power()
-        end, {
-            selected = self._popup_selected_index == 2,
-            inner_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
-            hover_bg = self:_theme_value("lxbluetooth_button_hover", beautiful.bg_focus or "#444444"),
-            outer_bg = self:_theme_value("lxbluetooth_popup_bg", beautiful.bg_normal or "#222222"),
-            selected_bg = self:_theme_value("lxbluetooth_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666"),
-            on_hover = function()
-                self:_set_popup_selection(2)
-            end,
-        }))
+        local open_manager_action = selectable_card(
+            self,
+            popup_common.make_text("Open blueman-manager"),
+            self._popup_selected_index == 1,
+            1,
+            function()
+                self:close_popup()
+                self:open_manager()
+            end
+        )
+        local toggle_power_action = selectable_card(
+            self,
+            popup_common.make_text("Toggle controller power"),
+            self._popup_selected_index == 2,
+            2,
+            function()
+                self:toggle_power()
+            end
+        )
         local status = wibox.layout.fixed.vertical()
         local list = wibox.layout.fixed.vertical()
 

@@ -107,8 +107,8 @@ function M.attach_button_feedback(widget, opts)
     end
 end
 
--- Shared clickable row/container primitive that supports left click, middle
--- click, and scroll actions.
+-- Shared clickable row/container primitive that supports left click, right
+-- click, middle click, and scroll actions.
 function M.make_click_container(child, onclick, opts)
     opts = opts or {}
 
@@ -126,7 +126,7 @@ function M.make_click_container(child, onclick, opts)
 
     bg.forced_height = opts.forced_height or bg.forced_height
 
-    if not (onclick or opts.on_middle_click or opts.on_scroll_up or opts.on_scroll_down) then
+    if not (onclick or opts.on_right_click or opts.on_middle_click or opts.on_scroll_up or opts.on_scroll_down) then
         return bg
     end
 
@@ -139,6 +139,10 @@ function M.make_click_container(child, onclick, opts)
 
     if onclick then
         buttons[#buttons + 1] = awful.button({}, 1, onclick)
+    end
+
+    if opts.on_right_click then
+        buttons[#buttons + 1] = awful.button({}, 3, opts.on_right_click)
     end
 
     if opts.on_middle_click then
@@ -175,6 +179,8 @@ function M.make_selectable_click_container(child, onclick, opts)
         forced_height = opts.forced_height,
         idle_bg = opts.inner_bg,
         hover_bg = opts.hover_bg,
+        press_bg = opts.press_bg,
+        on_right_click = opts.on_right_click,
         on_middle_click = opts.on_middle_click,
         on_scroll_up = opts.on_scroll_up,
         on_scroll_down = opts.on_scroll_down,

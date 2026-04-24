@@ -33,14 +33,35 @@ Internal:
 - compact healthy/suspended/attention widget state
 - optional VPN-gated refresh execution per secret
 - refresh-all batching that keeps shared VPN runs together
-- Vault cards surface an inline login action only after a refresh determines
-  that interactive auth is required
+- per-secret primary action switches from `Refresh` to `Login` when interactive
+  Vault auth is required
 - interactive Vault login keeps VPN-gated runs alive until success or timeout
 - Vault login can use an explicit browser command instead of ambient desktop
   browser resolution
 - expiry information is shown per card and synced back into the keyring as
   `expiry_date` metadata when a live check succeeds
 - popup sorting groups by provider, then VPN, then expiry urgency
+
+## Controls
+
+Top-level widget:
+
+- left click: toggle popup
+- middle click: pause or resume checks
+- right click: refresh all secrets
+
+Popup:
+
+- left click summary controls row: `Refresh all`
+- right click summary controls row: `Pause checks` or `Resume checks`
+- left click summary buttons: trigger their labeled action
+- left click secret card: trigger the current primary action for that secret
+- left click secret button: trigger the current primary action for that secret
+- `Up` / `Down`: move selection
+- `Enter`: trigger the selected row's primary action
+- `Right`: trigger the selected row's secondary action when present
+- `Escape`: close popup
+- `Left`: no special action
 
 ## Example Usage
 
@@ -191,9 +212,8 @@ Current provider support:
 - automatic/background Vault refresh runs fail into attention state when login
   is required; they do not open an interactive login flow on their own
 - clicking a card always means “try refresh”
-- Vault rows expose an inline `login` action only after a refresh reports that
-  auth is required; normal `refresh` stays non-interactive and is safe for
-  periodic or retry use
+- when a Vault secret enters auth-required state, its primary action changes
+  from `Refresh` to `Login`
 - `browser` or `secrets[].browser` is exported as `BROWSER` for Vault OIDC
   login when set
 - if `expiry_date` is missing from the keyring item, the card shows `unknown`

@@ -62,15 +62,20 @@ lxbar:toggle_popup_by_role("network", "primary", {
 Top-level widget:
 
 - left click: toggle popup
+- middle click: enable or disable WiFi
 - right click: rescan visible networks
 
 Popup:
 
+- left click action row: trigger that action
+- left click network row: connect to that network
+- right click: no secondary action
 - `Up` / `Down`: move selection
 - `Enter`: activate selected action or connect to selected network
 - `Escape`: close popup
 - shared popup prev/next keychains continue cycling when passed in through
   `lxbar`
+- `Left` / `Right`: no special action
 
 Password prompt:
 

@@ -56,6 +56,25 @@ local function active_profile(self)
     return self._profiles[self.state.active_profile_index or 0]
 end
 
+local function output_status_map(state)
+    local status = {}
+
+    for _, output in ipairs((state or {}).outputs or {}) do
+        status[output.name] = output
+    end
+
+    return status
+end
+
+local function normalized_rate(value)
+    local number = tonumber(value)
+    if not number then
+        return nil
+    end
+
+    return math.floor((number * 100) + 0.5)
+end
+
 local function active_profile_signature(profile, missing)
     profile = profile or {}
     table.sort(missing)
@@ -791,6 +810,66 @@ function displays.extend(instance_methods)
         return args, nil
     end
 
+    function instance_methods:_profile_matches_state(profile, state)
+        if not profile or not state then
+            return false
+        end
+
+        local live_outputs = output_status_map(state)
+        local desired_primary = self:_profile_primary_output(profile)
+
+        for _, output_name in ipairs(state.output_names or {}) do
+            local output_opts = (profile.outputs or {})[output_name]
+            local live = live_outputs[output_name] or {}
+
+            if output_opts then
+                local expected_off = self:_profile_output_initial_state(profile, output_name) == "off"
+                if expected_off then
+                    if live.active == true then
+                        return false
+                    end
+                else
+                    if live.active ~= true then
+                        return false
+                    end
+
+                    if output_opts.primary == true or output_name == desired_primary then
+                        if live.primary ~= true then
+                            return false
+                        end
+                    elseif live.primary == true and desired_primary ~= nil then
+                        return false
+                    end
+
+                    if type(output_opts.mode) == "string"
+                        and output_opts.mode ~= ""
+                        and output_opts.mode ~= "auto"
+                        and live.mode ~= output_opts.mode then
+                        return false
+                    end
+
+                    if type(output_opts.rotate) == "string"
+                        and output_opts.rotate ~= ""
+                        and live.rotation ~= output_opts.rotate then
+                        return false
+                    end
+
+                    if output_opts.rate ~= nil
+                        and output_opts.rate ~= ""
+                        and normalized_rate(live.rate) ~= normalized_rate(output_opts.rate) then
+                        return false
+                    end
+                end
+            else
+                if live.active == true then
+                    return false
+                end
+            end
+        end
+
+        return true
+    end
+
     function instance_methods:_build_single_output_argv(profile, output_name, desired_state)
         local output_opts = ((profile or {}).outputs or {})[output_name]
         if not output_opts then
@@ -877,6 +956,16 @@ function displays.extend(instance_methods)
         self:_query_xrandr_state(function(state)
             self:_remember_inventory(state)
 
+            if opts.skip_if_matching ~= false and self:_profile_matches_state(profile, state) then
+                self.state.active_profile_index = index
+                self._active_profile_missing_signature = nil
+                self:_refresh_detected_outputs(state)
+                if self._refresh_popup then
+                    self:_refresh_popup()
+                end
+                return
+            end
+
             local args, missing = self:_build_profile_argv(profile, state)
             if not args then
                 local message = string.format(
@@ -945,7 +1034,10 @@ function displays.extend(instance_methods)
             return
         end
 
-        self:_apply_profile_index(index, { allow_panic_fallback = true })
+        self:_apply_profile_index(index, {
+            allow_panic_fallback = true,
+            skip_if_matching = true,
+        })
     end
 
     function instance_methods:_resolve_detect_extend_reference(state)

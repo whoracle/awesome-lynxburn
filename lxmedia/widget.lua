@@ -304,6 +304,9 @@ function M.build(instance)
         awful.button({}, 1, function()
             instance:toggle_media_popup(current_anchor(instance))
         end),
+        awful.button({}, 2, function()
+            instance:toggle_mute()
+        end),
         awful.button({}, 3, function()
             instance:toggle_devices_popup(current_anchor(instance))
         end)

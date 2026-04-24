@@ -57,15 +57,33 @@ end
 ---Parse connected xrandr outputs and retain ordering plus `primary` state.
 function helpers.parse_xrandr_outputs(stdout)
     local outputs = {}
+    local current_output = nil
 
     for line in tostring(stdout or ""):gmatch("[^\r\n]+") do
         local name, suffix = line:match("^(%S+)%s+connected(.*)$")
         if name then
-            outputs[#outputs + 1] = {
+            local geometry = tostring(suffix or ""):match("%s(%d+x%d+[%+%-]%d+[%+%-]%d+)")
+            local width, height, pos_x, pos_y = geometry and geometry:match("^(%d+)x(%d+)([%+%-]%d+)([%+%-]%d+)$") or nil
+            local rotation = tostring(suffix or ""):match("%s(normal|left|right|inverted)%s")
+            current_output = {
                 name = name,
                 primary = tostring(suffix or ""):match("%sprimary%s") ~= nil,
                 active = tostring(suffix or ""):match("%s%d+x%d+[%+%-]%d+[%+%-]%d+") ~= nil,
+                mode = (width and height) and (tostring(width) .. "x" .. tostring(height)) or nil,
+                pos_x = tonumber(pos_x),
+                pos_y = tonumber(pos_y),
+                rotation = rotation,
             }
+            outputs[#outputs + 1] = current_output
+        else
+            local mode, rates = line:match("^%s+(%d+x%d+)%s+(.+)$")
+            if current_output and mode and rates and current_output.active == true then
+                local current_rate = rates:match("(%d+%.?%d*)%*")
+                if current_rate then
+                    current_output.mode = current_output.mode or mode
+                    current_output.rate = current_rate
+                end
+            end
         end
     end
 
