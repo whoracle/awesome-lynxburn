@@ -179,6 +179,7 @@ function M.make_selectable_click_container(child, onclick, opts)
         forced_height = opts.forced_height,
         idle_bg = opts.inner_bg,
         hover_bg = opts.hover_bg,
+        press_bg = opts.press_bg,
         on_right_click = opts.on_right_click,
         on_middle_click = opts.on_middle_click,
         on_scroll_up = opts.on_scroll_up,
