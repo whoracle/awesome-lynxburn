@@ -347,6 +347,9 @@ function M.dispatch_popup_keypress(opts)
         and M.dispatch_global_keybinding(opts.modifiers, opts.key, {
             blocked_keys = opts.blocked_global_keys,
         }) then
+        if type(opts.on_global_fallback) == "function" then
+            opts.on_global_fallback()
+        end
         return true
     end
 

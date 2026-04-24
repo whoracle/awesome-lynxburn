@@ -229,11 +229,13 @@ function M.extend(instance_methods)
             return
         end
 
-        popup_control.dispatch_global_keybinding(modifiers, key, {
+        if popup_control.dispatch_global_keybinding(modifiers, key, {
             blocked_keys = {
                 "Up", "Down", "Return", "KP_Enter", "Left", "Right", "Home", "End", "Escape",
             },
-        })
+        }) then
+            self:close_media_popup()
+        end
     end
 
     function instance_methods:focus_media_popup_keyboard_navigation()

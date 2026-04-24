@@ -84,6 +84,9 @@ function M.extend(instance_methods)
                 end,
             },
             blocked_global_keys = { "Up", "Down", "Return", "KP_Enter", "Escape" },
+            on_global_fallback = function()
+                self:close_devices_popup()
+            end,
         })
 
         return handled

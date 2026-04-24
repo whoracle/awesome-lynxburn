@@ -106,6 +106,9 @@ function M.extend(instance_methods, opts)
             end,
             actions = resolve_actions(self, opts),
             blocked_global_keys = blocked_global_keys,
+            on_global_fallback = function()
+                self:close_popup()
+            end,
         })
 
         if handled then
