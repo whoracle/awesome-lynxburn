@@ -83,6 +83,7 @@ function M.extend(instance_methods)
                     self:activate_selected_devices_popup_item()
                 end,
             },
+            blocked_global_keys = { "Up", "Down", "Return", "KP_Enter", "Escape" },
         })
 
         return handled

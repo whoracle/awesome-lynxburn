@@ -1,6 +1,7 @@
 local awful = require("awful")
 local gears = require("gears")
 local keygrabber = require("awful.keygrabber")
+local awful_key = require("awful.key")
 
 local M = {}
 
@@ -10,6 +11,49 @@ local function looks_like_geometry(value)
         and type(value.y) == "number"
         and type(value.width) == "number"
         and type(value.height) == "number"
+end
+
+local function filtered_modifiers(modifiers)
+    local filtered = {}
+    local ignored = {}
+
+    for _, modifier in ipairs(awful_key.ignore_modifiers or {}) do
+        ignored[modifier] = true
+    end
+
+    for _, modifier in ipairs(modifiers or {}) do
+        if not ignored[modifier] then
+            filtered[#filtered + 1] = modifier
+        end
+    end
+
+    return filtered
+end
+
+---Try to execute a matching root/global keybinding for a popup-owned key event.
+function M.dispatch_global_keybinding(modifiers, key, opts)
+    opts = opts or {}
+
+    local root_keys = root.keys and root.keys() or {}
+    local pressed_modifiers = filtered_modifiers(modifiers)
+    local blocked = {}
+
+    for _, blocked_key in ipairs(opts.blocked_keys or {}) do
+        blocked[blocked_key] = true
+    end
+
+    if blocked[key] then
+        return false
+    end
+
+    for _, keybinding in ipairs(root_keys) do
+        if keybinding.match and keybinding:match(pressed_modifiers, key) then
+            keybinding:trigger()
+            return true
+        end
+    end
+
+    return false
 end
 
 ---Normalize the supported popup-helper call styles into one opts table.
@@ -296,6 +340,13 @@ function M.dispatch_popup_keypress(opts)
     local action = actions[opts.key]
     if type(action) == "function" then
         action()
+        return true
+    end
+
+    if opts.allow_global_fallback ~= false
+        and M.dispatch_global_keybinding(opts.modifiers, opts.key, {
+            blocked_keys = opts.blocked_global_keys,
+        }) then
         return true
     end
 
