@@ -418,6 +418,8 @@ local function keyring_selector(secret)
     }
 end
 
+local sync_secret_expiry
+
 local function update_secret_expiry(secret, display_value, expired)
     secret.expires_at_display = display_value or "unknown"
     secret.expires_at_sort = parse_display_epoch(display_value)
@@ -425,6 +427,10 @@ local function update_secret_expiry(secret, display_value, expired)
 end
 
 local function sync_keyring_expiry(secret, token, callback)
+    return sync_secret_expiry(secret, keyring_selector(secret), token, callback)
+end
+
+sync_secret_expiry = function(secret, selector_pairs_list, token, callback)
     local display_value = secret.expires_at_display
     callback = callback or function() end
 
@@ -436,10 +442,10 @@ local function sync_keyring_expiry(secret, token, callback)
     -- secret-tool treats the full attribute set as the lookup identity. When
     -- we add `expiry_date`, we need to replace the original item first or we
     -- end up with a parallel entry instead of updating the existing one.
-    secret_clear(keyring_selector(secret), function()
+    secret_clear(selector_pairs_list, function()
         secret_store(
             keyring_label(secret),
-            keyring_selector(secret),
+            selector_pairs_list,
             { "expiry_date", tostring(display_value) },
             token,
             function(ok)
@@ -488,19 +494,26 @@ local function gitlab_refresh(secret, callback)
         end
 
         secret_lookup(token_selector, function(managed_pat)
-            if not managed_pat or managed_pat == "" then
-                callback("error", "managed PAT not found in keyring")
-                return
+            local current_pat = managed_pat
+            local bootstrapping = false
+
+            if not current_pat or current_pat == "" then
+                current_pat = admin_pat
+                bootstrapping = true
             end
 
-            curl_json("GET", managed_pat, api_base .. "/personal_access_tokens/self", nil, function(code, body, err)
+            curl_json("GET", current_pat, api_base .. "/personal_access_tokens/self", nil, function(code, body, err)
                 if err then
                     callback("error", err)
                     return
                 end
 
                 if code == 401 then
-                    callback("error", "managed PAT is invalid, expired, or revoked")
+                    if bootstrapping then
+                        callback("error", "admin PAT is invalid, expired, or revoked")
+                    else
+                        callback("error", "managed PAT is invalid, expired, or revoked")
+                    end
                     return
                 end
 
@@ -533,13 +546,17 @@ local function gitlab_refresh(secret, callback)
                 update_secret_expiry(secret, expires_at, seconds_left <= 0)
 
                 if seconds_left <= 0 then
-                    callback("error", "managed PAT is already expired")
+                    callback("error", bootstrapping and "admin PAT is already expired" or "managed PAT is already expired")
                     return
                 end
 
                 if days_left > (secret.gitlab_threshold_days or 30) then
-                    sync_keyring_expiry(secret, managed_pat, function()
-                        callback("ok", string.format("token healthy; ~%dd left", days_left))
+                    sync_secret_expiry(secret, token_selector, current_pat, function()
+                        if bootstrapping then
+                            callback("ok", string.format("bootstrapped managed PAT from admin selector; ~%dd left", days_left))
+                        else
+                            callback("ok", string.format("token healthy; ~%dd left", days_left))
+                        end
                     end)
                     return
                 end
@@ -608,7 +625,11 @@ local function gitlab_refresh(secret, callback)
                                         return
                                     end
 
-                                    callback("ok", "replaced PAT id=" .. tostring(token_id) .. " with new id=" .. tostring(new_id) .. " expiring " .. tostring(new_expires_at))
+                                    if bootstrapping then
+                                        callback("ok", "bootstrapped and rotated PAT id=" .. tostring(token_id) .. " to new id=" .. tostring(new_id) .. " expiring " .. tostring(new_expires_at))
+                                    else
+                                        callback("ok", "replaced PAT id=" .. tostring(token_id) .. " with new id=" .. tostring(new_id) .. " expiring " .. tostring(new_expires_at))
+                                    end
                                 end)
                             end)
                         end)
