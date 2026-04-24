@@ -128,10 +128,13 @@ function M.new(opts)
 
     self.widget:buttons(gears.table.join(
         awful.button({}, 1, function()
+            self:toggle_popup(mouse.current_widget_geometry)
+        end),
+        awful.button({}, 2, function()
             self:toggle()
         end),
         awful.button({}, 3, function()
-            self:toggle_popup(mouse.current_widget_geometry)
+            self:toggle_pin()
         end)
     ))
 
