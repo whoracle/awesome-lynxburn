@@ -84,6 +84,10 @@ local function format_selector_pairs(selector_pairs_list)
     return table.concat(parts, " ")
 end
 
+local function nonempty_table(value)
+    return type(value) == "table" and next(value) ~= nil
+end
+
 local function pair_lists_equal(left, right)
     if #left ~= #right then
         return false
@@ -546,10 +550,15 @@ end
 
 local function gitlab_refresh(secret, callback)
     local selectors = secret.selectors or {}
-    local admin_selector = selector_pairs(secret.admin_selector or selectors.admin_selector or selectors, GITLAB_SPECIAL_KEYS)
+    local admin_selector_source = nonempty_table(secret.admin_selector) and secret.admin_selector
+        or (nonempty_table(selectors.admin_selector) and selectors.admin_selector)
+        or selectors
+    local token_selector_source = nonempty_table(secret.token_selector) and secret.token_selector
+        or selectors
+    local admin_selector = selector_pairs(admin_selector_source, GITLAB_SPECIAL_KEYS)
     -- `selectors` is the canonical managed-token selector. `token_selector`
     -- remains as a compatibility override for older configs only.
-    local token_selector = selector_pairs(secret.token_selector or selectors, GITLAB_SPECIAL_KEYS)
+    local token_selector = selector_pairs(token_selector_source, GITLAB_SPECIAL_KEYS)
     local shared_selector = pair_lists_equal(admin_selector, token_selector)
     local store_label = selectors.label or secret.name or "GitLab Personal Access Token"
     local api_base = tostring(selectors.gitlab_url or ""):gsub("/+$", "") .. "/api/v4"
