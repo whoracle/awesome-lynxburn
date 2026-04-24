@@ -1,14 +1,56 @@
 local awful = require("awful")
 local gears = require("gears")
 local beautiful = require("beautiful")
+local naughty = require("naughty")
 local config_data = require("config.config_data")
 local profiles = require("config.screens.profiles")
 local tags = require("config.tags")
 
 local M = {}
 
+local function wallpaper_exists(path)
+    if type(path) ~= "string" or path == "" then
+        return false
+    end
+
+    local handle = io.open(path, "rb")
+    if handle then
+        handle:close()
+        return true
+    end
+
+    return false
+end
+
+local function fallback_wallpaper_color()
+    return beautiful.bg_normal or "#333333"
+end
+
+local function notify_wallpaper_fallback(configured)
+    if beautiful._lynxburn_wallpaper_fallback_notified then
+        return
+    end
+
+    beautiful._lynxburn_wallpaper_fallback_notified = true
+    naughty.notify({
+        preset = naughty.config.presets.critical,
+        title = "Wallpaper not found",
+        text = string.format(
+            "Configured wallpaper: %s\nFalling back to flat color %s.",
+            tostring(configured or "<nil>"),
+            fallback_wallpaper_color()
+        ),
+    })
+end
+
+local function apply_fallback_wallpaper(screen_obj, configured)
+    notify_wallpaper_fallback(configured)
+    gears.wallpaper.set(fallback_wallpaper_color())
+end
+
 local function apply_wallpaper(screen_obj)
     if not beautiful.wallpaper then
+        apply_fallback_wallpaper(screen_obj, nil)
         return
     end
 
@@ -18,7 +60,15 @@ local function apply_wallpaper(screen_obj)
         wallpaper = wallpaper(screen_obj)
     end
 
-    gears.wallpaper.maximized(wallpaper, screen_obj, true)
+    if not wallpaper_exists(wallpaper) then
+        apply_fallback_wallpaper(screen_obj, wallpaper)
+        return
+    end
+
+    local ok = pcall(gears.wallpaper.maximized, wallpaper, screen_obj, true)
+    if not ok then
+        apply_fallback_wallpaper(screen_obj, wallpaper)
+    end
 end
 
 local function apply_profile(screen_obj, settings, screen_profiles)

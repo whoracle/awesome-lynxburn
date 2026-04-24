@@ -7,6 +7,7 @@ local lain = require("lain")
 local awful = require("awful")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
+local naughty = require("naughty")
 local config_data = require("config.config_data")
 local services = require("config.services")
 local tags = require("config.tags")
@@ -25,6 +26,60 @@ local mail_password_lookup = lain_commands.imap_secret
 local mail_server = lain_commands.imap_server
 local mail_login_options = lain_commands.imap_login_options or "AUTH=LOGIN"
 local mail_timeout = tonumber(lain_commands.imap_timeout) or 60
+
+local function wallpaper_exists(path)
+    if type(path) ~= "string" or path == "" then
+        return false
+    end
+
+    local handle = io.open(path, "rb")
+    if handle then
+        handle:close()
+        return true
+    end
+
+    return false
+end
+
+local function fallback_wallpaper_color(theme)
+    return theme.bg_normal or beautiful.bg_normal or "#333333"
+end
+
+local function notify_wallpaper_fallback(theme, configured)
+    if beautiful._lynxburn_wallpaper_fallback_notified then
+        return
+    end
+
+    beautiful._lynxburn_wallpaper_fallback_notified = true
+    naughty.notify({
+        preset = naughty.config.presets.critical,
+        title = "Wallpaper not found",
+        text = string.format(
+            "Configured wallpaper: %s\nFalling back to flat color %s.",
+            tostring(configured or "<nil>"),
+            fallback_wallpaper_color(theme)
+        ),
+    })
+end
+
+local function apply_wallpaper(theme, screen_obj)
+    local wallpaper = theme.wallpaper
+    if type(wallpaper) == "function" then
+        wallpaper = wallpaper(screen_obj)
+    end
+
+    if not wallpaper_exists(wallpaper) then
+        notify_wallpaper_fallback(theme, wallpaper)
+        gears.wallpaper.set(fallback_wallpaper_color(theme))
+        return
+    end
+
+    local ok = pcall(gears.wallpaper.maximized, wallpaper, screen_obj, true)
+    if not ok then
+        notify_wallpaper_fallback(theme, wallpaper)
+        gears.wallpaper.set(fallback_wallpaper_color(theme))
+    end
+end
 
 local function wrap_widget(theme, widget, background, opts)
     opts = opts or {}
@@ -388,11 +443,7 @@ function M.build(theme)
             lxbar_widget,
         }
 
-        local wallpaper = theme.wallpaper
-        if type(wallpaper) == "function" then
-            wallpaper = wallpaper(s)
-        end
-        gears.wallpaper.maximized(wallpaper, s, true)
+        apply_wallpaper(theme, s)
 
         tags.create_for_screen(s)
 
