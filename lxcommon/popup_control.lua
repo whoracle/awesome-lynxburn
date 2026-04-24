@@ -1,4 +1,5 @@
 local awful = require("awful")
+local awful_keyboard = require("awful.keyboard")
 local gears = require("gears")
 local keygrabber = require("awful.keygrabber")
 local awful_key = require("awful.key")
@@ -30,6 +31,34 @@ local function filtered_modifiers(modifiers)
     return filtered
 end
 
+local function modifiers_match(binding_modifiers, pressed_modifiers)
+    local wanted = filtered_modifiers(binding_modifiers)
+    local active = filtered_modifiers(pressed_modifiers)
+
+    for _, modifier in ipairs(wanted) do
+        if modifier == "Any" then
+            return true
+        end
+    end
+
+    if #wanted ~= #active then
+        return false
+    end
+
+    local active_set = {}
+    for _, modifier in ipairs(active) do
+        active_set[modifier] = true
+    end
+
+    for _, modifier in ipairs(wanted) do
+        if not active_set[modifier] then
+            return false
+        end
+    end
+
+    return true
+end
+
 ---Try to execute a matching root/global keybinding for a popup-owned key event.
 function M.dispatch_global_keybinding(modifiers, key, opts)
     opts = opts or {}
@@ -47,8 +76,14 @@ function M.dispatch_global_keybinding(modifiers, key, opts)
     end
 
     for _, keybinding in ipairs(root_keys) do
-        if keybinding.match and keybinding:match(pressed_modifiers, key) then
-            keybinding:trigger()
+        if keybinding
+            and keybinding.key == key
+            and modifiers_match(keybinding.modifiers, pressed_modifiers) then
+            if type(opts.before_dispatch) == "function" then
+                opts.before_dispatch()
+            end
+
+            awful_keyboard.emulate_key_combination(pressed_modifiers, key)
             return true
         end
     end
@@ -346,10 +381,8 @@ function M.dispatch_popup_keypress(opts)
     if opts.allow_global_fallback ~= false
         and M.dispatch_global_keybinding(opts.modifiers, opts.key, {
             blocked_keys = opts.blocked_global_keys,
+            before_dispatch = opts.on_global_fallback,
         }) then
-        if type(opts.on_global_fallback) == "function" then
-            opts.on_global_fallback()
-        end
         return true
     end
 

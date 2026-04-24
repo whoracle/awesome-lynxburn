@@ -197,11 +197,11 @@ function M.extend(instance_methods, opts)
 
         self:_start_popup_outside_click_dismiss()
 
+        self:focus_popup_keyboard_navigation()
+
         if popup_opts.keyboard_navigation then
             self:_stop_hover_close_timer()
-            self:focus_popup_keyboard_navigation()
         else
-            self:blur_popup_keyboard_navigation()
             self:_start_hover_close_timer()
         end
     end

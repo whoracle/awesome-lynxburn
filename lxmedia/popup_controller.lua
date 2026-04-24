@@ -176,30 +176,27 @@ function M.extend(instance_methods)
 
         local shown = popup_module.toggle(self, anchor_geo, opts)
         if shown and self[popup_ref] and self[popup_ref].visible then
+            if kind == "media" then
+                self._media_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
+                self._media_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
+                self._media_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
+                self._media_popup_on_cycle_prev = opts.on_cycle_prev
+                self._media_popup_on_cycle_next = opts.on_cycle_next
+                self:blur_devices_popup_keyboard_navigation()
+                self:focus_media_popup_keyboard_navigation()
+            else
+                self._devices_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
+                self._devices_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
+                self._devices_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
+                self._devices_popup_on_cycle_prev = opts.on_cycle_prev
+                self._devices_popup_on_cycle_next = opts.on_cycle_next
+                self:blur_media_popup_keyboard_navigation()
+                self:focus_devices_popup_keyboard_navigation()
+            end
+
             if opts.hover_close == false then
                 self:_stop_hover_close_timer()
-                if kind == "media" then
-                    self._media_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
-                    self._media_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
-                    self._media_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
-                    self._media_popup_on_cycle_prev = opts.on_cycle_prev
-                    self._media_popup_on_cycle_next = opts.on_cycle_next
-                    self:focus_media_popup_keyboard_navigation()
-                else
-                    self._devices_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
-                    self._devices_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
-                    self._devices_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
-                    self._devices_popup_on_cycle_prev = opts.on_cycle_prev
-                    self._devices_popup_on_cycle_next = opts.on_cycle_next
-                    self:blur_media_popup_keyboard_navigation()
-                    self:focus_devices_popup_keyboard_navigation()
-                end
             else
-                if kind == "media" then
-                    self:blur_media_popup_keyboard_navigation()
-                else
-                    self:blur_devices_popup_keyboard_navigation()
-                end
                 self:_start_hover_close_timer(kind, is_geometry(anchor_geo) and anchor_geo or nil)
             end
         else
@@ -240,30 +237,27 @@ function M.extend(instance_methods)
 
         popup_module.show(self, anchor_geo, opts)
 
+        if kind == "media" then
+            self._media_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
+            self._media_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
+            self._media_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
+            self._media_popup_on_cycle_prev = opts.on_cycle_prev
+            self._media_popup_on_cycle_next = opts.on_cycle_next
+            self:blur_devices_popup_keyboard_navigation()
+            self:focus_media_popup_keyboard_navigation()
+        else
+            self._devices_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
+            self._devices_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
+            self._devices_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
+            self._devices_popup_on_cycle_prev = opts.on_cycle_prev
+            self._devices_popup_on_cycle_next = opts.on_cycle_next
+            self:blur_media_popup_keyboard_navigation()
+            self:focus_devices_popup_keyboard_navigation()
+        end
+
         if opts.hover_close == false then
             self:_stop_hover_close_timer()
-            if kind == "media" then
-                self._media_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
-                self._media_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
-                self._media_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
-                self._media_popup_on_cycle_prev = opts.on_cycle_prev
-                self._media_popup_on_cycle_next = opts.on_cycle_next
-                self:focus_media_popup_keyboard_navigation()
-            else
-                self._devices_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
-                self._devices_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
-                self._devices_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
-                self._devices_popup_on_cycle_prev = opts.on_cycle_prev
-                self._devices_popup_on_cycle_next = opts.on_cycle_next
-                self:blur_media_popup_keyboard_navigation()
-                self:focus_devices_popup_keyboard_navigation()
-            end
         else
-            if kind == "media" then
-                self:blur_media_popup_keyboard_navigation()
-            else
-                self:blur_devices_popup_keyboard_navigation()
-            end
             self:_start_hover_close_timer(kind, is_geometry(anchor_geo) and anchor_geo or nil)
         end
 

@@ -141,7 +141,7 @@ function controller.extend(instance_methods)
             self:_stop_hover_close_timer()
             self:focus_popup_keyboard_navigation()
         else
-            self:blur_popup_keyboard_navigation()
+            self:focus_popup_keyboard_navigation()
             self:_start_hover_close_timer()
         end
     end
