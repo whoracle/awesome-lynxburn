@@ -42,6 +42,27 @@ Internal:
   `expiry_date` metadata when a live check succeeds
 - popup sorting groups by provider, then VPN, then expiry urgency
 
+## Controls
+
+Top-level widget:
+
+- left click: toggle popup
+- middle click: pause or resume checks
+- right click: refresh all secrets
+
+Popup:
+
+- left click summary action row: trigger that action
+- left click secret card: refresh that secret
+- right click secret card: trigger `Login` when that card is in auth-required state
+- left click `Refresh` button: refresh that secret
+- left click `Login` button: start interactive auth for that secret when present
+- `Up` / `Down`: move selection
+- `Enter`: trigger the selected row or refresh the selected secret card
+- `Right`: trigger the selected secret card's secondary action when present
+- `Escape`: close popup
+- `Left`: no special action
+
 ## Example Usage
 
 lxbar block:

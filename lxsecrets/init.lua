@@ -58,6 +58,11 @@ state.extend(M)
 popup.extend(M)
 popup_controller.extend(M, {
     popup_key = "_popup",
+    actions = {
+        Right = function(self)
+            self:activate_selected_popup_secondary()
+        end,
+    },
 })
 
 function M.new(opts)

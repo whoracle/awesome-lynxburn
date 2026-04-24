@@ -204,6 +204,9 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         bottom = 6,
         idle_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
         hover_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        on_right_click = secret.auth_required and function()
+            instance:login_secret(secret_index)
+        end or nil,
     })
     info_card:connect_signal("mouse::enter", function()
         instance:_set_popup_selection(selection_index)
@@ -317,6 +320,9 @@ function M.extend(instance_methods)
                     on_enter = function()
                         self:refresh_secret(secret.index)
                     end,
+                    on_space = secret.auth_required and function()
+                        self:login_secret(secret.index)
+                    end or nil,
                 }
             end
         end
@@ -382,6 +388,14 @@ function M.extend(instance_methods)
         local item = (self._popup_items or {})[self._popup_selected_index or 1]
         if item and type(item.on_enter) == "function" then
             item.on_enter()
+        end
+    end
+
+    function instance_methods:activate_selected_popup_secondary()
+        self:_ensure_popup_selection()
+        local item = (self._popup_items or {})[self._popup_selected_index or 1]
+        if item and type(item.on_space) == "function" then
+            item.on_space()
         end
     end
 
