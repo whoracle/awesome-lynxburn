@@ -61,11 +61,11 @@ function M.build()
 
             tasklist_bg_normal = roles.panel_bg,
             tasklist_bg_focus = roles.panel_bg_active,
-            tasklist_fg_normal = roles.panel_border,
+            tasklist_fg_normal = roles.text,
             tasklist_fg_focus = roles.text_accent,
             taglist_bg_normal = roles.panel_bg,
             taglist_bg_focus = roles.panel_bg_active,
-            taglist_fg_normal = roles.panel_border,
+            taglist_fg_normal = roles.text,
             taglist_fg_focus = roles.text_accent,
 
             notification_bg = roles.notification_bg,
