@@ -136,9 +136,6 @@ Rationale:
 - support VPN-gated refresh/login flows where required
 - surface failures in `~/.xsession-errors` and via notifications
 - define a pragmatic plugin API for adding more secret providers later
-- consider delaying `at_start` refresh runs by a small configurable startup
-  grace period so the first pass does not race NetworkManager or other session
-  services
 - write back `expiry_date` metadata reliably even when the original keyring
   entry did not already contain that attribute
 - consider changing the default refresh contract away from periodic polling:

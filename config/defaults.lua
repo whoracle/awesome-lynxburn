@@ -160,6 +160,7 @@ M.lxmodules = {
     },
     lxsecrets = {
         at_start = true,
+        at_start_delay = "60s",
         interval = "30m",
         top_level = "always",
         cycle_exclude = true,

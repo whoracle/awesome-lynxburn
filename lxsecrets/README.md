@@ -86,6 +86,7 @@ Module config:
 lxmodules = {
     lxsecrets = {
         at_start = true,
+        at_start_delay = "60s",
         interval = "30m",
         top_level = "urgent",
         cycle_exclude = true,
@@ -134,6 +135,7 @@ lxmodules = {
 Supported knobs:
 
 - `at_start`
+- `at_start_delay`
 - `interval`
 - `top_level`
 - `cycle_exclude`
