@@ -1,3 +1,49 @@
+## v1.8.0 (2026-04-24)
+
+### Features
+
+- [lxbar] host custom bar widgets and migrate systray out of the theme shell
+- [theme] add more themes
+- [theme] add color sceme `solarized_dark`
+- [theme] add color sceme `kanagawa_wave`
+- [theme] add color sceme `kanagawa_lotus`
+- [theme] add color sceme `kanagawa_dragon`
+- [lxrunner] let aliases trigger targeted lxmodule refreshes after launch
+- [core] forward non-popup keys from popup grabbers to global bindings
+- [theme] fall back to a flat theme wallpaper color when the configured image is invalid
+- [theme] notify on unknown color schemes and fall back to lynxburn
+- [theme] add color scheme `solarized_light`
+- [theme] add color scheme `catpuccin`
+- [theme] rename/move default palette to `lynxburn`
+- [theme] add color scheme `zenburn`
+
+### Bug Fixes
+
+- [lxbar] fix eager lain metric callbacks in migrated custom widgets
+- [lxbar] make custom widget registration non-fatal and harden bar-shell wrapping
+- [lxbar] avoid recursive config loading in the imap custom widget
+- [lxrunner] add delayed follow-up refresh for alias notify hooks
+- [lxsecrets] delay startup refresh runs to avoid session bring-up races
+- [lxsecrets] replace keyring entries when writing expiry metadata
+- [core] restore popup keyboard handling on mouse open and re-dispatch global shortcuts safely
+- [core] close active popups before running forwarded global shortcuts
+
+### Refactors
+
+- [lxbar] migrate the remaining lain metric widgets into custom bar widgets
+- [lxbar] migrate the lain imap widget into custom bar widgets
+- [lxbar] add explicit custom widget styling modes and host systray raw
+- [core] tighten shipped defaults and move richer examples into config.example.lua
+- [lxsecrets] make periodic refresh opt-in by default
+- [lxsecrets] make selectors the canonical managed gitlab token selector
+
+### Documentation
+
+- [core] update migration notes and docs for lxbar custom widget hosting in v1.8.0
+- [core] note pipewire and portal based screen-share autopause idea for lxnotify
+- [core] record daily-driver bugs and follow-up ideas in roadmap
+- [theme] document all color schemes
+
 ## v1.7.0 (2026-04-24)
 
 ### Features
