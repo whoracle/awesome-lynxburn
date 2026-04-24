@@ -34,6 +34,11 @@ Rationale:
 - keep `config.example.lua` as an example/override file rather than a second
   defaults file
 - preserve top-level `config.lua` as gitignored local machine state
+- consider a top-level `config.lua` toggle such as `titlebars = true` for
+  floating-heavy setups that want Awesome titlebars enabled again
+  This needs more than a boolean wire-up; it also needs titlebar styling that
+  actually fits the current theme instead of looking like an unintegrated
+  fallback
 - consider an optional update-checker helper that, when the live Awesome config
   checkout is a git repo, compares the current state against newer available
   tags and notifies the user; keep it disabled by default and opt-in via
