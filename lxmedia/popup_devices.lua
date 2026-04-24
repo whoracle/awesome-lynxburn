@@ -37,6 +37,7 @@ local function selectable_card(instance, child, selected, index, onclick, opts)
         hover_bg = beautiful.lxmedia_button_hover or beautiful.bg_focus or "#444444",
         outer_bg = beautiful.lxmedia_popup_bg or beautiful.bg_normal or "#222222",
         selected_bg = beautiful.lxmedia_selected_border or beautiful.border_focus or beautiful.bg_focus or "#666666",
+        on_right_click = opts.on_right_click,
         on_hover = function()
             instance:set_devices_popup_selection(index)
         end,
@@ -81,6 +82,7 @@ local function make_selectable_card_row(instance, text, selected, index, onclick
             top = opts.top ~= nil and opts.top or 6,
             bottom = opts.bottom ~= nil and opts.bottom or 6,
             selection_margin = opts.selection_margin or 1,
+            on_right_click = opts.on_right_click,
         }
     ))
 end
@@ -259,6 +261,8 @@ local function build_stream_route_rows(instance, stream, sinks, layout, popup_it
 end
 
 local function build_streams_card(instance, streams, sinks, popup_items)
+    local audio = require("lxmedia.audio")
+
     instance.ui_state = instance.ui_state or {}
     instance.ui_state.devices_stream_expanded = instance.ui_state.devices_stream_expanded or {}
 
@@ -305,6 +309,11 @@ local function build_streams_card(instance, streams, sinks, popup_items)
             right = 8,
             top = 4,
             bottom = 2,
+            on_right_click = function()
+                audio.toggle_sink_input_mute(stream.id)
+                instance:refresh()
+                M.rebuild(instance)
+            end,
         })
         sublayout:add(stream_row)
         popup_items[#popup_items + 1] = {

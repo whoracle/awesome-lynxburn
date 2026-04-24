@@ -66,6 +66,10 @@ function M.extend(instance_methods)
         end)
     end
 
+    function instance_methods:activate_selected_media_popup_item()
+        self:toggle_selected_media_stream_mute()
+    end
+
     function instance_methods:set_selected_media_stream_volume(percent)
         local stream = self:selected_media_popup_item()
         if not stream then
@@ -175,6 +179,12 @@ function M.extend(instance_methods)
                 end,
                 Down = function()
                     self:move_media_popup_selection(1)
+                end,
+                Return = function()
+                    self:activate_selected_media_popup_item()
+                end,
+                KP_Enter = function()
+                    self:activate_selected_media_popup_item()
                 end,
                 Left = function()
                     self:change_selected_media_stream_volume(-(self.opts.step or 0.05))
