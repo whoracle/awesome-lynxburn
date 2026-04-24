@@ -115,7 +115,6 @@ local function action_button(instance, label, onclick)
             bottom = 6,
             widget = wibox.container.margin,
         },
-        shape = gears.shape.rounded_rect,
         bg = instance:_theme_value("lxsecrets_button_bg", beautiful.bg_minimize or "#222222"),
         widget = wibox.container.background,
     })
@@ -143,10 +142,14 @@ local function summary_controls_row(instance, selected, index)
 
     local row = wibox.widget({
         {
-            refresh_button,
-            suspend_button,
-            spacing = 8,
-            layout = wibox.layout.fixed.horizontal,
+            {
+                refresh_button,
+                suspend_button,
+                spacing = 8,
+                layout = wibox.layout.fixed.horizontal,
+            },
+            widget = wibox.container.place,
+            halign = "center",
         },
         left = 12,
         right = 8,
@@ -409,6 +412,14 @@ function M.extend(instance_methods)
         local item = (self._popup_items or {})[self._popup_selected_index or 1]
         if item and type(item.on_enter) == "function" then
             item.on_enter()
+        end
+    end
+
+    function instance_methods:activate_selected_popup_secondary()
+        self:_ensure_popup_selection()
+        local item = (self._popup_items or {})[self._popup_selected_index or 1]
+        if item and type(item.on_space) == "function" then
+            item.on_space()
         end
     end
 
