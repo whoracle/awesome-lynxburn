@@ -1,5 +1,6 @@
 local beautiful = require("beautiful")
 local gears = require("gears")
+local naughty = require("naughty")
 local wibox = require("wibox")
 
 local M = {}
@@ -43,19 +44,26 @@ local function wrap_custom_bar_widget(widget)
         return nil
     end
 
-    return wibox.widget({
-        {
-            widget,
-            left = beautiful.widget_padding_left or 0,
-            top = beautiful.widget_padding_top or 0,
-            bottom = beautiful.widget_padding_bottom or 0,
-            right = beautiful.widget_padding_right or 0,
-            widget = wibox.container.margin,
-        },
-        bg = beautiful.tasklist_bg_normal or beautiful.bg_normal,
-        shape = gears.shape.rectangle,
-        shape_clip = true,
-        widget = wibox.container.background,
+    local margin = wibox.container.margin(widget)
+    margin.left = beautiful.widget_padding_left or 0
+    margin.top = beautiful.widget_padding_top or 0
+    margin.bottom = beautiful.widget_padding_bottom or 0
+    margin.right = beautiful.widget_padding_right or 0
+    margin.draw_empty = false
+
+    local background = wibox.container.background(margin)
+    background.bg = beautiful.tasklist_bg_normal or beautiful.bg_normal
+    background.shape = gears.shape.rectangle
+    background.shape_clip = true
+
+    return background
+end
+
+local function notify_custom_widget_failure(name, err)
+    naughty.notify({
+        preset = naughty.config.presets.critical,
+        title = "Custom lxbar widget failed",
+        text = string.format("Widget: %s\nError: %s", tostring(name), tostring(err)),
     })
 end
 
@@ -92,27 +100,33 @@ end
 
 local function register_custom_widgets()
     for name, custom_widget in pairs(module_config.custom_widgets()) do
-        local spec = normalize_custom_widget_spec(name, custom_widget)
+        local ok, spec_or_err = pcall(normalize_custom_widget_spec, name, custom_widget)
 
-        if spec and spec.widget then
-            local widget = spec.widget
+        if not ok then
+            notify_custom_widget_failure(name, spec_or_err)
+        else
+            local spec = spec_or_err
 
-            if spec.style ~= "raw" then
-                widget = wrap_custom_bar_widget(widget)
+            if spec and spec.widget then
+                local widget = spec.widget
+                local wrap_ok, wrapped_or_err = pcall(function()
+                    if spec.style ~= "raw" then
+                        widget = wrap_custom_bar_widget(widget)
+                    end
+
+                    if spec.width then
+                        widget = wibox.container.constraint(widget, "exact", spec.width)
+                    end
+
+                    registry.register_widget("custom:" .. tostring(name), widget, spec.default_order or 1000, {
+                        include_in_popup_cycle = false,
+                    })
+                end)
+
+                if not wrap_ok then
+                    notify_custom_widget_failure(name, wrapped_or_err)
+                end
             end
-
-            if spec.width then
-                widget = wibox.widget({
-                    widget,
-                    strategy = "exact",
-                    width = spec.width,
-                    widget = wibox.container.constraint,
-                })
-            end
-
-            registry.register_widget("custom:" .. tostring(name), widget, spec.default_order or 1000, {
-                include_in_popup_cycle = false,
-            })
         end
     end
 end
