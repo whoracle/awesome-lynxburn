@@ -301,7 +301,80 @@ local function secret_lookup(selector_pairs_list, callback)
     end)
 end
 
+local secret_search_records
+
 local function secret_search_metadata(selector_pairs_list, callback)
+    secret_search_records(selector_pairs_list, function(records)
+        local metadata = {}
+
+        if records[1] and records[1].attrs and records[1].attrs.expiry_date then
+            metadata.expiry_date = records[1].attrs.expiry_date
+        end
+
+        callback(metadata)
+    end)
+end
+
+local function unquote_search_value(value)
+    return tostring(value or ""):gsub("^['\"]", ""):gsub("['\"]$", "")
+end
+
+local function parse_secret_search_records(output)
+    local records = {}
+    local current = nil
+
+    local function push_current()
+        if current and next(current.attrs or {}) then
+            records[#records + 1] = current
+        end
+        current = nil
+    end
+
+    for _, line in ipairs(util.split_lines(output)) do
+        local trimmed = util.trim(line)
+
+        if trimmed == "" then
+            push_current()
+        elseif trimmed:match("^%[.+%]$") then
+            push_current()
+            current = { attrs = {} }
+        else
+            current = current or { attrs = {} }
+
+            local attr_key, attr_value = trimmed:match("^attribute%.([^%s=]+)%s*=%s*(.+)$")
+            if not attr_key then
+                attr_key, attr_value = trimmed:match("^attribute ([^%s=]+)%s*=%s*(.+)$")
+            end
+
+            if attr_key then
+                current.attrs[attr_key] = unquote_search_value(attr_value)
+            else
+                local label_value = trimmed:match("^label%s*=%s*(.+)$")
+                if label_value then
+                    current.label = unquote_search_value(label_value)
+                end
+            end
+        end
+    end
+
+    push_current()
+    return records
+end
+
+local function attrs_to_pairs(attrs, excluded_keys)
+    local pairs_out = {}
+
+    for _, key in ipairs(sorted_keys(attrs)) do
+        if not excluded_keys or not excluded_keys[key] then
+            pairs_out[#pairs_out + 1] = tostring(key)
+            pairs_out[#pairs_out + 1] = tostring(attrs[key])
+        end
+    end
+
+    return pairs_out
+end
+
+secret_search_records = function(selector_pairs_list, callback)
     local args = { "secret-tool", "search", "--all" }
     append_all(args, selector_pairs_list)
 
@@ -311,19 +384,7 @@ local function secret_search_metadata(selector_pairs_list, callback)
             return
         end
 
-        local metadata = {}
-
-        for _, line in ipairs(util.split_lines(stdout)) do
-            local value = line:match("^%s*attribute%.expiry_date%s*=%s*(.+)%s*$")
-                or line:match("^%s*expiry_date%s*=%s*(.+)%s*$")
-                or line:match("^%s*attribute expiry_date%s*=%s*(.+)%s*$")
-            if value then
-                metadata.expiry_date = value:gsub("^['\"]", ""):gsub("['\"]$", "")
-                break
-            end
-        end
-
-        callback(metadata)
+        callback(parse_secret_search_records(stdout))
     end)
 end
 
@@ -439,19 +500,60 @@ sync_secret_expiry = function(secret, selector_pairs_list, token, callback)
         return
     end
 
-    -- secret-tool treats the full attribute set as the lookup identity. When
-    -- we add `expiry_date`, we need to replace the original item first or we
-    -- end up with a parallel entry instead of updating the existing one.
-    secret_clear(selector_pairs_list, function()
-        secret_store(
-            keyring_label(secret),
-            selector_pairs_list,
-            { "expiry_date", tostring(display_value) },
-            token,
-            function(ok)
-                callback(ok)
+    secret_search_records(selector_pairs_list, function(records)
+        local replacement_selector = selector_pairs_list
+        local pending_clears = 0
+        local started_store = false
+
+        local function maybe_store()
+            if started_store or pending_clears > 0 then
+                return
             end
-        )
+
+            started_store = true
+            secret_store(
+                keyring_label(secret),
+                replacement_selector,
+                { "expiry_date", tostring(display_value) },
+                token,
+                function(ok)
+                    callback(ok)
+                end
+            )
+        end
+
+        if #records > 0 then
+            local base_attrs = {}
+
+            for key, value in pairs(records[1].attrs or {}) do
+                if key ~= "expiry_date" then
+                    base_attrs[key] = value
+                end
+            end
+
+            if next(base_attrs) then
+                replacement_selector = attrs_to_pairs(base_attrs)
+            end
+
+            for _, record in ipairs(records) do
+                local record_pairs = attrs_to_pairs(record.attrs or {})
+                if #record_pairs > 0 then
+                    pending_clears = pending_clears + 1
+                    secret_clear(record_pairs, function()
+                        pending_clears = pending_clears - 1
+                        maybe_store()
+                    end)
+                end
+            end
+        else
+            pending_clears = 1
+            secret_clear(selector_pairs_list, function()
+                pending_clears = pending_clears - 1
+                maybe_store()
+            end)
+        end
+
+        maybe_store()
     end)
 end
 
