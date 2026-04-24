@@ -8,6 +8,7 @@ local awful = require("awful")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local naughty = require("naughty")
+local lxmodules = require("config.lxmodules")
 local services = require("config.services")
 local tags = require("config.tags")
 local layouts = require("config.layouts")
@@ -270,12 +271,14 @@ function M.build(theme)
     })
 
     return function(s)
-        local lxbar = services.bar()
-        local lxbar_widget = wrap_widget(theme, lxbar.widget)
         local right_widgets = {
             layout = wibox.layout.fixed.horizontal,
-            lxbar_widget,
         }
+
+        if lxmodules.screen_enabled(s) then
+            local lxbar = services.bar()
+            table.insert(right_widgets, wrap_widget(theme, lxbar.widget))
+        end
 
         apply_wallpaper(theme, s)
 

@@ -118,4 +118,22 @@ function M.custom_widgets()
     return custom_widgets
 end
 
+function M.screen_enabled(screen_obj)
+    local screens = (lxmodules().lxbar or {}).screens
+
+    if type(screens) ~= "table" then
+        return true
+    end
+
+    local monitors = (config_data.settings() or {}).monitors or {}
+
+    for _, screen_name in ipairs(screens) do
+        if monitors[screen_name] == screen_obj.index then
+            return true
+        end
+    end
+
+    return false
+end
+
 return M
