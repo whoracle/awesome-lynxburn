@@ -25,7 +25,7 @@ Internal:
 
 ## Features
 
-- startup and interval-based refresh runs
+- startup refresh runs plus optional periodic refresh
 - grouped popup by provider
 - per-secret manual refresh
 - global refresh-all action
@@ -87,7 +87,7 @@ lxmodules = {
     lxsecrets = {
         at_start = true,
         at_start_delay = "60s",
-        interval = "30m",
+        interval = false,
         top_level = "urgent",
         cycle_exclude = true,
         browser = "vivaldi-stable --profile-directory=Profile\\ 1",
@@ -137,6 +137,9 @@ Supported knobs:
 - `at_start`
 - `at_start_delay`
 - `interval`
+
+Set `interval = false` to disable periodic background refresh. This is the
+shipped default. Use a duration like `"30m"` only if you want periodic checks.
 - `top_level`
 - `cycle_exclude`
 - `browser`

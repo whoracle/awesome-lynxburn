@@ -138,9 +138,6 @@ Rationale:
 - define a pragmatic plugin API for adding more secret providers later
 - write back `expiry_date` metadata reliably even when the original keyring
   entry did not already contain that attribute
-- consider changing the default refresh contract away from periodic polling:
-  either make `interval` default to a no-op/off state or otherwise reduce the
-  amount of background refresh by default
 - improve startup refresh behavior so the first pass waits for usable network
   availability instead of relying only on a blind timer delay
 - add a secondary card action to open the corresponding secret in a keyring UI
