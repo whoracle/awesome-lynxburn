@@ -143,16 +143,6 @@ function popup_state.extend(instance_methods)
             return
         end
 
-        if item.kind == "group" then
-            self:enter_group_detail(item.group.key)
-            return
-        end
-
-        if item.entry and item.entry.id then
-            self:dismiss_notification(item.entry.id)
-            return
-        end
-
         if type(item.on_space) == "function" then
             item.on_space()
         end
@@ -302,7 +292,7 @@ function popup_state.extend(instance_methods)
 
         if #popup_items > visible_items then
             self.popup_footer_text = string.format(
-                "Use Up/Down to browse %d-%d of %d, Right to dismiss, Enter to open/activate, Left to go back/close",
+                "Use Up/Down to browse %d-%d of %d, Enter for primary action, Right for secondary action, Left to go back/close",
                 self.popup_scroll_offset,
                 last_index,
                 #popup_items

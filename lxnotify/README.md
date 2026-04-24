@@ -65,10 +65,10 @@ Top-level widget:
 
 Popup cards:
 
-- notification card left click: dismiss
-- notification card right click: invoke notification action / activate client
+- notification card left click: invoke notification action / activate client
+- notification card right click: dismiss
 - group card left click: enter group
-- group card right click: enter group
+- group card right click: dismiss group
 
 ## Keyboard Controls
 
@@ -77,7 +77,7 @@ When the popup is opened in keyboard-friendly mode:
 - `Up` / `Down`: move selection
 - `Right`:
   - notification card: dismiss
-  - group card: enter group
+  - group card: dismiss group
 - `Enter`:
   - notification card: invoke action / activate client
   - group card: enter group
