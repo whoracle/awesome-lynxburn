@@ -72,6 +72,18 @@ local function append_all(target, values)
     end
 end
 
+local function format_selector_pairs(selector_pairs_list)
+    local parts = {}
+
+    for index = 1, #selector_pairs_list, 2 do
+        local key = selector_pairs_list[index]
+        local value = selector_pairs_list[index + 1]
+        parts[#parts + 1] = tostring(key) .. "=" .. tostring(value)
+    end
+
+    return table.concat(parts, " ")
+end
+
 local function pair_lists_equal(left, right)
     if #left ~= #right then
         return false
@@ -307,11 +319,12 @@ local function secret_lookup(selector_pairs_list, callback)
 
     run_process(args, function(stdout, stderr, exit_code)
         if exit_code == 0 then
-            callback(util.trim(stdout or ""))
-            return
-        end
+        callback(util.trim(stdout or ""))
+        return
+    end
 
-        callback(nil, last_nonempty_line(stderr) or last_nonempty_line(stdout))
+        callback(nil, "secret-tool lookup failed for " .. format_selector_pairs(selector_pairs_list)
+            .. ": " .. tostring(last_nonempty_line(stderr) or last_nonempty_line(stdout) or "unknown error"))
     end)
 end
 
@@ -406,8 +419,14 @@ local function secret_clear(selector_pairs_list, callback)
     local args = { "secret-tool", "clear" }
     append_all(args, selector_pairs_list)
 
-    run_process(args, function(_, _, _)
-        callback(true)
+    run_process(args, function(stdout, stderr, exit_code)
+        if exit_code == 0 then
+            callback(true)
+            return
+        end
+
+        callback(false, "secret-tool clear failed for " .. format_selector_pairs(selector_pairs_list)
+            .. ": " .. tostring(last_nonempty_line(stderr) or last_nonempty_line(stdout) or "unknown error"))
     end)
 end
 
@@ -431,7 +450,10 @@ local function secret_store(label, selector_pairs_list, extra_pairs, secret_valu
             return
         end
 
-        callback(false, last_nonempty_line(stderr) or last_nonempty_line(stdout) or "failed to store secret")
+        callback(false, "secret-tool store failed for label=" .. tostring(label)
+            .. " " .. format_selector_pairs(selector_pairs_list)
+            .. " " .. format_selector_pairs(extra_pairs or {})
+            .. ": " .. tostring(last_nonempty_line(stderr) or last_nonempty_line(stdout) or "unknown error"))
     end)
 end
 
