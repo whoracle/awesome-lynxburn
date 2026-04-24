@@ -72,6 +72,20 @@ local function append_all(target, values)
     end
 end
 
+local function pair_lists_equal(left, right)
+    if #left ~= #right then
+        return false
+    end
+
+    for index = 1, #left do
+        if left[index] ~= right[index] then
+            return false
+        end
+    end
+
+    return true
+end
+
 local function run_process(args, callback)
     awful.spawn.easy_async(args, function(stdout, stderr, _, exit_code)
         callback(stdout or "", stderr or "", exit_code or 1)
@@ -514,6 +528,7 @@ local function gitlab_refresh(secret, callback)
     -- `selectors` is the canonical managed-token selector. `token_selector`
     -- remains as a compatibility override for older configs only.
     local token_selector = selector_pairs(secret.token_selector or selectors, GITLAB_SPECIAL_KEYS)
+    local shared_selector = pair_lists_equal(admin_selector, token_selector)
     local store_label = selectors.label or secret.name or "GitLab Personal Access Token"
     local api_base = tostring(selectors.gitlab_url or ""):gsub("/+$", "") .. "/api/v4"
 
@@ -581,7 +596,7 @@ local function gitlab_refresh(secret, callback)
                 end
 
                 if days_left > (secret.gitlab_threshold_days or 30) then
-                    if bootstrapping then
+                    if bootstrapping and not shared_selector then
                         secret_store(store_label, token_selector, {}, current_pat, function(stored, store_err)
                             if not stored then
                                 callback("error", store_err)
