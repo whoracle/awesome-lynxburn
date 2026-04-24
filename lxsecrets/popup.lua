@@ -195,11 +195,21 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         end))
     end
 
-    local info_card = selectable_card(instance, info, selected, selection_index, function()
+    local info_card = popup_common.make_click_container(info, function()
         instance:refresh_secret(secret_index)
+    end, {
+        left = 12,
+        right = 8,
+        top = 6,
+        bottom = 6,
+        idle_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        hover_bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+    })
+    info_card:connect_signal("mouse::enter", function()
+        instance:_set_popup_selection(selection_index)
     end)
 
-    local outer = popup_common.make_card({
+    local content = wibox.widget({
         {
             info_card,
             {
@@ -213,6 +223,12 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
             spacing = 0,
             layout = wibox.layout.fixed.vertical,
         },
+        bg = instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        widget = wibox.container.background,
+    })
+
+    local outer = popup_common.make_card({
+        content,
         widget = wibox.container.background,
     }, {
         radius = 4,
