@@ -4,7 +4,7 @@ This file tracks only migrations between tagged releases.
 
 Current baseline:
 
-- assume users are already on `v1.6.0`
+- assume users are already on `v1.7.0`
 - document only incremental migrations from that point forward
 - do not use this file for one-off machine migration notes anymore
 
@@ -17,6 +17,21 @@ Current baseline:
   config-shape changes
 
 ## Documented Migrations
+
+### `v1.7.0` -> `v1.8.0`
+
+Apply these user-facing config migrations:
+
+- if you use `lxmodules.lxbar.order`, you may now include custom widgets in the
+  bar flow via `custom:<name>` entries
+- define those widgets under `lxmodules.lxbar.custom_widgets`, for example:
+  `mail = require("widgets.mail_imap")` or `systray = require("widgets.systray")`
+- the tracked `lynxburn` setup now expects the old theme-owned IMAP and `lain`
+  metric widgets to live in `lxbar`, not in `themes/lynxburn/widgets.lua`
+- if you previously copied older examples using `theme.color_scheme = "default"`,
+  switch to `theme.color_scheme = "lynxburn"`
+  `default` still works as a compatibility alias, but it is no longer the
+  canonical scheme name
 
 ### `v1.6.0` -> `v1.7.0`
 

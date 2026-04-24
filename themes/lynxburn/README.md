@@ -410,10 +410,8 @@ Layout label values:
   - wallpaper application
   - wibar assembly
   - tasklist/taglist/layout switcher composition
-  - systray / clock / date placement
-- `widgets.lua` still contains older non-`lx*` widget assembly that will likely
-  be reduced later as more functionality moves into modules; the main likely
-  future move candidates are the IMAP mail widget, the lain metric widgets, and
-  the custom power menu popup
+  - clock / date / power-menu placement
+- `widgets.lua` no longer owns the old IMAP, systray, or `lain` metric bar
+  widgets; those now belong in `lxbar` via `lxmodules.lxbar.custom_widgets`
 - `color_scheme` changes only the scheme layer; spacing/layout/widget placement
   remains owned by the `lynxburn` theme shell

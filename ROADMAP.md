@@ -13,8 +13,8 @@ reprioritization:
 1. `lxsecrets` UX polish
 2. `lxdisplay` UX refinements only if daily-driving reveals real friction
 3. `themes/lynxburn` follow-up polish
-4. future systray / non-`lx*` widget hosting in `lxbar`
-5. `lxnotify` browser/web-app action hardening
+4. `lxnotify` browser/web-app action hardening
+5. `lxcommon` popup-input cleanup from real daily-driver evidence
 
 Rationale:
 
@@ -24,10 +24,10 @@ Rationale:
   usage feedback, not speculation
 - theme cleanup already landed the larger split/pruning work, so what remains
   is follow-up polish rather than structural cleanup
-- systray/non-`lx*` hosting is still underspecified and likely to churn config
-  shape
 - `lxnotify` hardening stays deliberately late until daily-driver evidence says
   it matters
+- popup-input cleanup still matters, but it should be driven by real failures
+  rather than another speculative framework rewrite
 
 ## Repo-Wide Work
 
@@ -54,8 +54,6 @@ Rationale:
   bindings while popups are open
 - fix the current partial popup key fallback path; global shortcuts still do not
   reliably work while popups are open
-- make popup keyboard interaction available even when a popup was opened via
-  mouse, not just via explicit keyboard-navigation entry points
 - when a popup opened via mouse is also keyboard-active, keep it from closing
   immediately just because the pointer is not hovering the popup; hover-close
   and keyboard-focus need a cleaner coexistence model
@@ -65,8 +63,12 @@ Rationale:
 ### `lxbar`
 
 - keep popup cycling strictly derived from final top-level widget order
-- support future optional systray-style non-`lx*` widget integration once the
-  config shape is clear enough
+- keep `custom:<name>` hosting simple:
+  - no popup cycling
+  - no implicit `lx*` interaction contract
+  - explicit `style = "lxbar" | "raw"` visual ownership
+- continue migrating remaining simple non-`lx*` bar widgets into `lxbar` where
+  that makes the overall bar composition cleaner
 
 ### `lxmedia`
 
@@ -94,9 +96,6 @@ Rationale:
 - continue shrinking `init.lua` into thin entry-point/public API code
 - harden notification action invocation for browser/web-app edge cases if
   daily-driving proves it worthwhile
-- consider a way for aliases/actions to request targeted module refreshes so
-  one-shot commands like starting a VPN can update the relevant `lx*` widget
-  immediately without globally increasing poll frequency
 
 ### `lxnetwork`
 
@@ -156,11 +155,7 @@ Rationale:
 - likely future scheme candidates from daily-driving:
   - `gruvbox` (`dark`, `light`)
   - `dracula`
-  - `one_dark`
   - `everforest`
-  - `monokai`
-  - `solarized_dark`
-  - `kanagawa` (`wave`, `dragon`, `lotus`)
 - consider an opt-in startup mode that picks a random bundled color scheme on
   each Awesome start as an easter egg feature
 - smooth top-level widget bar reveal/hide behavior with a delayed ease-in/out
@@ -169,7 +164,7 @@ Rationale:
   - wallpaper application
   - wibar assembly
   - tasklist/taglist/layout switcher composition
-  - systray / clock / date placement
+  - clock / date / power-menu placement
 
 ### Proposed `lxmenu`
 
