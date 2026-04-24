@@ -29,8 +29,45 @@ local function runner_options()
     -- Aliases are loaded directly from config data inside lxrunner so the
     -- service does not need to pass a duplicated copy.
     options.aliases = nil
+    options.service_refresh = M.refresh
 
     return options
+end
+
+local function normalize_service_id(id)
+    if type(id) ~= "string" or id == "" then
+        return nil
+    end
+
+    return id:gsub("^lx", "")
+end
+
+local function refresh_instance(instance)
+    if not instance then
+        return false
+    end
+
+    if type(instance.refresh) == "function" then
+        instance:refresh()
+        return true
+    end
+
+    if type(instance.refresh_all) == "function" then
+        instance:refresh_all()
+        return true
+    end
+
+    if type(instance.brightness_refresh) == "function" then
+        instance:brightness_refresh({ show_osd = false })
+        return true
+    end
+
+    if type(instance.reload) == "function" then
+        instance:reload()
+        return true
+    end
+
+    return false
 end
 
 ---Return the shared lxmedia instance.
@@ -149,6 +186,23 @@ function M.runner()
     return state.ensure("runner", function()
         return require("lxrunner").new(runner_options())
     end)
+end
+
+---Request an immediate refresh for one long-lived lx service.
+---@param id string
+---@return boolean
+function M.refresh(id)
+    local service_id = normalize_service_id(id)
+    if not service_id then
+        return false
+    end
+
+    local instance = state.get(service_id)
+    if not instance then
+        return false
+    end
+
+    return refresh_instance(instance)
 end
 
 ---Return the shared lxpower instance.

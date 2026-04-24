@@ -457,7 +457,16 @@ function M.extend(instance_methods)
             return
         end
 
-        awful.spawn.with_shell(selected.command)
+        if selected.source == "alias"
+            and selected.notify
+            and type(self.opts.service_refresh) == "function" then
+            awful.spawn.easy_async_with_shell(selected.command, function()
+                self.opts.service_refresh(selected.notify)
+            end)
+        else
+            awful.spawn.with_shell(selected.command)
+        end
+
         self:_record_history(selected)
         self:hide()
     end
