@@ -54,6 +54,10 @@ Rationale:
 - revisit popup input handling so open `lx*` popups do not block unrelated
   global shortcuts; prefer a focus-based model or otherwise preserve normal key
   bindings while popups are open
+- fix the current partial popup key fallback path; global shortcuts still do not
+  reliably work while popups are open
+- make popup keyboard interaction available even when a popup was opened via
+  mouse, not just via explicit keyboard-navigation entry points
 - keep `lxcommon` small and utility-focused rather than turning it into a
   generic dumping ground
 
@@ -75,6 +79,10 @@ Rationale:
 
 - keep grouped notification handling, keyboard navigation, and popup cycling
   stable
+- fix right click on notifications inside a group so it reliably triggers the
+  secondary action (`dismiss`) instead of sometimes firing the primary action
+- consider auto-pausing popups while a screen share is active, if there is a
+  reliable detection path that is not too environment-specific
 
 ### `lxrunner`
 
@@ -84,6 +92,9 @@ Rationale:
 - continue shrinking `init.lua` into thin entry-point/public API code
 - harden notification action invocation for browser/web-app edge cases if
   daily-driving proves it worthwhile
+- consider a way for aliases/actions to request targeted module refreshes so
+  one-shot commands like starting a VPN can update the relevant `lx*` widget
+  immediately without globally increasing poll frequency
 
 ### `lxnetwork`
 
@@ -125,6 +136,20 @@ Rationale:
 - consider delaying `at_start` refresh runs by a small configurable startup
   grace period so the first pass does not race NetworkManager or other session
   services
+- write back `expiry_date` metadata reliably even when the original keyring
+  entry did not already contain that attribute
+- simplify the GitLab PAT config shape so the main `selectors` table remains
+  the single source of truth for the managed token and `token_selector` can be
+  dropped in the common case
+- consider changing the default refresh contract away from periodic polling:
+  either make `interval` default to a no-op/off state or otherwise reduce the
+  amount of background refresh by default
+- improve startup refresh behavior so the first pass waits for usable network
+  availability instead of relying only on a blind timer delay
+- add a secondary card action to open the corresponding secret in a keyring UI
+  such as Seahorse
+- define plugin scaffolding for providers, then migrate the current GitLab and
+  Vault implementations onto that plugin interface once the contract is stable
 
 ### `themes/lynxburn`
 
@@ -133,6 +158,20 @@ Rationale:
   Awesome fallbacks
 - align popup/action button border treatment across modules during the theme
   split pass; some current buttons still mix orange and gray border behavior
+- discuss UI and maintenance feasibility before adding many more bundled color
+  schemes beyond the current set
+- likely future scheme candidates from daily-driving:
+  - `gruvbox` (`dark`, `light`)
+  - `dracula`
+  - `one_dark`
+  - `everforest`
+  - `monokai`
+  - `solarized_dark`
+  - `kanagawa` (`wave`, `dragon`, `lotus`)
+- consider an opt-in startup mode that picks a random bundled color scheme on
+  each Awesome start as an easter egg feature
+- smooth top-level widget bar reveal/hide behavior with a delayed ease-in/out
+  animation instead of the current delayed pop-in
 - keep these as theme-owned unless the repo shape changes materially:
   - wallpaper application
   - wibar assembly
