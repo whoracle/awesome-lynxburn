@@ -58,6 +58,9 @@ Rationale:
   reliably work while popups are open
 - make popup keyboard interaction available even when a popup was opened via
   mouse, not just via explicit keyboard-navigation entry points
+- when a popup opened via mouse is also keyboard-active, keep it from closing
+  immediately just because the pointer is not hovering the popup; hover-close
+  and keyboard-focus need a cleaner coexistence model
 - keep `lxcommon` small and utility-focused rather than turning it into a
   generic dumping ground
 

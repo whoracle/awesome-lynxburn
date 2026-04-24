@@ -433,15 +433,20 @@ local function sync_keyring_expiry(secret, token, callback)
         return
     end
 
-    secret_store(
-        keyring_label(secret),
-        keyring_selector(secret),
-        { "expiry_date", tostring(display_value) },
-        token,
-        function(ok)
-            callback(ok)
-        end
-    )
+    -- secret-tool treats the full attribute set as the lookup identity. When
+    -- we add `expiry_date`, we need to replace the original item first or we
+    -- end up with a parallel entry instead of updating the existing one.
+    secret_clear(keyring_selector(secret), function()
+        secret_store(
+            keyring_label(secret),
+            keyring_selector(secret),
+            { "expiry_date", tostring(display_value) },
+            token,
+            function(ok)
+                callback(ok)
+            end
+        )
+    end)
 end
 
 local function vault_env(secret, token, browser_override)
