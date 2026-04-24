@@ -61,7 +61,7 @@ function theme.extend(instance_methods)
 
     ---Keep the interface aligned with the shared popup API even though lxdisplay has none.
     function instance_methods:_has_visible_popup()
-        return false
+        return self._popup and self._popup.visible or false
     end
 
     ---Only reveal the compact bar while hovered.
@@ -201,6 +201,7 @@ function theme.extend(instance_methods)
         end)
 
         self._row = shell
+        self._feedback_widget = shell
         self.widget:set_widget(shell)
         self:_sync_toplevel_bar_visibility()
     end
