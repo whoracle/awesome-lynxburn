@@ -78,11 +78,15 @@ local function normalize_custom_widget_spec(name, custom_widget)
     end
 
     if resolved.widget then
+        if resolved.style == nil then
+            resolved.style = "lxbar"
+        end
         return resolved
     end
 
     return {
         widget = resolved,
+        style = "lxbar",
     }
 end
 
@@ -91,7 +95,11 @@ local function register_custom_widgets()
         local spec = normalize_custom_widget_spec(name, custom_widget)
 
         if spec and spec.widget then
-            local widget = wrap_custom_bar_widget(spec.widget)
+            local widget = spec.widget
+
+            if spec.style ~= "raw" then
+                widget = wrap_custom_bar_widget(widget)
+            end
 
             if spec.width then
                 widget = wibox.widget({

@@ -76,6 +76,18 @@ lxmodules = {
 }
 ```
 
+Constructor shape:
+
+```lua
+return function(context)
+    return {
+        widget = ...,
+        width = 32,
+        style = "lxbar",
+    }
+end
+```
+
 ## Configuration
 
 User-facing config lives under `lxmodules.lxbar`.
@@ -97,6 +109,17 @@ Current knobs:
 
 Custom widgets are hosted visually inside `lxbar`, but they do not participate
 in popup cycling and do not get `lx*` interaction semantics automatically.
+
+Supported custom widget spec keys:
+
+- `widget`
+  The widget instance to host.
+- `width`
+  Optional exact-width constraint.
+- `style`
+  Visual wrapping mode:
+  - `"lxbar"`: default; wrap in the normal bar shell
+  - `"raw"`: host without the extra `lxbar` background/padding shell
 
 ## Theme Variables
 
