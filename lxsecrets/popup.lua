@@ -51,6 +51,41 @@ local function selectable_card(instance, child, selected, index, onclick)
     })
 end
 
+local function selectable_shell(instance, child, selected, index)
+    local selection_margin = 2
+    local selection_wrapper = wibox.widget({
+        child,
+        margins = selected and selection_margin or 0,
+        widget = wibox.container.margin,
+    })
+
+    local outer = wibox.widget({
+        selection_wrapper,
+        bg = selected
+            and instance:_theme_value("lxsecrets_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
+            or instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222"),
+        shape = gears.shape.rounded_rect,
+        widget = wibox.container.background,
+    })
+
+    outer:connect_signal("mouse::enter", function()
+        instance:_set_popup_selection(index)
+    end)
+
+    function outer:_lx_set_selected(value)
+        selection_wrapper.margins = value and selection_margin or 0
+        outer.bg = value
+            and instance:_theme_value("lxsecrets_selected_bg", beautiful.border_focus or beautiful.bg_focus or "#666666")
+            or instance:_theme_value("lxsecrets_popup_bg", beautiful.bg_normal or "#222222")
+    end
+
+    function outer:_lx_set_feedback_active(value)
+        outer:_lx_set_selected(value)
+    end
+
+    return outer
+end
+
 local function badge(label, fg)
     return wibox.widget({
         markup = string.format("<span size='x-small' foreground='%s'>[%s]</span>", fg, label),
@@ -183,23 +218,7 @@ local function secret_row(instance, secret, selected, selection_index, secret_in
         radius = 4,
     })
 
-    outer:connect_signal("mouse::enter", function()
-        instance:_set_popup_selection(selection_index)
-    end)
-
-    outer._lx_set_selected = function(_, value)
-        if info_card and info_card._lx_set_selected then
-            info_card:_lx_set_selected(value)
-        end
-    end
-
-    outer._lx_set_feedback_active = function(_, value)
-        if info_card and info_card._lx_set_feedback_active then
-            info_card:_lx_set_feedback_active(value)
-        end
-    end
-
-    return outer
+    return selectable_shell(instance, outer, selected, selection_index)
 end
 
 function M.extend(instance_methods)
