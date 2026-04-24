@@ -475,6 +475,8 @@ end
 local function gitlab_refresh(secret, callback)
     local selectors = secret.selectors or {}
     local admin_selector = selector_pairs(secret.admin_selector or selectors.admin_selector or selectors, GITLAB_SPECIAL_KEYS)
+    -- `selectors` is the canonical managed-token selector. `token_selector`
+    -- remains as a compatibility override for older configs only.
     local token_selector = selector_pairs(secret.token_selector or selectors, GITLAB_SPECIAL_KEYS)
     local store_label = selectors.label or secret.name or "GitLab Personal Access Token"
     local api_base = tostring(selectors.gitlab_url or ""):gsub("/+$", "") .. "/api/v4"

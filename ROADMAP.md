@@ -141,9 +141,6 @@ Rationale:
   services
 - write back `expiry_date` metadata reliably even when the original keyring
   entry did not already contain that attribute
-- simplify the GitLab PAT config shape so the main `selectors` table remains
-  the single source of truth for the managed token and `token_selector` can be
-  dropped in the common case
 - consider changing the default refresh contract away from periodic polling:
   either make `interval` default to a no-op/off state or otherwise reduce the
   amount of background refresh by default

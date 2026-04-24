@@ -102,8 +102,12 @@ lxmodules = {
                 selectors = {
                     type = "gitlab",
                     gitlab_url = "https://gitlab.example.org",
-                    label = "SHELL_GIT_TOKEN",
-                    service = "gitlab-example",
+                    label = "GitLab managed PAT",
+                    service = "gitlab-managed",
+                    account = "me@example.org",
+                },
+                admin_selector = {
+                    service = "gitlab-admin",
                     account = "me@example.org",
                 },
             },
@@ -157,7 +161,11 @@ Supported knobs:
 - `secrets[].selectors.auth_path`
 - `secrets[].selectors.skip_verify`
 - `secrets[].admin_selector`
-- `secrets[].token_selector`
+
+For GitLab secrets, `selectors` is the canonical selector for the managed token.
+Use `admin_selector` only when the admin PAT lives under different keyring
+attributes. `token_selector` is no longer needed for normal configs and remains
+only as a backwards-compatibility override.
 
 Current provider support:
 
