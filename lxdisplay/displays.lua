@@ -66,6 +66,15 @@ local function output_status_map(state)
     return status
 end
 
+local function normalized_rate(value)
+    local number = tonumber(value)
+    if not number then
+        return nil
+    end
+
+    return math.floor((number * 100) + 0.5)
+end
+
 local function active_profile_signature(profile, missing)
     profile = profile or {}
     table.sort(missing)
@@ -842,6 +851,12 @@ function displays.extend(instance_methods)
                     if type(output_opts.rotate) == "string"
                         and output_opts.rotate ~= ""
                         and live.rotation ~= output_opts.rotate then
+                        return false
+                    end
+
+                    if output_opts.rate ~= nil
+                        and output_opts.rate ~= ""
+                        and normalized_rate(live.rate) ~= normalized_rate(output_opts.rate) then
                         return false
                     end
                 end
