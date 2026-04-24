@@ -61,10 +61,17 @@ function helpers.parse_xrandr_outputs(stdout)
     for line in tostring(stdout or ""):gmatch("[^\r\n]+") do
         local name, suffix = line:match("^(%S+)%s+connected(.*)$")
         if name then
+            local geometry = tostring(suffix or ""):match("%s(%d+x%d+[%+%-]%d+[%+%-]%d+)")
+            local width, height, pos_x, pos_y = geometry and geometry:match("^(%d+)x(%d+)([%+%-]%d+)([%+%-]%d+)$") or nil
+            local rotation = tostring(suffix or ""):match("%s(normal|left|right|inverted)%s")
             outputs[#outputs + 1] = {
                 name = name,
                 primary = tostring(suffix or ""):match("%sprimary%s") ~= nil,
                 active = tostring(suffix or ""):match("%s%d+x%d+[%+%-]%d+[%+%-]%d+") ~= nil,
+                mode = (width and height) and (tostring(width) .. "x" .. tostring(height)) or nil,
+                pos_x = tonumber(pos_x),
+                pos_y = tonumber(pos_y),
+                rotation = rotation,
             }
         end
     end
