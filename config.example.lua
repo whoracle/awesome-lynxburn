@@ -59,6 +59,7 @@ return {
     --             "lxnotify",
     --             "lxdisplay",
     --             "lxpower",
+    --             "custom:mail",
     --             "custom:systray",
     --         },
     --         modules = {
@@ -73,6 +74,7 @@ return {
     --             },
     --         },
     --         custom_widgets = {
+    --             mail = require("widgets.mail_imap"),
     --             systray = require("widgets.systray"),
     --         },
     --     },

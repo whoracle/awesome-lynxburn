@@ -66,10 +66,12 @@ M.lxmodules = {
             "lxnetwork",
             "lxmedia",
             "lxnotify",
+            "custom:mail",
             "custom:systray",
         },
         modules = {},
         custom_widgets = {
+            mail = require("widgets.mail_imap"),
             systray = require("widgets.systray"),
         },
     },

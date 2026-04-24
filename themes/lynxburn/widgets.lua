@@ -8,7 +8,6 @@ local awful = require("awful")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local naughty = require("naughty")
-local config_data = require("config.config_data")
 local services = require("config.services")
 local tags = require("config.tags")
 local layouts = require("config.layouts")
@@ -19,14 +18,6 @@ local markup = lain.util.markup
 local M = {}
 
 ---Wrap a widget in the standard LynxBurn wibar background and padding shell.
-local programs = config_data.commands()
-local lain_commands = programs.lain or {}
-local mail_account = lain_commands.imap_mail
-local mail_password_lookup = lain_commands.imap_secret
-local mail_server = lain_commands.imap_server
-local mail_login_options = lain_commands.imap_login_options or "AUTH=LOGIN"
-local mail_timeout = tonumber(lain_commands.imap_timeout) or 60
-
 local function wallpaper_exists(path)
     if type(path) ~= "string" or path == "" then
         return false
@@ -283,45 +274,6 @@ function M.build(theme)
         },
     })
 
-    local mail_icon = wibox.widget.imagebox(theme.icon_mail)
-    mail_icon.forced_width = 0
-    mail_icon.forced_height = 0
-    local mail = lain.widget.imap({
-        timeout = mail_timeout,
-        server = mail_server,
-        mail = mail_account,
-        password = mail_password_lookup,
-        login_options = mail_login_options,
-        settings = function()
-            local count = ""
-
-            if mailcount > 0 then
-                count = markup.font(theme.font, theme.space .. mailcount .. theme.space)
-                mail_icon.forced_width = nil
-                mail_icon.forced_height = nil
-            else
-                mail_icon.forced_width = 0
-                mail_icon.forced_height = 0
-            end
-
-            widget:set_markup(count)
-        end,
-    })
-    local mailwidget
-    if mail and mail.widget then
-        mailwidget = wrap_widget(theme, wibox.widget({
-            {
-                mail_icon,
-                mail.widget,
-                layout = wibox.layout.fixed.horizontal,
-            },
-            draw_empty = false,
-            widget = wibox.container.margin,
-        }))
-    else
-        mailwidget = wibox.widget.textbox("")
-    end
-
     local cpu_icon = make_metric_icon(theme.icon_cpu)
     local cpu = lain.widget.cpu({
         settings = function()
@@ -434,7 +386,6 @@ function M.build(theme)
         local lxbar_widget = wrap_widget(theme, lxbar.widget)
         local right_widgets = {
             layout = wibox.layout.fixed.horizontal,
-            mailwidget,
             sysloadwidget,
             cpuwidget,
             memwidget,

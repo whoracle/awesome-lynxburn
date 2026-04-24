@@ -8,9 +8,10 @@ provides the per-screen wibar assembly used by the current desktop and now
 supports swappable color schemes inside the same theme shell.
 
 Normal in-bar widgets should now go through `lxbar`, including custom
-non-`lx*` widgets. `themes/lynxburn/widgets.lua` remains the right place only
-for theme-owned shell composition and for extra widgets you intentionally place
-outside `lxbar`.
+non-`lx*` widgets such as the bundled `systray` and IMAP mail examples.
+`themes/lynxburn/widgets.lua` remains the right place only for theme-owned
+shell composition and for extra widgets you intentionally place outside
+`lxbar`.
 
 ## Dependencies
 
