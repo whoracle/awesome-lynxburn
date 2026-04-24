@@ -78,6 +78,12 @@ Rationale:
 
 - keep grouped notification handling, keyboard navigation, and popup cycling
   stable
+
+### `lxrunner`
+
+- keep the keyboard-first launcher flow stable
+- add left-click launch on result rows later so mouse usage is possible without
+  changing the rest of the runner model
 - continue shrinking `init.lua` into thin entry-point/public API code
 - harden notification action invocation for browser/web-app edge cases if
   daily-driving proves it worthwhile
