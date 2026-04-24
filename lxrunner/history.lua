@@ -1,4 +1,5 @@
 local awful = require("awful")
+local gears = require("gears")
 local util = require("lxcommon.util")
 
 local M = {}
@@ -462,6 +463,14 @@ function M.extend(instance_methods)
             and type(self.opts.service_refresh) == "function" then
             awful.spawn.easy_async_with_shell(selected.command, function()
                 self.opts.service_refresh(selected.notify)
+
+                -- Commands like `nmcli connection up ...` can return before the
+                -- long-lived service state has visibly settled. A short follow-up
+                -- refresh keeps aliases useful without requiring tighter poll loops.
+                gears.timer.start_new(1.5, function()
+                    self.opts.service_refresh(selected.notify)
+                    return false
+                end)
             end)
         else
             awful.spawn.with_shell(selected.command)
