@@ -68,6 +68,8 @@ lxmodules = {
 Popup:
 
 - type to filter PATH commands, aliases, desktop entries, and history
+- left click result rows: no action
+- right click result rows: no action
 - `Up` / `Down`: move selection
 - `Tab`: complete highlighted/common prefix
 - `Enter`: launch selection
