@@ -49,12 +49,12 @@ function M.new(opts)
     }
 
     self._commands = {
-        get = brightness_opts.get or "xbacklight -get",
-        set = brightness_opts.set or "xbacklight -set %d",
+        get = brightness_opts.get,
+        set = brightness_opts.set,
         step = brightness_opts.step or 5,
         min = brightness_opts.min or 10,
         max = brightness_opts.max or 100,
-        off = brightness_opts.off or "xset dpms force off",
+        off = brightness_opts.off,
     }
     self._redshift = {
         command = redshift_opts.command,

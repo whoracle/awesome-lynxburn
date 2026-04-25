@@ -25,6 +25,10 @@ local GROUP_ORDER = {
     "lxrunner",
 }
 
+local SCREENSHOT_REGION_KEY = "scr" .. "otmouse"
+local SCREENSHOT_DESKTOP_KEY = "scr" .. "otedit"
+local SCREENSHOT_WINDOW_KEY = "scr" .. "otwin"
+
 local function split_words(value)
     local words = {}
 
@@ -182,31 +186,16 @@ local function collect_core_dependencies(grouped, commands, user_commands)
         require_command(grouped, "core", commands.browser)
     end
 
-    if not is_overridden(user_commands, "scrotmouse") then
-        if platform.effective_target() == "somewm" or platform.is_wayland() then
-            require_binary(grouped, "core", "grim")
-            require_binary(grouped, "core", "slurp")
-        else
-            require_binary(grouped, "core", "scrot")
-        end
+    if not is_overridden(user_commands, SCREENSHOT_REGION_KEY) then
+        require_command(grouped, "core", commands.scrotmouse)
     end
 
-    if not is_overridden(user_commands, "scrotedit") then
-        if platform.effective_target() == "somewm" or platform.is_wayland() then
-            require_binary(grouped, "core", "grim")
-        else
-            require_binary(grouped, "core", "scrot")
-        end
-        require_binary(grouped, "core", "xdg-open")
+    if not is_overridden(user_commands, SCREENSHOT_DESKTOP_KEY) then
+        require_command(grouped, "core", commands.scrotedit)
     end
 
-    if not is_overridden(user_commands, "scrotwin") then
-        if platform.effective_target() == "somewm" or platform.is_wayland() then
-            require_binary(grouped, "core", "grim")
-        else
-            require_binary(grouped, "core", "scrot")
-        end
-        require_binary(grouped, "core", "xdg-open")
+    if not is_overridden(user_commands, SCREENSHOT_WINDOW_KEY) then
+        require_command(grouped, "core", commands.scrotwin)
     end
 end
 
@@ -229,11 +218,10 @@ local function collect_display_dependencies(grouped)
     local opts = module_config.options("display")
     local brightness = opts.brightness or {}
     local redshift = opts.redshift or {}
-    local wayland = platform.effective_target() == "somewm" or platform.is_wayland()
-    local display_command = redshift.command or (wayland and "wlr-randr" or "xrandr")
-    local brightness_get = brightness.get or (wayland and "brightnessctl g" or "xbacklight -get")
-    local brightness_set = brightness.set or (wayland and "brightnessctl s %d%%" or "xbacklight -set %d")
-    local brightness_off = brightness.off or (wayland and "wlopm --off '*'" or "xset dpms force off")
+    local display_command = redshift.command
+    local brightness_get = brightness.get
+    local brightness_set = brightness.set
+    local brightness_off = brightness.off
 
     require_command(grouped, "lxdisplay", brightness_get)
     require_command(grouped, "lxdisplay", brightness_set)
