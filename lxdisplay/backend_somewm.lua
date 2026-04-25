@@ -29,6 +29,13 @@ local NON_WLR_OUTPUT_KEYS = {
     scale = true,
 }
 
+local RELATION_KEYS = {
+    left_of = true,
+    right_of = true,
+    above = true,
+    below = true,
+}
+
 local function normalize_transform(value)
     return ROTATION_MAP[tostring(value or "")] or "normal"
 end
@@ -102,6 +109,17 @@ local function mode_with_rate(output_opts)
     return mode
 end
 
+local function relation_for(output_opts)
+    for _, key in ipairs({ "left_of", "right_of", "above", "below" }) do
+        local value = (output_opts or {})[key]
+        if type(value) == "string" and value ~= "" then
+            return key, value
+        end
+    end
+
+    return nil, nil
+end
+
 local function output_command(instance, output_name, output_opts, state)
     local args = { "wlr-randr", "--output", output_name }
     local desired_off = instance:_profile_output_initial_state({ outputs = { [output_name] = output_opts } }, output_name) == "off"
@@ -125,6 +143,12 @@ local function output_command(instance, output_name, output_opts, state)
         args[#args + 1] = pos
     end
 
+    local relation_key, relation_target = relation_for(output_opts)
+    if relation_key and relation_target then
+        args[#args + 1] = "--" .. relation_key:gsub("_", "-")
+        args[#args + 1] = relation_target
+    end
+
     if type(output_opts.scale) == "number" or type(output_opts.scale) == "string" then
         args[#args + 1] = "--scale"
         args[#args + 1] = tostring(output_opts.scale)
@@ -141,6 +165,7 @@ local function output_command(instance, output_name, output_opts, state)
             and key ~= "rate"
             and key ~= "rotate"
             and key ~= "pos"
+            and not RELATION_KEYS[key]
             and not NON_WLR_OUTPUT_KEYS[key]
             and value ~= false
             and value ~= nil then
@@ -249,6 +274,13 @@ function M.profile_matches_state(instance, profile, state)
                 and output_opts.rotate ~= ""
                 and current.rotation ~= output_opts.rotate then
                 return false
+            end
+
+            if type(output_opts.pos) == "string" and output_opts.pos ~= "" then
+                local x, y = tostring(output_opts.pos):match("^(%-?%d+)x(%-?%d+)$")
+                if not x or current.pos_x ~= tonumber(x) or current.pos_y ~= tonumber(y) then
+                    return false
+                end
             end
         else
             return false

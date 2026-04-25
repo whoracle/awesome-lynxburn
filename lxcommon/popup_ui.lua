@@ -3,6 +3,7 @@ local gears = require("gears")
 local wibox = require("wibox")
 
 local M = {}
+local unpack = table.unpack or unpack
 
 -- Shared popup card primitive used by multiple popup modules.
 function M.make_card(child, opts)
@@ -157,7 +158,7 @@ function M.make_click_container(child, onclick, opts)
         buttons[#buttons + 1] = awful.button({}, 5, opts.on_scroll_down)
     end
 
-    bg:buttons(gears.table.join(table.unpack(buttons)))
+    bg:buttons(gears.table.join(unpack(buttons)))
     return bg
 end
 
