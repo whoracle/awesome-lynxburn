@@ -2,6 +2,7 @@ local awful = require("awful")
 local gears = require("gears")
 local json = require("lxcommon.dkjson")
 local util = require("lxcommon.util")
+local platform = require("config.platform")
 
 local M = {}
 
@@ -462,6 +463,12 @@ function M.extend(instance_methods)
 
     ---Pick a backend for primary-selection paste if one is available.
     function instance_methods:_primary_selection_command()
+        if platform.effective_target() == "somewm" or platform.is_wayland() then
+            if util.command_exists("wl-paste") then
+                return "wl-paste --no-newline --primary 2>/dev/null"
+            end
+        end
+
         if util.command_exists("xclip") then
             return "xclip -o -selection primary 2>/dev/null"
         end

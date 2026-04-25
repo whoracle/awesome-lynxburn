@@ -8,6 +8,7 @@ local type = type
 
 local config_data = require("config.config_data")
 local module_config = require("config.lxmodules")
+local platform = require("config.platform")
 local util = require("lxcommon.util")
 
 local M = {}
@@ -178,16 +179,29 @@ local function collect_core_dependencies(grouped, commands, user_commands)
     end
 
     if not is_overridden(user_commands, "scrotmouse") then
-        require_binary(grouped, "core", "scrot")
+        if platform.effective_target() == "somewm" or platform.is_wayland() then
+            require_binary(grouped, "core", "grim")
+            require_binary(grouped, "core", "slurp")
+        else
+            require_binary(grouped, "core", "scrot")
+        end
     end
 
     if not is_overridden(user_commands, "scrotedit") then
-        require_binary(grouped, "core", "scrot")
+        if platform.effective_target() == "somewm" or platform.is_wayland() then
+            require_binary(grouped, "core", "grim")
+        else
+            require_binary(grouped, "core", "scrot")
+        end
         require_binary(grouped, "core", "xdg-open")
     end
 
     if not is_overridden(user_commands, "scrotwin") then
-        require_binary(grouped, "core", "scrot")
+        if platform.effective_target() == "somewm" or platform.is_wayland() then
+            require_binary(grouped, "core", "grim")
+        else
+            require_binary(grouped, "core", "scrot")
+        end
         require_binary(grouped, "core", "xdg-open")
     end
 end
@@ -211,12 +225,16 @@ local function collect_display_dependencies(grouped)
     local opts = module_config.options("display")
     local brightness = opts.brightness or {}
     local redshift = opts.redshift or {}
-    local xrandr_command = redshift.command or "xrandr"
+    local wayland = platform.effective_target() == "somewm" or platform.is_wayland()
+    local display_command = redshift.command or (wayland and "wlr-randr" or "xrandr")
+    local brightness_get = brightness.get or (wayland and "brightnessctl g" or "xbacklight -get")
+    local brightness_set = brightness.set or (wayland and "brightnessctl s %d%%" or "xbacklight -set %d")
+    local brightness_off = brightness.off or (wayland and "wlopm --off '*'" or "xset dpms force off")
 
-    require_command(grouped, "lxdisplay", brightness.get or "xbacklight -get")
-    require_command(grouped, "lxdisplay", brightness.set or "xbacklight -set %d")
-    require_command(grouped, "lxdisplay", brightness.off or "xset dpms force off")
-    require_command(grouped, "lxdisplay", xrandr_command)
+    require_command(grouped, "lxdisplay", brightness_get)
+    require_command(grouped, "lxdisplay", brightness_set)
+    require_command(grouped, "lxdisplay", brightness_off)
+    require_command(grouped, "lxdisplay", display_command)
 end
 
 local function collect_power_dependencies(grouped)

@@ -15,7 +15,7 @@ Preferred end state, if at all possible:
 
 - one repo
 - one shared config surface and one shared config entry point where possible
-- optional compositor-specific overlays only where they are genuinely needed
+- platform-specific defaults and backends only where they are genuinely needed
 
 ## Current Context
 
@@ -76,17 +76,18 @@ with simple predicates:
 
 This should be the single place where session/backend detection happens.
 
-### 3. Support Optional SomeWM-Specific Overrides
+### 3. Split Shared And Platform Defaults
 
 Current preferred direction:
 
 - keep one shared `config.lua`
-- optionally add `config.somewm.lua`
-- deep-merge it only when running under SomeWM/Wayland
+- support two example configs:
+  - `config.awesome.example.lua`
+  - `config.somewm.example.lua`
+- load one shared defaults file plus one platform defaults file
+- let `config.lua.platform` override runtime detection when needed
 
-This is preferred over maintaining two full independent configs.
-
-This should stay a compatibility overlay, not a second full config tree.
+This keeps the shape simple and avoids an overlay stack.
 
 ### 4. Gate Known X11-Only Paths
 
@@ -132,9 +133,27 @@ The first practical SomeWM/Wayland pass should be:
 
 1. `foot` config from `~/.Xresources`
 2. shared platform detection
-3. optional `config.somewm.lua` overlay loading
+3. shared defaults plus platform defaults loading
 4. Wayland-aware screenshot, clipboard, and brightness/default/preflight fixes
 5. only then start on `lxdisplay` backend work
+
+## Current Status
+
+Implemented:
+
+- shared platform detection in `config.platform`
+- shared defaults plus platform defaults split
+- config-dir-aware theme loading so a `~/.config/somewm` checkout does not
+  assume `~/.config/awesome`
+- tracked `config.somewm.example.lua` and `config.awesome.example.lua`
+- translated `foot` config at `wayland/foot.ini.example`
+
+Still pending from `somewm --check`:
+
+- `scrot`
+- `xset`
+- `xclip` / `xsel`
+- `lpeg` environment/package issue
 
 ## Open Questions
 
@@ -144,6 +163,6 @@ The first practical SomeWM/Wayland pass should be:
 - how much of `lxdisplay` can stay config-compatible while swapping out the
   underlying backend
 - whether SomeWM-specific compatibility quirks from the Awesome `4.4` base
-  should be handled via runtime detection or a dedicated overlay file
+  should be handled via runtime detection or explicit `config.lua.platform`
 - whether it is worth explicitly version-gating SomeWM quirks if `1.4` and
   `2.x` diverge too much for a single compatibility assumption

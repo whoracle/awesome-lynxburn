@@ -7,6 +7,7 @@ return {
     config_data = require("config.config_data"),
     defaults = require("config.defaults"),
     helpers = require("config.helpers"),
+    platform = require("config.platform"),
     runtime = require("config.runtime"),
     theme = require("config.theme"),
     tags = require("config.tags"),

@@ -1,12 +1,11 @@
-local os = os
-
 local awful = require("awful")
+local gears = require("gears")
 local naughty = require("naughty")
 local helpers = require("config.helpers")
 local config_theme = require("config.theme")
 local structure = require("themes.lynxburn.structure")
 
-local theme_dir = os.getenv("HOME") .. "/.config/awesome/themes/lynxburn"
+local theme_dir = gears.filesystem.get_configuration_dir() .. "themes/lynxburn"
 local zenburn_dir = awful.util.get_themes_dir() .. "zenburn"
 local DEFAULT_COLOR_SCHEME = "lynxburn"
 local AVAILABLE_COLOR_SCHEMES = {
