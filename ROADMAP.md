@@ -81,7 +81,6 @@ Rationale:
 - keep the two-popup model:
   - primary popup for playback streams and transport
   - secondary popup for devices and routing
-- continue smoothing top-level bar show/hide behavior
 
 ### `lxnotify`
 
@@ -163,8 +162,6 @@ Rationale:
   - `everforest`
 - consider an opt-in startup mode that picks a random bundled color scheme on
   each Awesome start as an easter egg feature
-- smooth top-level widget bar reveal/hide behavior with a delayed ease-in/out
-  animation instead of the current delayed pop-in
 - keep these as theme-owned unless the repo shape changes materially:
   - wallpaper application
   - wibar assembly
