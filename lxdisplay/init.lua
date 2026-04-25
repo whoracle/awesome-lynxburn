@@ -1,4 +1,5 @@
 local beautiful = require("beautiful")
+local gears = require("gears")
 local wibox = require("wibox")
 
 local backend = require("lxdisplay.backend")
@@ -43,6 +44,10 @@ function M.new(opts)
     self._profiles_enabled = type(opts.profiles) == "table"
     self._profiles = self:_normalize_profiles(opts.profiles)
     self._startup_auto_apply = opts.auto_apply ~= false
+    self._startup_auto_apply_delay = opts.auto_apply_delay
+    if self._startup_auto_apply_delay == nil then
+        self._startup_auto_apply_delay = self._backend.name() == "somewm" and 1.5 or 0
+    end
     self._detected = {
         extend_relative_to = ((opts.detected or {}).extend_relative_to) or "profile-primary",
         extend_direction = ((opts.detected or {}).extend_direction) or "left",
@@ -89,7 +94,15 @@ function M.new(opts)
     self:_setup_shutdown_hook()
     self:_initialize_redshift()
     self:refresh_display_state()
-    self:auto_apply_startup_profile()
+    if self._startup_auto_apply_delay > 0 then
+        self._startup_auto_apply_timer = gears.timer.start_new(self._startup_auto_apply_delay, function()
+            self._startup_auto_apply_timer = nil
+            self:auto_apply_startup_profile()
+            return false
+        end)
+    else
+        self:auto_apply_startup_profile()
+    end
 
     return self
 end
