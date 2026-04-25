@@ -109,6 +109,15 @@ local function mode_with_rate(output_opts)
     return mode
 end
 
+local function mode_without_rate(output_opts)
+    local mode = tostring(output_opts.mode or "")
+    if mode == "" or mode == "auto" then
+        return nil
+    end
+
+    return mode
+end
+
 local function relation_for(output_opts)
     for _, key in ipairs({ "left_of", "right_of", "above", "below" }) do
         local value = (output_opts or {})[key]
@@ -126,37 +135,59 @@ local function output_command(instance, output_name, output_opts, state)
 
     if desired_off then
         args[#args + 1] = "--off"
-        return args
+        return { args = args }
     end
 
     args[#args + 1] = "--on"
 
     local mode = mode_with_rate(output_opts)
+    local retry_args = nil
     if mode then
         args[#args + 1] = "--mode"
         args[#args + 1] = mode
+
+        local fallback_mode = mode_without_rate(output_opts)
+        if fallback_mode and fallback_mode ~= mode then
+            retry_args = { "wlr-randr", "--output", output_name, "--on", "--mode", fallback_mode }
+        end
     end
 
     if type(output_opts.pos) == "string" and output_opts.pos ~= "" then
         local pos = tostring(output_opts.pos):gsub("x", ",")
         args[#args + 1] = "--pos"
         args[#args + 1] = pos
+        if retry_args then
+            retry_args[#retry_args + 1] = "--pos"
+            retry_args[#retry_args + 1] = pos
+        end
     end
 
     local relation_key, relation_target = relation_for(output_opts)
     if relation_key and relation_target then
         args[#args + 1] = "--" .. relation_key:gsub("_", "-")
         args[#args + 1] = relation_target
+        if retry_args then
+            retry_args[#retry_args + 1] = "--" .. relation_key:gsub("_", "-")
+            retry_args[#retry_args + 1] = relation_target
+        end
     end
 
     if type(output_opts.scale) == "number" or type(output_opts.scale) == "string" then
         args[#args + 1] = "--scale"
         args[#args + 1] = tostring(output_opts.scale)
+        if retry_args then
+            retry_args[#retry_args + 1] = "--scale"
+            retry_args[#retry_args + 1] = tostring(output_opts.scale)
+        end
     end
 
     if type(output_opts.rotate) == "string" and output_opts.rotate ~= "" then
         args[#args + 1] = "--transform"
         args[#args + 1] = TRANSFORM_MAP[output_opts.rotate] or tostring(output_opts.rotate)
+        if retry_args then
+            retry_args[#retry_args + 1] = "--transform"
+            retry_args[#retry_args + 1] = TRANSFORM_MAP[output_opts.rotate] or tostring(output_opts.rotate)
+        end
     end
 
     local keys = {}
@@ -179,14 +210,24 @@ local function output_command(instance, output_name, output_opts, state)
         if output_opts[key] ~= true then
             args[#args + 1] = tostring(output_opts[key])
         end
+
+        if retry_args then
+            retry_args[#retry_args + 1] = "--" .. tostring(key):gsub("_", "-")
+            if output_opts[key] ~= true then
+                retry_args[#retry_args + 1] = tostring(output_opts[key])
+            end
+        end
     end
 
-    return args
+    return {
+        args = args,
+        retry_args = retry_args,
+    }
 end
 
 local function sequential_apply(instance, queue, callback)
-    local args = table.remove(queue, 1)
-    if not args then
+    local command = table.remove(queue, 1)
+    if not command then
         instance:refresh_display_state(function(state)
             if callback then
                 callback(true, state)
@@ -195,8 +236,24 @@ local function sequential_apply(instance, queue, callback)
         return
     end
 
-    awful.spawn.easy_async(args, function(_, _, _, exit_code)
+    awful.spawn.easy_async(command.args, function(_, _, _, exit_code)
         if exit_code ~= 0 then
+            if command.retry_args then
+                awful.spawn.easy_async(command.retry_args, function(_, _, _, retry_exit_code)
+                    if retry_exit_code == 0 then
+                        sequential_apply(instance, queue, callback)
+                        return
+                    end
+
+                    instance:refresh_display_state(function(state)
+                        if callback then
+                            callback(false, state)
+                        end
+                    end)
+                end)
+                return
+            end
+
             instance:refresh_display_state(function(state)
                 if callback then
                     callback(false, state)
@@ -316,7 +373,7 @@ function M.build_profile_plan(instance, profile, state)
         if output_opts then
             queue[#queue + 1] = output_command(instance, output_name, output_opts, state)
         else
-            queue[#queue + 1] = { "wlr-randr", "--output", output_name, "--off" }
+            queue[#queue + 1] = { args = { "wlr-randr", "--output", output_name, "--off" } }
         end
     end
 
