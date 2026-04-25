@@ -15,7 +15,7 @@ M.lxmodules = {
             off = "wlopm --off '*'",
         },
         redshift = {
-            command = "wlr-randr",
+            enabled = false,
         },
     },
 }

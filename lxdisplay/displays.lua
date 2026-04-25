@@ -48,31 +48,8 @@ local function flag_name(key)
     return "--" .. tostring(key or ""):gsub("_", "-")
 end
 
-local function preferred_xrandr_command(self)
-    return self._redshift.command or "xrandr"
-end
-
 local function active_profile(self)
     return self._profiles[self.state.active_profile_index or 0]
-end
-
-local function output_status_map(state)
-    local status = {}
-
-    for _, output in ipairs((state or {}).outputs or {}) do
-        status[output.name] = output
-    end
-
-    return status
-end
-
-local function normalized_rate(value)
-    local number = tonumber(value)
-    if not number then
-        return nil
-    end
-
-    return math.floor((number * 100) + 0.5)
 end
 
 local function active_profile_signature(profile, missing)
@@ -105,8 +82,17 @@ local function parse_pos(value)
 end
 
 function displays.extend(instance_methods)
+    function instance_methods:_normalized_rate(value)
+        local number = tonumber(value)
+        if not number then
+            return nil
+        end
+
+        return math.floor((number * 100) + 0.5)
+    end
+
     function instance_methods:xrandr_enabled()
-        return self._profiles_enabled == true
+        return self._profiles_enabled == true and self._backend.supports_profiles()
     end
 
     function instance_methods:_normalize_profiles(profiles)
@@ -517,60 +503,8 @@ function displays.extend(instance_methods)
         })
     end
 
-    function instance_methods:_panic_mirror_all_outputs(state, callback)
-        local outputs = state and state.output_names or {}
-        if #outputs == 0 then
-            if callback then
-                callback(false)
-            end
-            return
-        end
-
-        local args = { preferred_xrandr_command(self) }
-        local primary = state.primary_output or outputs[1]
-
-        for _, output_name in ipairs(outputs) do
-            args[#args + 1] = "--output"
-            args[#args + 1] = output_name
-            args[#args + 1] = "--auto"
-
-            if output_name == primary then
-                args[#args + 1] = "--primary"
-            else
-                args[#args + 1] = "--same-as"
-                args[#args + 1] = primary
-            end
-        end
-
-        self:_notify_display_warning(
-            "Falling back to panic display mode: all connected outputs active, auto, mirrored."
-        )
-        self:_apply_xrandr_argv(args, function()
-            if callback then
-                callback(true)
-            end
-        end)
-    end
-
     function instance_methods:_query_xrandr_state(callback)
-        awful.spawn.easy_async({ preferred_xrandr_command(self), "--query" }, function(stdout)
-            local outputs = helpers.parse_xrandr_outputs(stdout)
-            local primary_output = nil
-
-            for _, output in ipairs(outputs) do
-                if output.primary then
-                    primary_output = output.name
-                    break
-                end
-            end
-
-            callback({
-                outputs = outputs,
-                output_names = helpers.parse_connected_outputs(stdout),
-                output_set = helpers.output_name_set(outputs),
-                primary_output = primary_output,
-            })
-        end)
+        self._backend.query_state(self, callback)
     end
 
     function instance_methods:_remember_inventory(state)
@@ -732,14 +666,7 @@ function displays.extend(instance_methods)
     end
 
     function instance_methods:_apply_xrandr_argv(args, callback)
-        awful.spawn.easy_async(args, function(_, _, _, exit_code)
-            local ok = exit_code == 0
-            self:refresh_display_state(function(state)
-                if callback then
-                    callback(ok, state)
-                end
-            end)
-        end)
+        self._backend.apply_argv(self, args, callback)
     end
 
     function instance_methods:_resolve_startup_profile_index()
@@ -787,7 +714,7 @@ function displays.extend(instance_methods)
             return nil, missing
         end
 
-        local args = { preferred_xrandr_command(self) }
+        local args = { self._backend.display_command(self) }
 
         for _, output_name in ipairs(state.output_names or {}) do
             local output_opts = profile.outputs[output_name]
@@ -811,63 +738,7 @@ function displays.extend(instance_methods)
     end
 
     function instance_methods:_profile_matches_state(profile, state)
-        if not profile or not state then
-            return false
-        end
-
-        local live_outputs = output_status_map(state)
-        local desired_primary = self:_profile_primary_output(profile)
-
-        for _, output_name in ipairs(state.output_names or {}) do
-            local output_opts = (profile.outputs or {})[output_name]
-            local live = live_outputs[output_name] or {}
-
-            if output_opts then
-                local expected_off = self:_profile_output_initial_state(profile, output_name) == "off"
-                if expected_off then
-                    if live.active == true then
-                        return false
-                    end
-                else
-                    if live.active ~= true then
-                        return false
-                    end
-
-                    if output_opts.primary == true or output_name == desired_primary then
-                        if live.primary ~= true then
-                            return false
-                        end
-                    elseif live.primary == true and desired_primary ~= nil then
-                        return false
-                    end
-
-                    if type(output_opts.mode) == "string"
-                        and output_opts.mode ~= ""
-                        and output_opts.mode ~= "auto"
-                        and live.mode ~= output_opts.mode then
-                        return false
-                    end
-
-                    if type(output_opts.rotate) == "string"
-                        and output_opts.rotate ~= ""
-                        and live.rotation ~= output_opts.rotate then
-                        return false
-                    end
-
-                    if output_opts.rate ~= nil
-                        and output_opts.rate ~= ""
-                        and normalized_rate(live.rate) ~= normalized_rate(output_opts.rate) then
-                        return false
-                    end
-                end
-            else
-                if live.active == true then
-                    return false
-                end
-            end
-        end
-
-        return true
+        return self._backend.profile_matches_state(self, profile, state)
     end
 
     function instance_methods:_build_single_output_argv(profile, output_name, desired_state)
@@ -876,7 +747,7 @@ function displays.extend(instance_methods)
             return nil
         end
 
-        local args = { preferred_xrandr_command(self), "--output", output_name }
+        local args = { self._backend.display_command(self), "--output", output_name }
         if desired_state == "off" then
             args[#args + 1] = "--off"
             return args
@@ -966,7 +837,9 @@ function displays.extend(instance_methods)
                 return
             end
 
-            local args, missing = self:_build_profile_argv(profile, state)
+            local args, missing = self._backend.build_profile_plan
+                and self._backend.build_profile_plan(self, profile, state)
+                or self:_build_profile_argv(profile, state)
             if not args then
                 local message = string.format(
                     "Profile '%s' references missing outputs: %s",
@@ -976,7 +849,7 @@ function displays.extend(instance_methods)
 
                 if opts.allow_panic_fallback then
                     self:_notify_display_error(message)
-                    self:_panic_mirror_all_outputs(state)
+                    self._backend.panic_mirror(self, state)
                 else
                     self:_notify_display_error(message)
                     self:_refresh_detected_outputs(state)
@@ -1000,7 +873,7 @@ function displays.extend(instance_methods)
                 ))
 
                 if opts.allow_panic_fallback then
-                    self:_panic_mirror_all_outputs(refreshed_state or state)
+                    self._backend.panic_mirror(self, refreshed_state or state)
                 end
             end)
         end)
@@ -1083,7 +956,7 @@ function displays.extend(instance_methods)
                 return
             end
 
-            local args = { preferred_xrandr_command(self), "--output", output_name }
+            local args = { self._backend.display_command(self), "--output", output_name }
 
             if action == "disable" then
                 args[#args + 1] = "--off"

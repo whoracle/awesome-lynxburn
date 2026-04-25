@@ -1,13 +1,13 @@
 local beautiful = require("beautiful")
 local wibox = require("wibox")
 
+local backend = require("lxdisplay.backend")
 local brightness = require("lxdisplay.brightness")
 local displays = require("lxdisplay.displays")
 local popup = require("lxdisplay.popup")
 local redshift = require("lxdisplay.redshift")
 local theme = require("lxdisplay.theme")
 local popup_controller = require("lxcommon.popup_controller")
-local platform = require("config.platform")
 
 local M = {}
 M.__index = M
@@ -38,7 +38,7 @@ function M.new(opts)
     local self = setmetatable({}, M)
     local brightness_opts = opts.brightness or {}
     local redshift_opts = opts.redshift or {}
-    local wayland = platform.effective_target() == "somewm" or platform.is_wayland()
+    self._backend = backend.resolve()
     self._opts = opts
     self._profiles_enabled = type(opts.profiles) == "table"
     self._profiles = self:_normalize_profiles(opts.profiles)
@@ -49,15 +49,15 @@ function M.new(opts)
     }
 
     self._commands = {
-        get = brightness_opts.get or (wayland and "brightnessctl g" or "xbacklight -get"),
-        set = brightness_opts.set or (wayland and "brightnessctl s %d%%" or "xbacklight -set %d"),
+        get = brightness_opts.get or "xbacklight -get",
+        set = brightness_opts.set or "xbacklight -set %d",
         step = brightness_opts.step or 5,
         min = brightness_opts.min or 10,
         max = brightness_opts.max or 100,
-        off = brightness_opts.off or (wayland and "wlopm --off '*'" or "xset dpms force off"),
+        off = brightness_opts.off or "xset dpms force off",
     }
     self._redshift = {
-        command = redshift_opts.command or (wayland and "wlr-randr" or "xrandr"),
+        command = redshift_opts.command,
         enabled = redshift_opts.enabled ~= false,
         autostart = redshift_opts.autostart ~= false,
         latitude = redshift_opts.latitude,

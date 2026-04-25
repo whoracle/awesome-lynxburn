@@ -14,27 +14,12 @@ function redshift.extend(instance_methods)
 
     ---Query currently connected outputs from the configured xrandr-compatible command.
     function instance_methods:_query_connected_outputs(callback)
-        awful.spawn.easy_async({ self._redshift.command or "xrandr", "--query" }, function(stdout)
-            callback(helpers.parse_connected_outputs(stdout))
-        end)
+        self._backend.query_connected_outputs(self, callback)
     end
 
     ---Build an argv array that applies one gamma triple to all connected outputs.
     function instance_methods:_build_xrandr_gamma_argv(gamma, outputs)
-        local args = { self._redshift.command or "xrandr" }
-
-        for _, output in ipairs(outputs) do
-            args[#args + 1] = "--output"
-            args[#args + 1] = output
-            args[#args + 1] = "--gamma"
-            args[#args + 1] = table.concat({
-                helpers.format_gamma(gamma.red),
-                helpers.format_gamma(gamma.green),
-                helpers.format_gamma(gamma.blue),
-            }, ":")
-        end
-
-        return args
+        return self._backend.build_gamma_argv and self._backend.build_gamma_argv(self, gamma, outputs) or nil
     end
 
     ---Queue a temperature apply request so fast updates collapse cleanly.
@@ -78,8 +63,10 @@ function redshift.extend(instance_methods)
                 return
             end
 
-            awful.spawn.easy_async(
-                self:_build_xrandr_gamma_argv(helpers.temperature_to_gamma(apply_request.temperature), outputs),
+            self._backend.apply_gamma(
+                self,
+                helpers.temperature_to_gamma(apply_request.temperature),
+                outputs,
                 finish
             )
         end)
@@ -154,7 +141,10 @@ function redshift.extend(instance_methods)
 
     ---Apply the currently scheduled temperature unless redshift is suspended or transitioning.
     function instance_methods:_sync_redshift_temperature(callback)
-        if not self._redshift.enabled or self._redshift_suspended or self._redshift_transition_active then
+        if not self._redshift.enabled
+            or not self._backend.supports_redshift()
+            or self._redshift_suspended
+            or self._redshift_transition_active then
             if callback then
                 callback()
             end
@@ -265,7 +255,7 @@ function redshift.extend(instance_methods)
     function instance_methods:_initialize_redshift()
         self._redshift_temperature = self:_default_redshift_temperature()
 
-        if self._redshift.autostart and self._redshift.enabled then
+        if self._redshift.autostart and self._redshift.enabled and self._backend.supports_redshift() then
             self:_sync_redshift_temperature(function()
                 self:_set_redshift_suspended(false)
             end)
