@@ -146,6 +146,9 @@ Implemented:
 - config-dir-aware theme loading so a `~/.config/somewm` checkout does not
   assume `~/.config/awesome`
 - tracked `config.somewm.example.lua` and `config.awesome.example.lua`
+- shared `settings.keyboard` handling:
+  - `setxkbmap` on Awesome/X11
+  - `awful.input.xkb_*` on SomeWM/Wayland
 - translated `foot` config at `wayland/foot.ini.example`
 
 Still pending from `somewm --check`:

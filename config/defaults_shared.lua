@@ -33,6 +33,11 @@ M.settings = {
     ctrlkey = "Control",
     shiftkey = "Shift",
     volume_step = 5,
+    keyboard = {
+        layout = nil,
+        variant = nil,
+        options = nil,
+    },
     monitors = {
         center = 1,
     },

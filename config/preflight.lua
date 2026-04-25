@@ -7,6 +7,7 @@ local tostring = tostring
 local type = type
 
 local config_data = require("config.config_data")
+local config_input = require("config.input")
 local module_config = require("config.lxmodules")
 local platform = require("config.platform")
 local util = require("lxcommon.util")
@@ -169,10 +170,13 @@ local function build_report(grouped)
 end
 
 local function collect_core_dependencies(grouped, commands, user_commands)
+    local keyboard_command = config_input.preflight_command(config_data.settings())
+
     require_command(grouped, "core", commands.terminal)
     require_command(grouped, "core", commands.launcher)
     require_command(grouped, "core", commands.filebrowser)
     require_command(grouped, "core", commands.scrlocker)
+    require_command(grouped, "core", keyboard_command)
 
     if nonempty_string(commands.browser) then
         require_command(grouped, "core", commands.browser)

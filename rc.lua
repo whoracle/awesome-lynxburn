@@ -56,6 +56,7 @@ local osd_handlers = config.osd.new(beautiful, {
 config.layouts.setup({
     terminal = commands.terminal,
 })
+config.input.apply(settings)
 
 local quake = config.layouts.create_quake(commands.terminal)
 
