@@ -87,12 +87,11 @@ local function live_outputs()
 end
 
 local function parse_rate(value)
-    local rate = tonumber(value)
-    if not rate then
+    if tonumber(value) == nil then
         return nil
     end
 
-    return string.format("%.2f", rate)
+    return tostring(value)
 end
 
 local function mode_with_rate(output_opts)
@@ -130,7 +129,7 @@ local function relation_for(output_opts)
 end
 
 local function output_command(instance, output_name, output_opts, state)
-    local args = { "wlr-randr", "--output", output_name }
+    local args = { "--output", output_name }
     local desired_off = instance:_profile_output_initial_state({ outputs = { [output_name] = output_opts } }, output_name) == "off"
 
     if desired_off then
@@ -148,7 +147,7 @@ local function output_command(instance, output_name, output_opts, state)
 
         local fallback_mode = mode_without_rate(output_opts)
         if fallback_mode and fallback_mode ~= mode then
-            retry_args = { "wlr-randr", "--output", output_name, "--on", "--mode", fallback_mode }
+            retry_args = { "--output", output_name, "--on", "--mode", fallback_mode }
         end
     end
 
@@ -327,9 +326,14 @@ function M.profile_matches_state(instance, profile, state)
                 return false
             end
 
-            if type(output_opts.rotate) == "string"
-                and output_opts.rotate ~= ""
-                and current.rotation ~= output_opts.rotate then
+            local wanted_rotation = nil
+            if type(output_opts.rotate) == "string" and output_opts.rotate ~= "" then
+                wanted_rotation = output_opts.rotate
+            elseif type(output_opts.transform) == "string" and output_opts.transform ~= "" then
+                wanted_rotation = normalize_transform(output_opts.transform)
+            end
+
+            if wanted_rotation and current.rotation ~= wanted_rotation then
                 return false
             end
 
@@ -348,15 +352,17 @@ function M.profile_matches_state(instance, profile, state)
 end
 
 function M.panic_mirror(instance, state, callback)
-    local queue = {}
+    local args = { "wlr-randr" }
     for _, output_name in ipairs((state or {}).output_names or {}) do
-        queue[#queue + 1] = { "wlr-randr", "--output", output_name, "--on" }
+        args[#args + 1] = "--output"
+        args[#args + 1] = output_name
+        args[#args + 1] = "--on"
     end
 
     instance:_notify_display_warning(
         "Falling back to panic display mode: all currently visible outputs enabled."
     )
-    sequential_apply(instance, queue, callback)
+    sequential_apply(instance, { { args = args } }, callback)
 end
 
 function M.build_profile_plan(instance, profile, state)
@@ -365,19 +371,43 @@ function M.build_profile_plan(instance, profile, state)
         return nil, missing
     end
 
-    local queue = {}
+    local args = { "wlr-randr" }
+    local retry_args = { "wlr-randr" }
+    local has_retry = false
 
     for _, output_name in ipairs(state.output_names or {}) do
         local output_opts = (profile.outputs or {})[output_name]
 
         if output_opts then
-            queue[#queue + 1] = output_command(instance, output_name, output_opts, state)
+            local command = output_command(instance, output_name, output_opts, state)
+            for _, value in ipairs(command.args or {}) do
+                args[#args + 1] = value
+            end
+            if command.retry_args then
+                has_retry = true
+                for _, value in ipairs(command.retry_args) do
+                    retry_args[#retry_args + 1] = value
+                end
+            else
+                for _, value in ipairs(command.args or {}) do
+                    retry_args[#retry_args + 1] = value
+                end
+            end
         else
-            queue[#queue + 1] = { args = { "wlr-randr", "--output", output_name, "--off" } }
+            local off_args = { "--output", output_name, "--off" }
+            for _, value in ipairs(off_args) do
+                args[#args + 1] = value
+                retry_args[#retry_args + 1] = value
+            end
         end
     end
 
-    return queue, nil
+    return {
+        {
+            args = args,
+            retry_args = has_retry and retry_args or nil,
+        },
+    }, nil
 end
 
 return M
