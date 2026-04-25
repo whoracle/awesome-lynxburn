@@ -169,3 +169,73 @@ Still pending from `somewm --check`:
   should be handled via runtime detection or explicit `config.lua.platform`
 - whether it is worth explicitly version-gating SomeWM quirks if `1.4` and
   `2.x` diverge too much for a single compatibility assumption
+
+## Popup Input Redesign
+
+The current popup/keygrabber model has become too brittle under SomeWM and is
+at risk of destabilizing the X11 path as well. Further patching is not the
+right next step.
+
+Desired shared behavior:
+
+- root mouse button `10` must open a terminal globally, regardless of popup
+  state
+- `lx*` popups must be openable via:
+  - top-level mouse click
+  - direct keyboard shortcut
+  - popup cycling
+- once open, popup keys must work reliably:
+  - `Escape` closes
+  - `Up` / `Down` navigate
+  - `Return` triggers primary action
+  - `Left` / `Right` trigger popup-defined lateral actions
+- popup-specific extra keys must remain possible, currently mainly XF86 media
+  keys in `lxmedia`
+- clicking outside a popup must dismiss it
+- hover-close for mouse-opened popups is dropped
+- `lxrunner` should likely be treated separately as a text-input popup rather
+  than a normal navigation popup
+
+Preferred next direction:
+
+- investigate whether focused `awful.popup` / `wibox` objects can receive
+  keyboard events directly instead of relying on global keygrabbers
+- if focus-based popup input works reliably, prefer it over explicit key
+  grabbing
+- keep one shared behavior contract for Awesome/X11 and SomeWM, even if backend
+  implementation differs
+
+Next-session checklist:
+
+1. verify from Awesome/SomeWM docs or a minimal popup prototype whether a popup
+   can be given dependable keyboard focus
+2. if needed, spawn a minimal test popup and inspect whether it shows up as a
+   focused/input-owning surface in Awesome/SomeWM state
+3. confirm whether a focused popup receives `Escape`, `Up`, `Down`, and
+   `Return` without a global keygrabber
+4. confirm root mouse button `10` still works while such a popup is focused
+5. investigate `lxrunner` separately, since it currently flickers and likely
+   belongs to a dedicated text-input session model
+
+Current documentation/source check:
+
+- `awful.popup` is a `wibox`
+- `wibox` is backed by a `drawin`, not by a managed `client`
+- documented `wibox` / widget input signals cover mouse events:
+  `button::press`, `button::release`, `mouse::enter`, `mouse::leave`, and
+  `mouse::move`
+- no documented `wibox` keyboard focus or key event signal was found in the
+  installed Awesome or SomeWM Lua sources
+- `wibox.input_passthrough` explicitly talks about forwarding mouse and
+  keyboard events to the object below the wibox, which supports the conclusion
+  that a wibox itself is not a normal keyboard focus target
+- SomeWM has keyboard-focus handling for Wayland `layer_surface` objects, but
+  that is a separate surface type and does not make Awesome Lua `wibox` popups
+  focusable clients
+
+Working conclusion:
+
+- a pure client-focus model is probably not available for `awful.popup` /
+  `wibox` popups
+- the redesign should still centralize popup input ownership, but it will likely
+  need one controlled input capture layer rather than per-module keygrabbers
