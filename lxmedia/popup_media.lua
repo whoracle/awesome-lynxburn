@@ -3,7 +3,7 @@ local gears = require("gears")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local gears_surface = require("gears.surface")
-local popup_shell = require("lxcommon.popup_shell")
+local popup_session = require("lxcommon.popup_session")
 local popup_ui = require("lxcommon.popup_ui")
 
 local M = {}
@@ -772,15 +772,9 @@ end
 M.build = build_widget
 
 function M.rebuild(instance)
-    popup_shell.rebuild_popup(instance, "_media_popup", build_widget)
-end
-
-function M.show(instance, geo, opts)
-    popup_shell.show_popup(instance, "_media_popup", "_media_popup_geo", geo, build_widget, opts)
-end
-
-function M.toggle(instance, geo, opts)
-    return popup_shell.toggle_popup(instance, "_media_popup", "_media_popup_geo", geo, build_widget, opts)
+    if popup_session.is_visible(instance, "_media_popup") then
+        popup_session.show(instance, "_media_popup", nil, build_widget, instance._media_popup_opts or {})
+    end
 end
 
 return M

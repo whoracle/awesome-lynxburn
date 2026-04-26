@@ -21,17 +21,38 @@ end
 
 ---Attach popup show/toggle/close flow helpers to the lxmedia instance.
 function M.extend(instance_methods)
-    function instance_methods:_start_devices_popup_outside_click_dismiss()
+    function instance_methods:_active_popup_visible()
+        if self._active_media_popup_kind == "media" then
+            return popup_session.is_visible(self, "_media_popup")
+        end
+
+        if self._active_media_popup_kind == "devices" then
+            return popup_session.is_visible(self, "_devices_popup")
+        end
+
+        return false
+    end
+
+    function instance_methods:_active_popup_geometry()
+        if self._active_media_popup_kind == "media" then
+            return popup_session.geometry(self, "_media_popup")
+        end
+
+        if self._active_media_popup_kind == "devices" then
+            return popup_session.geometry(self, "_devices_popup")
+        end
+
+        return nil
+    end
+
+    function instance_methods:_start_popup_outside_click_dismiss()
         popup_control.start_outside_click_dismiss(self, {
-            binding_key = "_devices_popup_outside_click_binding",
-            saved_root_buttons_key = "_devices_popup_saved_root_buttons",
-            handler_key = "_devices_popup_outside_click_handler",
             is_open = function()
-                return self._devices_popup and self._devices_popup.visible or false
+                return self:_active_popup_visible()
             end,
             geometry_providers = {
                 function()
-                    return self._devices_popup and self._devices_popup:geometry() or nil
+                    return self:_active_popup_geometry()
                 end,
             },
             on_outside_click = function()
@@ -40,74 +61,50 @@ function M.extend(instance_methods)
         })
     end
 
-    function instance_methods:_stop_devices_popup_outside_click_dismiss()
-        popup_control.stop_outside_click_dismiss(self, {
-            binding_key = "_devices_popup_outside_click_binding",
-            saved_root_buttons_key = "_devices_popup_saved_root_buttons",
-            handler_key = "_devices_popup_outside_click_handler",
-        })
+    function instance_methods:_stop_popup_outside_click_dismiss()
+        popup_control.stop_outside_click_dismiss(self)
     end
 
-    function instance_methods:_handle_devices_popup_keygrabber(_, modifiers, key, event)
-        local handled = self:_handle_devices_popup_navigation_key(modifiers, key, event)
+    function instance_methods:_handle_popup_keygrabber(_, modifiers, key, event)
+        local handled = false
+
+        if self._active_media_popup_kind == "media" then
+            handled = self:_handle_media_popup_keygrabber(nil, modifiers, key, event)
+        elseif self._active_media_popup_kind == "devices" then
+            handled = self:_handle_devices_popup_navigation_key(modifiers, key, event)
+        end
 
         if handled then
             return
         end
     end
 
-    function instance_methods:focus_devices_popup_keyboard_navigation()
+    function instance_methods:focus_popup_keyboard_navigation()
         popup_control.focus_popup_keygrabber(self, {
-            grabber_key = "_devices_popup_keygrabber",
-            active_key = "_devices_popup_keyboard_navigation_active",
             handler = function(grabber, modifiers, key, event)
-                self:_handle_devices_popup_keygrabber(grabber, modifiers, key, event)
+                self:_handle_popup_keygrabber(grabber, modifiers, key, event)
             end,
             on_start = function()
-                self:_start_devices_popup_outside_click_dismiss()
+                self:_start_popup_outside_click_dismiss()
             end,
         })
     end
 
-    function instance_methods:blur_devices_popup_keyboard_navigation()
-        self._devices_popup_keyboard_navigation_active = false
+    function instance_methods:blur_popup_keyboard_navigation()
+        self._popup_keyboard_navigation_active = false
         self._devices_popup_toggle_key = nil
         self._devices_popup_prev_keychain = nil
         self._devices_popup_next_keychain = nil
         self._devices_popup_on_cycle_prev = nil
         self._devices_popup_on_cycle_next = nil
-        self:_stop_devices_popup_outside_click_dismiss()
-        popup_control.blur_popup_keygrabber(self, {
-            grabber_key = "_devices_popup_keygrabber",
-            active_key = "_devices_popup_keyboard_navigation_active",
-        })
-    end
-
-    function instance_methods:_start_media_popup_outside_click_dismiss()
-        popup_control.start_outside_click_dismiss(self, {
-            binding_key = "_media_popup_outside_click_binding",
-            saved_root_buttons_key = "_media_popup_saved_root_buttons",
-            handler_key = "_media_popup_outside_click_handler",
-            is_open = function()
-                return self._media_popup and self._media_popup.visible or false
-            end,
-            geometry_providers = {
-                function()
-                    return self._media_popup and self._media_popup:geometry() or nil
-                end,
-            },
-            on_outside_click = function()
-                self:close_popups()
-            end,
-        })
-    end
-
-    function instance_methods:_stop_media_popup_outside_click_dismiss()
-        popup_control.stop_outside_click_dismiss(self, {
-            binding_key = "_media_popup_outside_click_binding",
-            saved_root_buttons_key = "_media_popup_saved_root_buttons",
-            handler_key = "_media_popup_outside_click_handler",
-        })
+        self._media_popup_toggle_key = nil
+        self._media_popup_prev_keychain = nil
+        self._media_popup_next_keychain = nil
+        self._media_popup_on_cycle_prev = nil
+        self._media_popup_on_cycle_next = nil
+        self._active_media_popup_kind = nil
+        self:_stop_popup_outside_click_dismiss()
+        popup_control.blur_popup_keygrabber(self)
     end
 
     function instance_methods:toggle_media_popup(anchor_geo, opts)
@@ -163,6 +160,7 @@ function M.extend(instance_methods)
             or 360
 
         local popup_ref = kind == "media" and "_media_popup" or "_devices_popup"
+        local opts_key = kind == "media" and "_media_popup_opts" or "_devices_popup_opts"
         if popup_session.is_visible(self, popup_ref) then
             self:close_popups()
             return false
@@ -175,28 +173,28 @@ function M.extend(instance_methods)
             popup_module = require("lxmedia.popup_devices")
         end
 
+        self[opts_key] = opts
         popup_session.show(self, popup_ref, anchor_geo, function()
             return popup_module.build(self)
         end, opts)
 
         local shown = popup_session.is_visible(self, popup_ref)
         if shown then
+            self._active_media_popup_kind = kind
             if kind == "media" then
                 self._media_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
                 self._media_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
                 self._media_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
                 self._media_popup_on_cycle_prev = opts.on_cycle_prev
                 self._media_popup_on_cycle_next = opts.on_cycle_next
-                self:blur_devices_popup_keyboard_navigation()
-                self:focus_media_popup_keyboard_navigation()
+                self:focus_popup_keyboard_navigation()
             else
                 self._devices_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
                 self._devices_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
                 self._devices_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
                 self._devices_popup_on_cycle_prev = opts.on_cycle_prev
                 self._devices_popup_on_cycle_next = opts.on_cycle_next
-                self:blur_media_popup_keyboard_navigation()
-                self:focus_devices_popup_keyboard_navigation()
+                self:focus_popup_keyboard_navigation()
             end
 
             if opts.hover_close == false then
@@ -205,11 +203,7 @@ function M.extend(instance_methods)
                 self:_start_hover_close_timer(kind, is_geometry(anchor_geo) and anchor_geo or nil)
             end
         else
-            if kind == "media" then
-                self:blur_media_popup_keyboard_navigation()
-            else
-                self:blur_devices_popup_keyboard_navigation()
-            end
+            self:blur_popup_keyboard_navigation()
             self:_stop_hover_close_timer()
         end
 
@@ -232,34 +226,37 @@ function M.extend(instance_methods)
 
         local popup_module
         local popup_ref
+        local opts_key
         if kind == "media" then
             popup_module = require("lxmedia.popup_media")
             popup_ref = "_media_popup"
+            opts_key = "_media_popup_opts"
         else
             popup_module = require("lxmedia.popup_devices")
             popup_ref = "_devices_popup"
+            opts_key = "_devices_popup_opts"
         end
 
+        self[opts_key] = opts
         popup_session.show(self, popup_ref, anchor_geo, function()
             return popup_module.build(self)
         end, opts)
 
+        self._active_media_popup_kind = kind
         if kind == "media" then
             self._media_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
             self._media_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
             self._media_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
             self._media_popup_on_cycle_prev = opts.on_cycle_prev
             self._media_popup_on_cycle_next = opts.on_cycle_next
-            self:blur_devices_popup_keyboard_navigation()
-            self:focus_media_popup_keyboard_navigation()
+            self:focus_popup_keyboard_navigation()
         else
             self._devices_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
             self._devices_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
             self._devices_popup_next_keychain = popup_control.normalize_popup_toggle_key(opts.next_keychain)
             self._devices_popup_on_cycle_prev = opts.on_cycle_prev
             self._devices_popup_on_cycle_next = opts.on_cycle_next
-            self:blur_media_popup_keyboard_navigation()
-            self:focus_devices_popup_keyboard_navigation()
+            self:focus_popup_keyboard_navigation()
         end
 
         if opts.hover_close == false then
@@ -288,39 +285,18 @@ function M.extend(instance_methods)
             poll_interval = poll_interval,
             hover_timeout = hover_timeout,
             is_open = function()
-                local popup = nil
-                if self._hover_close_kind == "media" then
-                    popup = self._media_popup
-                elseif self._hover_close_kind == "devices" then
-                    popup = self._devices_popup
-                end
-                return popup and popup.visible or false
+                return self:_active_popup_visible()
             end,
             geometry_providers = {
                 function()
-                    local popup = nil
-                    if self._hover_close_kind == "media" then
-                        popup = self._media_popup
-                    elseif self._hover_close_kind == "devices" then
-                        popup = self._devices_popup
-                    end
-                    return popup and popup:geometry() or nil
+                    return self:_active_popup_geometry()
                 end,
                 function()
                     return self._hover_close_anchor_geo
                 end,
             },
             on_timeout = function()
-                local popup = nil
-                if self._hover_close_kind == "media" then
-                    popup = self._media_popup
-                elseif self._hover_close_kind == "devices" then
-                    popup = self._devices_popup
-                end
-
-                if popup then
-                    popup.visible = false
-                end
+                self:close_popups()
                 self:_stop_hover_close_timer()
                 self:_sync_toplevel_bar_visibility()
             end,
@@ -329,8 +305,7 @@ function M.extend(instance_methods)
 
     function instance_methods:close_popups()
         self:_stop_hover_close_timer()
-        self:blur_media_popup_keyboard_navigation()
-        self:blur_devices_popup_keyboard_navigation()
+        self:blur_popup_keyboard_navigation()
 
         popup_session.close(self, "_media_popup")
         popup_session.close(self, "_devices_popup")
@@ -343,8 +318,7 @@ function M.extend(instance_methods)
 
     function instance_methods:_deactivate_popup_session()
         self:_stop_hover_close_timer()
-        self:blur_media_popup_keyboard_navigation()
-        self:blur_devices_popup_keyboard_navigation()
+        self:blur_popup_keyboard_navigation()
         self:_sync_toplevel_bar_visibility()
         widget_feedback.sync(self, false)
     end

@@ -176,10 +176,10 @@ function M.extend(instance_methods)
             modifiers = modifiers,
             key = key,
             is_open = function()
-                return self._media_popup and self._media_popup.visible or false
+                return self:popup_visible("_media_popup")
             end,
             on_not_open = function()
-                self:blur_media_popup_keyboard_navigation()
+                self:blur_popup_keyboard_navigation()
             end,
             prev_keychain = self._media_popup_prev_keychain,
             next_keychain = self._media_popup_next_keychain,
@@ -241,32 +241,6 @@ function M.extend(instance_methods)
         end
     end
 
-    function instance_methods:focus_media_popup_keyboard_navigation()
-        popup_control.focus_popup_keygrabber(self, {
-            grabber_key = "_media_popup_keygrabber",
-            active_key = "_media_popup_keyboard_navigation_active",
-            handler = function(grabber, modifiers, key, event)
-                self:_handle_media_popup_keygrabber(grabber, modifiers, key, event)
-            end,
-            on_start = function()
-                self:_start_media_popup_outside_click_dismiss()
-            end,
-        })
-    end
-
-    function instance_methods:blur_media_popup_keyboard_navigation()
-        self._media_popup_keyboard_navigation_active = false
-        self._media_popup_toggle_key = nil
-        self._media_popup_prev_keychain = nil
-        self._media_popup_next_keychain = nil
-        self._media_popup_on_cycle_prev = nil
-        self._media_popup_on_cycle_next = nil
-        self:_stop_media_popup_outside_click_dismiss()
-        popup_control.blur_popup_keygrabber(self, {
-            grabber_key = "_media_popup_keygrabber",
-            active_key = "_media_popup_keyboard_navigation_active",
-        })
-    end
 end
 
 return M

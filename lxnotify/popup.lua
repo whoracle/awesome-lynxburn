@@ -2,8 +2,6 @@ local awful = require("awful")
 local gears = require("gears")
 local wibox = require("wibox")
 
-local screen_util = require("lxcommon.screen")
-local popup_placement = require("lxcommon.popup_placement")
 local util = require("lxcommon.util")
 
 local popup = {}
@@ -16,15 +14,6 @@ local HEADER_LABELS = {
     pause_interception = "Pause Capture",
     resume_interception = "Resume Capture",
 }
-
-local function apply_geometry(instance, popup_widget, target_screen)
-    popup_placement.apply(
-        popup_widget,
-        target_screen,
-        instance:popup_placement(),
-        { width = math.min(instance:popup_width(), target_screen.workarea.width) }
-    )
-end
 
 local function build_header_button(label)
     local text = wibox.widget({
@@ -198,55 +187,6 @@ function popup.build(instance)
     instance:refresh_popup()
 
     return body_bg
-end
-
-function popup.ensure(instance, target_screen)
-    if instance._popup then
-        apply_geometry(instance, instance._popup, target_screen)
-        popup.refresh_header(instance)
-        return instance._popup
-    end
-
-    instance._popup = awful.popup({
-        visible = false,
-        ontop = true,
-        screen = target_screen,
-        bg = instance:popup_bg(),
-        type = "dock",
-        widget = popup.build(instance),
-    })
-
-    apply_geometry(instance, instance._popup, target_screen)
-    return instance._popup
-end
-
-function popup.show(instance, anchor)
-    local target_screen = screen_util.resolve_screen(anchor)
-    local popup_widget = popup.ensure(instance, target_screen)
-
-    apply_geometry(instance, popup_widget, target_screen)
-    popup.refresh_header(instance)
-    instance:refresh_popup()
-    popup_widget.visible = true
-
-    return popup_widget
-end
-
-function popup.hide(instance)
-    if instance._popup then
-        instance:_stop_hover_close_timer()
-        instance:blur_popup_keyboard_navigation()
-        instance._popup.visible = false
-    end
-end
-
-function popup.toggle(instance, anchor)
-    if instance._popup and instance._popup.visible then
-        popup.hide(instance)
-        return
-    end
-
-    popup.show(instance, anchor)
 end
 
 return popup

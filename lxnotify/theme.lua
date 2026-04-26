@@ -1,7 +1,5 @@
-local awful = require("awful")
 local beautiful = require("beautiful")
 
-local popup = require("lxnotify.popup")
 local util = require("lxcommon.util")
 
 local theme = {}
@@ -129,8 +127,8 @@ function theme.extend(instance_methods)
     function instance_methods:reload()
         self:refresh()
 
-        if self._popup and self._popup.visible then
-            popup.show(self, { screen = self._popup.screen or awful.screen.focused() })
+        if self:popup_visible() then
+            self:show_notification_popup({ placement = self:popup_placement() })
         end
     end
 end

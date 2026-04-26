@@ -1,6 +1,6 @@
 local wibox = require("wibox")
 local beautiful = require("beautiful")
-local popup_shell = require("lxcommon.popup_shell")
+local popup_session = require("lxcommon.popup_session")
 local popup_ui = require("lxcommon.popup_ui")
 
 local M = {}
@@ -460,15 +460,9 @@ end
 M.build = build_widget
 
 function M.rebuild(instance)
-    popup_shell.rebuild_popup(instance, "_devices_popup", build_widget)
-end
-
-function M.show(instance, geo, opts)
-    popup_shell.show_popup(instance, "_devices_popup", "_devices_popup_geo", geo, build_widget, opts)
-end
-
-function M.toggle(instance, geo, opts)
-    return popup_shell.toggle_popup(instance, "_devices_popup", "_devices_popup_geo", geo, build_widget, opts)
+    if popup_session.is_visible(instance, "_devices_popup") then
+        popup_session.show(instance, "_devices_popup", nil, build_widget, instance._devices_popup_opts or {})
+    end
 end
 
 return M

@@ -56,10 +56,10 @@ function M.extend(instance_methods)
             modifiers = modifiers,
             key = key,
             is_open = function()
-                return self._devices_popup and self._devices_popup.visible or false
+                return self:popup_visible("_devices_popup")
             end,
             on_not_open = function()
-                self:blur_devices_popup_keyboard_navigation()
+                self:blur_popup_keyboard_navigation()
             end,
             prev_keychain = self._devices_popup_prev_keychain,
             next_keychain = self._devices_popup_next_keychain,
