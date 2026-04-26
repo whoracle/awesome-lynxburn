@@ -233,8 +233,11 @@ function M.extend(instance_methods)
             blocked_keys = {
                 "Up", "Down", "Return", "KP_Enter", "Left", "Right", "Home", "End", "Escape",
             },
+            before_dispatch = function()
+                self:close_popups()
+            end,
         }) then
-            self:close_media_popup()
+            return
         end
     end
 

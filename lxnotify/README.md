@@ -145,8 +145,8 @@ Supported knobs:
 - `lxnotify_notification_icon_size`
 - `lxnotify_group_icon_size`
 - `lxnotify_selected_bg`
-- `lxnotify_hover_close_timeout`
-- `lxnotify_hover_close_poll_interval`
+- `lxnotify_hover_close_timeout` for opt-in `hover_close = true` sessions
+- `lxnotify_hover_close_poll_interval` for opt-in `hover_close = true` sessions
 - `lxnotify_notification_title_max_length`
 - `lxnotify_notification_body_max_length`
 - `lxnotify_notification_source_max_length`
@@ -192,7 +192,7 @@ Commonly used instance methods:
 - `theme.lua`: theme accessors, widget markup, refresh/reload helpers
 - `store.lua`: notification interception, filtering, entry lifecycle, and dismiss logic
 - `popup_state.lua`: grouped view state, selection, scrolling, and popup list rebuilding
-- `controller.lua`: popup session control, keygrabber wiring, hover-close, and open/close paths
+- `controller.lua`: popup session control, keygrabber wiring, optional hover-close, and open/close paths
 - `popup.lua`: popup shell, geometry, and header widgets
 - `cards.lua`: notification and burst-group card rendering
 - `format.lua`: notification text normalization, summaries, and grouping keys

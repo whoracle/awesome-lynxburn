@@ -10,12 +10,17 @@ local registry = require("config.services.registry")
 local state = require("config.services.state")
 
 local function popup_visible(instance, field_name)
+    if type(instance.popup_visible) == "function" then
+        return instance:popup_visible(field_name)
+    end
+
     return instance[field_name] and instance[field_name].visible or false
 end
 
 local function register_single_popup(module_id, instance, popup_id, popup_role, popup_field, open_fn, close_fn, opts)
     registry.register_semantic_popup(module_id, popup_id, popup_role, {
         hover_close = opts and opts.hover_close,
+        shared_shell = opts and opts.shared_shell,
         open = function(popup_opts)
             open_fn(instance, popup_opts)
         end,
@@ -217,7 +222,9 @@ function M.bluetooth()
             service:toggle_popup(nil, popup_opts)
         end, function(service)
             service:close_popup()
-        end)
+        end, {
+            shared_shell = true,
+        })
 
         return instance
     end)
@@ -254,7 +261,9 @@ function M.display()
                 service:toggle_popup(nil, popup_opts)
             end, function(service)
                 service:close_popup()
-            end)
+            end, {
+                shared_shell = true,
+            })
         end
 
         return instance
@@ -272,7 +281,9 @@ function M.network()
             service:toggle_popup(nil, popup_opts)
         end, function(service)
             service:close_popup()
-        end)
+        end, {
+            shared_shell = true,
+        })
 
         return instance
     end)
@@ -314,7 +325,9 @@ function M.power()
             service:toggle_popup(nil, popup_opts)
         end, function(service)
             service:close_popup()
-        end)
+        end, {
+            shared_shell = true,
+        })
 
         return instance
     end)
@@ -334,7 +347,9 @@ function M.secrets()
             service:toggle_popup(nil, popup_opts)
         end, function(service)
             service:close_popup()
-        end)
+        end, {
+            shared_shell = true,
+        })
 
         return instance
     end)

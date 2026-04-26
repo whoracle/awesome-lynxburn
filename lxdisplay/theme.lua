@@ -61,6 +61,10 @@ function theme.extend(instance_methods)
 
     ---Keep the interface aligned with the shared popup API even though lxdisplay has none.
     function instance_methods:_has_visible_popup()
+        if type(self.popup_visible) == "function" then
+            return self:popup_visible()
+        end
+
         return self._popup and self._popup.visible or false
     end
 

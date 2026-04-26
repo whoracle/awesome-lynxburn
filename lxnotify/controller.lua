@@ -206,7 +206,7 @@ function controller.extend(instance_methods)
     function instance_methods:show_notification_popup(arg1, arg2)
         local opts = popup_control.normalize_popup_opts(arg1, arg2)
         if opts.hover_close == nil then
-            opts.hover_close = true
+            opts.hover_close = false
         end
 
         popup.show(self, current_target_screen_context())
@@ -218,7 +218,7 @@ function controller.extend(instance_methods)
     function instance_methods:toggle_notification_popup(arg1, arg2)
         local opts = popup_control.normalize_popup_opts(arg1, arg2)
         if opts.hover_close == nil then
-            opts.hover_close = true
+            opts.hover_close = false
         end
 
         local was_visible = self._popup and self._popup.visible

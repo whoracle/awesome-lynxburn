@@ -5,6 +5,12 @@ local controller = {}
 ---Attach popup session-control methods to the lxnetwork instance method table.
 function controller.extend(instance_methods)
     popup_controller.extend(instance_methods, {
+        prepare_opts = function(self, popup_opts)
+            popup_opts.bg = popup_opts.bg or self:_theme_value("lxnetwork_popup_bg", "#222222")
+            popup_opts.placement = popup_opts.placement or self:_theme_value("lxnetwork_popup_placement", "side")
+            popup_opts.width = popup_opts.width or self:_theme_value("lxnetwork_popup_width", 380)
+            return popup_opts
+        end,
         geometry_providers = function(self)
             return {
                 function()

@@ -16,7 +16,14 @@ redshift.extend(M)
 brightness.extend(M)
 displays.extend(M)
 popup.extend(M)
-popup_controller.extend(M)
+popup_controller.extend(M, {
+    prepare_opts = function(self, popup_opts)
+        popup_opts.bg = popup_opts.bg or beautiful.lxdisplay_popup_bg or beautiful.bg_normal or "#222222"
+        popup_opts.placement = popup_opts.placement or beautiful.lxdisplay_popup_placement or "center"
+        popup_opts.width = popup_opts.width or beautiful.lxdisplay_popup_width or 380
+        return popup_opts
+    end,
+})
 
 ---Create a new lxdisplay instance with brightness, redshift, and widget state.
 function M.new(opts)

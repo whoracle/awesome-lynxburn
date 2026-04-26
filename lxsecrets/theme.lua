@@ -67,6 +67,10 @@ function M.extend(instance_methods)
     end
 
     function instance_methods:_popup_visible()
+        if type(self.popup_visible) == "function" then
+            return self:popup_visible()
+        end
+
         return self._popup and self._popup.visible or false
     end
 

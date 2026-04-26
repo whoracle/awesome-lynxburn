@@ -1,5 +1,4 @@
 local popup_placement = require("lxcommon.popup_placement")
-local popup_shell = require("lxcommon.popup_shell")
 local popup_controller = require("lxcommon.popup_controller")
 
 local controller = {}
@@ -20,19 +19,9 @@ function controller.extend(instance_methods)
                 popup_opts.placement = popup_placement.normalize(self:_theme_value("lxpower_popup_placement", "center"), "center")
             end
 
+            popup_opts.bg = popup_opts.bg or self:_theme_value("lxpower_popup_bg", "#222222")
             popup_opts.width = popup_opts.width or self:_theme_value("lxpower_popup_width", 360)
             return popup_opts
-        end,
-        open = function(self, anchor, popup_opts)
-            local visible = popup_shell.toggle_popup(self, "_popup", "_popup_anchor", anchor, function()
-                return self:_build_popup()
-            end, popup_opts)
-
-            if visible and self._refresh_popup then
-                self:_refresh_popup()
-            end
-
-            return visible
         end,
     })
 end

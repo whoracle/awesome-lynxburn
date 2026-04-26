@@ -52,16 +52,11 @@ Rationale:
 
 ### `lxcommon`
 
-- keep popup keyboard, hover-close, outside-click, and placement behavior
+- keep popup keyboard, optional hover-close, outside-click, and placement behavior
   consistent across modules
 - revisit popup input handling so open `lx*` popups do not block unrelated
   global shortcuts; prefer a focus-based model or otherwise preserve normal key
   bindings while popups are open
-- fix the current partial popup key fallback path; global shortcuts still do not
-  reliably work while popups are open
-- when a popup opened via mouse is also keyboard-active, keep it from closing
-  immediately just because the pointer is not hovering the popup; hover-close
-  and keyboard-focus need a cleaner coexistence model
 - keep `lxcommon` small and utility-focused rather than turning it into a
   generic dumping ground
 

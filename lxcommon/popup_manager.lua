@@ -138,10 +138,14 @@ function M.find_by_popup_role(module_id, popup_role)
 end
 
 ---Close every registered popup that exposes a close handler.
-function M.close_all()
+function M.close_all(opts)
+    opts = opts or {}
+
     for _, module_popups in pairs(popups) do
         for _, handle in pairs(module_popups) do
-            if handle and type(handle.close) == "function" then
+            if handle
+                and type(handle.close) == "function"
+                and not (opts.keep_shared_shell and handle.shared_shell) then
                 handle.close()
             end
         end
@@ -172,7 +176,7 @@ function M.show(module_id, popup_id, opts)
         return false
     end
 
-    M.close_all()
+    M.close_all({ keep_shared_shell = handle.shared_shell == true })
     handle.open(opts or {})
     return true
 end

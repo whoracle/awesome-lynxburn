@@ -1,5 +1,4 @@
 local awful = require("awful")
-local awful_keyboard = require("awful.keyboard")
 local gears = require("gears")
 local keygrabber = require("awful.keygrabber")
 local awful_key = require("awful.key")
@@ -59,6 +58,71 @@ local function modifiers_match(binding_modifiers, pressed_modifiers)
     return true
 end
 
+local function keybinding_matches(keybinding, pressed_modifiers, key)
+    if not keybinding then
+        return false, nil
+    end
+
+    if type(keybinding.match) == "function" and keybinding:match(pressed_modifiers, key) then
+        return true, keybinding
+    end
+
+    if keybinding.key == key and modifiers_match(keybinding.modifiers, pressed_modifiers) then
+        return true, keybinding
+    end
+
+    for _, sub_key in ipairs(keybinding) do
+        if sub_key.key == key and modifiers_match(sub_key.modifiers, pressed_modifiers) then
+            return true, sub_key
+        end
+    end
+
+    return false, nil
+end
+
+local function keybinding_owner(keybinding)
+    if type(keybinding) ~= "table" then
+        return keybinding
+    end
+
+    local private = rawget(keybinding, "_private")
+    if type(private) == "table" and private._legacy_convert_to then
+        return private._legacy_convert_to
+    end
+
+    return keybinding
+end
+
+local function trigger_callback(keybinding, matched_binding)
+    local owner = keybinding_owner(matched_binding or keybinding)
+
+    if type(owner) == "table" and type(owner.trigger) == "function" then
+        return function()
+            owner:trigger()
+        end
+    end
+
+    if type(keybinding) == "table" and type(keybinding.trigger) == "function" then
+        return function()
+            keybinding:trigger()
+        end
+    end
+
+    if type(owner) == "table" and type(owner.on_press) == "function" then
+        return function()
+            owner.on_press()
+        end
+    end
+
+    if type(keybinding) == "table" and type(keybinding.on_press) == "function" then
+        return function()
+            keybinding.on_press()
+        end
+    end
+
+    return nil
+end
+
 ---Try to execute a matching root/global keybinding for a popup-owned key event.
 function M.dispatch_global_keybinding(modifiers, key, opts)
     opts = opts or {}
@@ -76,14 +140,15 @@ function M.dispatch_global_keybinding(modifiers, key, opts)
     end
 
     for _, keybinding in ipairs(root_keys) do
-        if keybinding
-            and keybinding.key == key
-            and modifiers_match(keybinding.modifiers, pressed_modifiers) then
+        local matches, matched_binding = keybinding_matches(keybinding, pressed_modifiers, key)
+        local trigger = matches and trigger_callback(keybinding, matched_binding) or nil
+
+        if trigger then
             if type(opts.before_dispatch) == "function" then
                 opts.before_dispatch()
             end
 
-            awful_keyboard.emulate_key_combination(pressed_modifiers, key)
+            gears.timer.delayed_call(trigger)
             return true
         end
     end

@@ -1,18 +1,17 @@
 local popup_control = require("lxcommon.popup_control")
+local popup_session = require("lxcommon.popup_session")
 local widget_feedback = require("lxcommon.widget_feedback")
 
 local M = {}
 
 local function default_is_open(self, popup_key)
-    local popup = self[popup_key]
-    return popup and popup.visible or false
+    return popup_session.is_visible(self, popup_key)
 end
 
 local function default_geometry_providers(self, popup_key)
     return {
         function()
-            local popup = self[popup_key]
-            return popup and popup.visible and popup:geometry() or nil
+            return popup_session.geometry(self, popup_key)
         end,
     }
 end
@@ -58,18 +57,13 @@ function M.extend(instance_methods, opts)
     end
 
     local close_impl = opts.close or function(self)
-        local popup = self[popup_key]
-        if popup then
-            popup.visible = false
-        end
+        popup_session.close(self, popup_key)
     end
 
     local open_impl = opts.open or function(self, anchor)
-        self:_ensure_popup(anchor)
-        local popup = self[popup_key]
-        if popup then
-            popup.visible = true
-        end
+        popup_session.show(self, popup_key, anchor, function()
+            return self:_build_popup()
+        end, self._popup_session_opts or {})
         if self._refresh_popup then
             self:_refresh_popup()
         end
@@ -128,6 +122,20 @@ function M.extend(instance_methods, opts)
         popup_control.blur_popup_keygrabber(self)
     end
 
+    function instance_methods:popup_visible()
+        return is_open(self)
+    end
+
+    function instance_methods:_deactivate_popup_session()
+        self:_stop_hover_close_timer()
+        self:_stop_popup_outside_click_dismiss()
+        self:blur_popup_keyboard_navigation()
+        if type(opts.close_extras) == "function" then
+            opts.close_extras(self)
+        end
+        widget_feedback.sync(self, false)
+    end
+
     function instance_methods:close_popup()
         self:_stop_hover_close_timer()
         self:_stop_popup_outside_click_dismiss()
@@ -176,6 +184,7 @@ function M.extend(instance_methods, opts)
     function instance_methods:toggle_popup(anchor, popup_opts)
         popup_opts = popup_control.normalize_popup_opts(anchor, popup_opts)
         popup_opts = prepare_opts(self, popup_opts) or popup_opts
+        self._popup_session_opts = popup_opts
 
         if is_open(self) then
             self:close_popup()
@@ -199,10 +208,10 @@ function M.extend(instance_methods, opts)
 
         self:focus_popup_keyboard_navigation()
 
-        if popup_opts.keyboard_navigation then
-            self:_stop_hover_close_timer()
-        else
+        if popup_opts.hover_close == true then
             self:_start_hover_close_timer()
+        else
+            self:_stop_hover_close_timer()
         end
     end
 end

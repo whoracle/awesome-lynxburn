@@ -112,7 +112,7 @@ function M.extend(instance_methods)
     function instance_methods:toggle_media_popup(anchor_geo, opts)
         anchor_geo, opts = normalize_popup_args(anchor_geo, opts)
         if opts.hover_close == nil then
-            opts.hover_close = true
+            opts.hover_close = false
         end
         if opts.anchor == nil then
             opts.anchor = anchor_geo and "widget" or "center"
@@ -124,7 +124,7 @@ function M.extend(instance_methods)
     function instance_methods:toggle_devices_popup(anchor_geo, opts)
         anchor_geo, opts = normalize_popup_args(anchor_geo, opts)
         if opts.hover_close == nil then
-            opts.hover_close = true
+            opts.hover_close = false
         end
         if opts.anchor == nil then
             opts.anchor = anchor_geo and "widget" or "center"

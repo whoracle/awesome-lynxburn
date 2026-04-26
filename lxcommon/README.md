@@ -27,8 +27,10 @@ Other local modules:
 
 - shared popup placement helpers
 - shared popup registration and cycling helpers
-- shared popup key/hover/outside-click control helpers
+- shared popup key, outside-click, optional hover-close, and global-fallback
+  control helpers
 - shared popup controller/session wiring for popup-oriented modules
+- shared popup shell/session for generic popup-controller modules
 - shared popup UI row/card helpers
 - shared widget feedback/highlight syncing
 - shared compact OSD helper
@@ -93,13 +95,15 @@ the calling module rather than by `lxcommon`-specific theme variables.
 
 - `init.lua`: convenience aggregator for the shared helper modules
 - `osd.lua`: compact shared OSD helper used by display/media
-- `popup_control.lua`: popup key handling, outside-click dismissal, hover-close
-  timers, and keygrabber lifecycle helpers
+- `popup_control.lua`: popup key handling, global-key fallback, outside-click
+  dismissal, optional hover-close timers, and keygrabber lifecycle helpers
 - `popup_controller.lua`: shared popup session/controller wiring used by
   modules such as `lxbluetooth`, `lxnetwork`, and `lxpower`
 - `popup_manager.lua`: popup registration, visibility lookup, and cycle-order
   resolution
 - `popup_placement.lua`: shared `"center"` / `"side"` popup placement logic
+- `popup_session.lua`: shared popup shell used to swap generic popup contents
+  without hiding the top-level popup between cycle steps
 - `popup_ui.lua`: reusable popup rows, cards, and button-feedback helpers
 - `registry.lua`: shared top-level widget registry used by `lxbar`
 - `widget_feedback.lua`: shared top-level widget highlight syncing helpers
