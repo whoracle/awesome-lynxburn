@@ -193,7 +193,7 @@ Commonly used instance methods:
 - `store.lua`: notification interception, filtering, entry lifecycle, and dismiss logic
 - `popup_state.lua`: grouped view state, selection, scrolling, and popup list rebuilding
 - `controller.lua`: popup session control, keygrabber wiring, optional hover-close, and open/close paths
-- `popup.lua`: popup shell, geometry, and header widgets
+- `popup.lua`: popup content, header widgets, and notification list rendering
 - `cards.lua`: notification and burst-group card rendering
 - `format.lua`: notification text normalization, summaries, and grouping keys
 - `debug.lua`: normalized notification snapshots and denylist matching helpers

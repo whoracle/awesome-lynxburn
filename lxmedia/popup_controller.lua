@@ -2,6 +2,7 @@ local beautiful = require("beautiful")
 
 local popup_control = require("lxcommon.popup_control")
 local popup_placement = require("lxcommon.popup_placement")
+local popup_session = require("lxcommon.popup_session")
 local widget_feedback = require("lxcommon.widget_feedback")
 
 local M = {}
@@ -155,27 +156,31 @@ function M.extend(instance_methods)
             local theme_key = kind == "media" and "lxmedia_popup_placement_media" or "lxmedia_popup_placement_devices"
             opts.placement = popup_placement.normalize(beautiful[theme_key], "center")
         end
+        opts.bg = opts.bg or beautiful.lxmedia_popup_bg or beautiful.bg_normal or "#222222"
+        opts.width = opts.width
+            or (kind == "media" and beautiful.lxmedia_popup_width_media)
+            or beautiful.lxmedia_popup_width_devices
+            or 360
 
-        if kind == "media" and self._devices_popup then
-            self._devices_popup.visible = false
-            self:blur_devices_popup_keyboard_navigation()
-        elseif kind == "devices" and self._media_popup then
-            self._media_popup.visible = false
-            self:blur_media_popup_keyboard_navigation()
+        local popup_ref = kind == "media" and "_media_popup" or "_devices_popup"
+        if popup_session.is_visible(self, popup_ref) then
+            self:close_popups()
+            return false
         end
 
         local popup_module
-        local popup_ref
         if kind == "media" then
             popup_module = require("lxmedia.popup_media")
-            popup_ref = "_media_popup"
         else
             popup_module = require("lxmedia.popup_devices")
-            popup_ref = "_devices_popup"
         end
 
-        local shown = popup_module.toggle(self, anchor_geo, opts)
-        if shown and self[popup_ref] and self[popup_ref].visible then
+        popup_session.show(self, popup_ref, anchor_geo, function()
+            return popup_module.build(self)
+        end, opts)
+
+        local shown = popup_session.is_visible(self, popup_ref)
+        if shown then
             if kind == "media" then
                 self._media_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
                 self._media_popup_prev_keychain = popup_control.normalize_popup_toggle_key(opts.prev_keychain)
@@ -219,23 +224,25 @@ function M.extend(instance_methods)
             local theme_key = kind == "media" and "lxmedia_popup_placement_media" or "lxmedia_popup_placement_devices"
             opts.placement = popup_placement.normalize(beautiful[theme_key], "center")
         end
-
-        if kind == "media" and self._devices_popup then
-            self._devices_popup.visible = false
-            self:blur_devices_popup_keyboard_navigation()
-        elseif kind == "devices" and self._media_popup then
-            self._media_popup.visible = false
-            self:blur_media_popup_keyboard_navigation()
-        end
+        opts.bg = opts.bg or beautiful.lxmedia_popup_bg or beautiful.bg_normal or "#222222"
+        opts.width = opts.width
+            or (kind == "media" and beautiful.lxmedia_popup_width_media)
+            or beautiful.lxmedia_popup_width_devices
+            or 360
 
         local popup_module
+        local popup_ref
         if kind == "media" then
             popup_module = require("lxmedia.popup_media")
+            popup_ref = "_media_popup"
         else
             popup_module = require("lxmedia.popup_devices")
+            popup_ref = "_devices_popup"
         end
 
-        popup_module.show(self, anchor_geo, opts)
+        popup_session.show(self, popup_ref, anchor_geo, function()
+            return popup_module.build(self)
+        end, opts)
 
         if kind == "media" then
             self._media_popup_toggle_key = popup_control.normalize_popup_toggle_key(opts.toggle_key)
@@ -325,20 +332,34 @@ function M.extend(instance_methods)
         self:blur_media_popup_keyboard_navigation()
         self:blur_devices_popup_keyboard_navigation()
 
-        if self._media_popup then
-            self._media_popup.visible = false
-        end
-
-        if self._devices_popup then
-            self._devices_popup.visible = false
-        end
+        popup_session.close(self, "_media_popup")
+        popup_session.close(self, "_devices_popup")
 
         self:_sync_toplevel_bar_visibility()
         widget_feedback.sync(self, function()
-            return (self._media_popup and self._media_popup.visible)
-                or (self._devices_popup and self._devices_popup.visible)
-                or false
+            return self:popup_visible()
         end)
+    end
+
+    function instance_methods:_deactivate_popup_session()
+        self:_stop_hover_close_timer()
+        self:blur_media_popup_keyboard_navigation()
+        self:blur_devices_popup_keyboard_navigation()
+        self:_sync_toplevel_bar_visibility()
+        widget_feedback.sync(self, false)
+    end
+
+    function instance_methods:popup_visible(field_name)
+        if field_name == "_media_popup" then
+            return popup_session.is_visible(self, "_media_popup")
+        end
+
+        if field_name == "_devices_popup" then
+            return popup_session.is_visible(self, "_devices_popup")
+        end
+
+        return popup_session.is_visible(self, "_media_popup")
+            or popup_session.is_visible(self, "_devices_popup")
     end
 end
 

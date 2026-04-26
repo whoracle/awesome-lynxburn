@@ -457,6 +457,8 @@ local function build_widget(instance)
     }
 end
 
+M.build = build_widget
+
 function M.rebuild(instance)
     popup_shell.rebuild_popup(instance, "_devices_popup", build_widget)
 end

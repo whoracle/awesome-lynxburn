@@ -84,6 +84,7 @@ function M.extend(instance_methods, opts)
             event = event,
             modifiers = modifiers,
             key = key,
+            ignored_modifiers = opts.ignored_modifiers,
             is_open = function()
                 return is_open(self)
             end,
@@ -147,6 +148,40 @@ function M.extend(instance_methods, opts)
         widget_feedback.sync(self, is_open(self))
     end
 
+    function instance_methods:show_popup(anchor, popup_opts)
+        popup_opts = popup_control.normalize_popup_opts(anchor, popup_opts)
+        popup_opts = prepare_opts(self, popup_opts) or popup_opts
+        self._popup_session_opts = popup_opts
+
+        self._popup_toggle_key = popup_control.normalize_popup_toggle_key(popup_opts.toggle_key, {
+            ignored_modifiers = opts.ignored_modifiers,
+        })
+        self._popup_prev_keychain = popup_control.normalize_popup_toggle_key(popup_opts.prev_keychain, {
+            ignored_modifiers = opts.ignored_modifiers,
+        })
+        self._popup_next_keychain = popup_control.normalize_popup_toggle_key(popup_opts.next_keychain, {
+            ignored_modifiers = opts.ignored_modifiers,
+        })
+        self._popup_on_cycle_prev = popup_opts.on_cycle_prev
+        self._popup_on_cycle_next = popup_opts.on_cycle_next
+
+        local visible = open_impl(self, anchor, popup_opts)
+        widget_feedback.sync(self, is_open(self))
+
+        if not visible then
+            return
+        end
+
+        self:_start_popup_outside_click_dismiss()
+        self:focus_popup_keyboard_navigation()
+
+        if popup_opts.hover_close == true then
+            self:_start_hover_close_timer()
+        else
+            self:_stop_hover_close_timer()
+        end
+    end
+
     function instance_methods:_start_popup_outside_click_dismiss()
         popup_control.start_outside_click_dismiss(self, {
             is_open = function()
@@ -191,28 +226,7 @@ function M.extend(instance_methods, opts)
             return
         end
 
-        self._popup_toggle_key = popup_control.normalize_popup_toggle_key(popup_opts.toggle_key)
-        self._popup_prev_keychain = popup_control.normalize_popup_toggle_key(popup_opts.prev_keychain)
-        self._popup_next_keychain = popup_control.normalize_popup_toggle_key(popup_opts.next_keychain)
-        self._popup_on_cycle_prev = popup_opts.on_cycle_prev
-        self._popup_on_cycle_next = popup_opts.on_cycle_next
-
-        local visible = open_impl(self, anchor, popup_opts)
-        widget_feedback.sync(self, is_open(self))
-
-        if not visible then
-            return
-        end
-
-        self:_start_popup_outside_click_dismiss()
-
-        self:focus_popup_keyboard_navigation()
-
-        if popup_opts.hover_close == true then
-            self:_start_hover_close_timer()
-        else
-            self:_stop_hover_close_timer()
-        end
+        self:show_popup(anchor, popup_opts)
     end
 end
 

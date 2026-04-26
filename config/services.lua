@@ -185,6 +185,7 @@ function M.media()
             service:close_popups()
         end, {
             hover_close = false,
+            shared_shell = true,
         })
         register_single_popup("media", instance, "devices", "secondary", "_devices_popup", function(service, popup_opts)
             service:show_devices_popup(nil, popup_opts)
@@ -192,6 +193,7 @@ function M.media()
             service:close_popups()
         end, {
             hover_close = false,
+            shared_shell = true,
         })
 
         return instance
@@ -243,6 +245,7 @@ function M.notify()
             service:close_popups()
         end, {
             hover_close = false,
+            shared_shell = true,
         })
 
         return instance

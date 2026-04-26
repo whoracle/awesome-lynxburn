@@ -75,13 +75,7 @@ function popup.refresh_header(instance)
     refs.footer_label.visible = instance.popup_footer_text ~= nil and instance.popup_footer_text ~= ""
 end
 
-function popup.ensure(instance, target_screen)
-    if instance._popup then
-        apply_geometry(instance, instance._popup, target_screen)
-        popup.refresh_header(instance)
-        return instance._popup
-    end
-
+function popup.build(instance)
     local back_button, back_label = build_header_button(HEADER_LABELS.back)
     local dismiss_group_button, dismiss_group_label = build_header_button(HEADER_LABELS.dismiss_group)
     local daemon_button, daemon_label = build_header_button(HEADER_LABELS.pause_daemon)
@@ -185,15 +179,6 @@ function popup.ensure(instance, target_screen)
         bg = instance:popup_bg(),
     })
 
-    instance._popup = awful.popup({
-        visible = false,
-        ontop = true,
-        screen = target_screen,
-        bg = instance:popup_bg(),
-        type = "dock",
-        widget = body_bg,
-    })
-
     instance._popup_refs = {
         back_button = back_button,
         back_label = back_label,
@@ -209,10 +194,29 @@ function popup.ensure(instance, target_screen)
         body_bg = body_bg,
     }
 
-    apply_geometry(instance, instance._popup, target_screen)
     popup.refresh_header(instance)
     instance:refresh_popup()
 
+    return body_bg
+end
+
+function popup.ensure(instance, target_screen)
+    if instance._popup then
+        apply_geometry(instance, instance._popup, target_screen)
+        popup.refresh_header(instance)
+        return instance._popup
+    end
+
+    instance._popup = awful.popup({
+        visible = false,
+        ontop = true,
+        screen = target_screen,
+        bg = instance:popup_bg(),
+        type = "dock",
+        widget = popup.build(instance),
+    })
+
+    apply_geometry(instance, instance._popup, target_screen)
     return instance._popup
 end
 
