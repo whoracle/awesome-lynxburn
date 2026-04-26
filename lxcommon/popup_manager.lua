@@ -176,7 +176,13 @@ function M.show(module_id, popup_id, opts)
         return false
     end
 
-    M.close_all({ keep_shared_shell = handle.shared_shell == true })
+    local visible = M.current_visible()
+    if visible
+        and (visible.module_id ~= module_id or visible.popup_id ~= (popup_id or "default"))
+        and not (handle.shared_shell and visible.handle.shared_shell) then
+        M.close_all()
+    end
+
     handle.open(opts or {})
     return true
 end
