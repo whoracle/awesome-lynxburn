@@ -80,7 +80,20 @@ function M.extend(instance_methods)
     end
 
     function instance_methods:focus_popup_keyboard_navigation()
+        local blocked_keys = { "Up", "Down", "Return", "KP_Enter", "Left", "Right", "Home", "End", "Escape" }
+        if self._active_media_popup_kind == "media" then
+            for key in pairs(self.opts.popup_key_actions or {}) do
+                blocked_keys[#blocked_keys + 1] = key
+            end
+        end
+
         popup_control.focus_popup_keygrabber(self, {
+            global_fallback = {
+                blocked_keys = blocked_keys,
+                before_dispatch = function()
+                    self:close_popups()
+                end,
+            },
             handler = function(grabber, modifiers, key, event)
                 self:_handle_popup_keygrabber(grabber, modifiers, key, event)
             end,

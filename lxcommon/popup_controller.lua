@@ -113,6 +113,12 @@ function M.extend(instance_methods, opts)
 
     function instance_methods:focus_popup_keyboard_navigation()
         popup_control.focus_popup_keygrabber(self, {
+            global_fallback = {
+                blocked_keys = blocked_global_keys,
+                before_dispatch = function()
+                    self:close_popup()
+                end,
+            },
             handler = function(grabber, modifiers, key, event)
                 self:_handle_popup_keygrabber(grabber, modifiers, key, event)
             end,
