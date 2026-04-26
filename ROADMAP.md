@@ -138,8 +138,8 @@ Rationale:
 - support VPN-gated refresh/login flows where required
 - surface failures in `~/.xsession-errors` and via notifications
 - define a pragmatic plugin API for adding more secret providers later
-- write back `expiry_date` metadata reliably even when the original keyring
-  entry did not already contain that attribute
+- keep `expiry_date` metadata writes tied to replacement-secret stores unless a
+  reliable keyring-safe way to amend existing item attributes appears
 - improve startup refresh behavior so the first pass waits for usable network
   availability instead of relying only on a blind timer delay
 - add a secondary card action to open the corresponding secret in a keyring UI
