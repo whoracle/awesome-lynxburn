@@ -61,8 +61,8 @@ Example layout:
     ├── audio.lua
     ├── media.lua
     ├── runtime.lua
+    ├── devices_popup_controller.lua
     ├── media_popup_controller.lua
-    ├── popup_controller.lua
     ├── popup_devices.lua
     ├── popup_media.lua
     └── widget.lua
@@ -345,8 +345,8 @@ Fallbacks:
 
 - [init.lua](/home/anthrax/tmp/awesome/lxmedia/init.lua): constructor plus core volume/input actions
 - [runtime.lua](/home/anthrax/tmp/awesome/lxmedia/runtime.lua): widget rebuild, timer/subscription setup, refresh, and OSD helpers
+- [devices_popup_controller.lua](/home/anthrax/tmp/awesome/lxmedia/devices_popup_controller.lua): device-popup selection and activation helpers
 - [media_popup_controller.lua](/home/anthrax/tmp/awesome/lxmedia/media_popup_controller.lua): media-popup selection, player transport, and keyboard actions
-- [popup_controller.lua](/home/anthrax/tmp/awesome/lxmedia/popup_controller.lua): shared-session popup show/toggle/close flow and optional hover-close handling
 - [widget.lua](/home/anthrax/tmp/awesome/lxmedia/widget.lua): compact bar widget and mouse bindings
 - [audio.lua](/home/anthrax/tmp/awesome/lxmedia/audio.lua): sink/source/stream inspection and control via `pactl`
 - [media.lua](/home/anthrax/tmp/awesome/lxmedia/media.lua): MPRIS player lookup, metadata, artwork, and transport control via `playerctl`

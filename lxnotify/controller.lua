@@ -25,38 +25,40 @@ end
 
 function controller.extend(instance_methods)
     popup_controller.extend(instance_methods, {
+        default_popup = "main",
         ignored_modifiers = IGNORED_POPUP_MODIFIERS,
-        prepare_opts = function(self, popup_opts)
-            popup_opts.bg = popup_opts.bg or self:popup_bg()
-            popup_opts.placement = popup_opts.placement or self:popup_placement()
-            popup_opts.width = popup_opts.width or self:popup_width()
-            return popup_opts
-        end,
-        actions = {
-            Return = function(self)
-                self:activate_selected_popup_enter()
-            end,
-            KP_Enter = function(self)
-                self:activate_selected_popup_enter()
-            end,
-            Right = function(self)
-                self:activate_selected_popup_right()
-            end,
-            Left = function(self)
-                if self.active_group_key then
-                    self:leave_group_detail()
-                else
-                    self:close_popup()
-                end
-            end,
+        popups = {
+            main = {
+                popup_key = "_popup",
+                build = function(self)
+                    return popup.build(self)
+                end,
+                prepare_opts = function(self, popup_opts)
+                    popup_opts.bg = popup_opts.bg or self:popup_bg()
+                    popup_opts.placement = popup_opts.placement or self:popup_placement()
+                    popup_opts.width = popup_opts.width or self:popup_width()
+                    return popup_opts
+                end,
+                actions = {
+                    Return = function(self)
+                        self:activate_selected_popup_enter()
+                    end,
+                    KP_Enter = function(self)
+                        self:activate_selected_popup_enter()
+                    end,
+                    Right = function(self)
+                        self:activate_selected_popup_right()
+                    end,
+                    Left = function(self)
+                        if self.active_group_key then
+                            self:leave_group_detail()
+                        else
+                            self:close_popup()
+                        end
+                    end,
+                },
+            },
         },
-        open = function(self, anchor, popup_opts)
-            self._popup_session_opts = popup_opts
-            require("lxcommon.popup_session").show(self, "_popup", anchor, function()
-                return popup.build(self)
-            end, popup_opts)
-            return self:popup_visible()
-        end,
     })
 
     function instance_methods:show_notification_popup(arg1, arg2)

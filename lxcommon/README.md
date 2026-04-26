@@ -97,8 +97,9 @@ the calling module rather than by `lxcommon`-specific theme variables.
 - `osd.lua`: compact shared OSD helper used by display/media
 - `popup_control.lua`: popup key handling, global-key fallback, outside-click
   dismissal, optional hover-close timers, and keygrabber lifecycle helpers
-- `popup_controller.lua`: shared popup session/controller wiring used by
-  modules such as `lxbluetooth`, `lxnetwork`, and `lxpower`
+- `popup_controller.lua`: named popup descriptor wiring used by modules to
+  delegate popup lifecycle, key handling, outside-click dismissal, and shared
+  session integration to `lxcommon`
 - `popup_manager.lua`: popup registration, visibility lookup, and cycle-order
   resolution
 - `popup_placement.lua`: shared `"center"` / `"side"` popup placement logic
