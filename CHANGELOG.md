@@ -1,3 +1,38 @@
+## v1.9.0 (2026-04-27)
+
+### Features
+
+- [lxcommon] avoid close sweep during shared popup cycling
+- [lxcommon] migrate media and notify popups to shared session
+- [lxcommon] introduce shared popup session for generic modules
+- [lxbar] allow showing the bar only on selected configured screens
+- [lxsecrets] bootstrap managed gitlab PATs from the admin selector when missing
+
+### Bug Fixes
+
+- [lxcommon] preserve global shortcuts in popup keygrabbers
+- [lxdisplay] restore top-level widget highlight during popup cycling
+- [lxsecrets] ignore empty gitlab selector overrides and fall back to canonical selectors
+- [lxsecrets] include failing secret-tool operation context in provider errors
+- [lxsecrets] skip gitlab bootstrap stores when admin and managed selectors are identical
+- [lxsecrets] only write expiry metadata when storing replacement secret values
+- [lxsecrets] wait for keyring record removal before writing expiry metadata replacements
+- [lxsecrets] replace matching keyring records instead of duplicating on expiry metadata writeback
+
+### Refactors
+
+- [lxcommon] track active popup deterministically
+- [lxcommon] use named popup descriptors everywhere
+- [lxcommon] remove legacy popup shell lifecycle
+
+### Documentation
+
+- [core] prepare migration notes for v1.9.0
+- [core] note popup latency follow-ups for media and secrets
+- [core] drop compact bar easing follow-up
+- [core] note future titlebar toggle and styling work in roadmap
+- [core] fix stray ` in README.md
+
 ## v1.8.0 (2026-04-24)
 
 ### Features
