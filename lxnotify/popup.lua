@@ -2,8 +2,6 @@ local awful = require("awful")
 local gears = require("gears")
 local wibox = require("wibox")
 
-local screen_util = require("lxcommon.screen")
-local popup_placement = require("lxcommon.popup_placement")
 local util = require("lxcommon.util")
 
 local popup = {}
@@ -16,15 +14,6 @@ local HEADER_LABELS = {
     pause_interception = "Pause Capture",
     resume_interception = "Resume Capture",
 }
-
-local function apply_geometry(instance, popup_widget, target_screen)
-    popup_placement.apply(
-        popup_widget,
-        target_screen,
-        instance:popup_placement(),
-        { width = math.min(instance:popup_width(), target_screen.workarea.width) }
-    )
-end
 
 local function build_header_button(label)
     local text = wibox.widget({
@@ -75,13 +64,7 @@ function popup.refresh_header(instance)
     refs.footer_label.visible = instance.popup_footer_text ~= nil and instance.popup_footer_text ~= ""
 end
 
-function popup.ensure(instance, target_screen)
-    if instance._popup then
-        apply_geometry(instance, instance._popup, target_screen)
-        popup.refresh_header(instance)
-        return instance._popup
-    end
-
+function popup.build(instance)
     local back_button, back_label = build_header_button(HEADER_LABELS.back)
     local dismiss_group_button, dismiss_group_label = build_header_button(HEADER_LABELS.dismiss_group)
     local daemon_button, daemon_label = build_header_button(HEADER_LABELS.pause_daemon)
@@ -185,15 +168,6 @@ function popup.ensure(instance, target_screen)
         bg = instance:popup_bg(),
     })
 
-    instance._popup = awful.popup({
-        visible = false,
-        ontop = true,
-        screen = target_screen,
-        bg = instance:popup_bg(),
-        type = "dock",
-        widget = body_bg,
-    })
-
     instance._popup_refs = {
         back_button = back_button,
         back_label = back_label,
@@ -209,40 +183,10 @@ function popup.ensure(instance, target_screen)
         body_bg = body_bg,
     }
 
-    apply_geometry(instance, instance._popup, target_screen)
     popup.refresh_header(instance)
     instance:refresh_popup()
 
-    return instance._popup
-end
-
-function popup.show(instance, anchor)
-    local target_screen = screen_util.resolve_screen(anchor)
-    local popup_widget = popup.ensure(instance, target_screen)
-
-    apply_geometry(instance, popup_widget, target_screen)
-    popup.refresh_header(instance)
-    instance:refresh_popup()
-    popup_widget.visible = true
-
-    return popup_widget
-end
-
-function popup.hide(instance)
-    if instance._popup then
-        instance:_stop_hover_close_timer()
-        instance:blur_popup_keyboard_navigation()
-        instance._popup.visible = false
-    end
-end
-
-function popup.toggle(instance, anchor)
-    if instance._popup and instance._popup.visible then
-        popup.hide(instance)
-        return
-    end
-
-    popup.show(instance, anchor)
+    return body_bg
 end
 
 return popup

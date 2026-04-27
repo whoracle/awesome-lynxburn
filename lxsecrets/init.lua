@@ -79,11 +79,22 @@ theme.extend(M)
 state.extend(M)
 popup.extend(M)
 popup_controller.extend(M, {
-    popup_key = "_popup",
-    actions = {
-        Right = function(self)
-            self:activate_selected_popup_secondary()
-        end,
+    default_popup = "main",
+    popups = {
+        main = {
+            popup_key = "_popup",
+            prepare_opts = function(self, popup_opts)
+                popup_opts.bg = popup_opts.bg or self:_theme_value("lxsecrets_popup_bg", "#222222")
+                popup_opts.placement = popup_opts.placement or self:_theme_value("lxsecrets_popup_placement", "side")
+                popup_opts.width = popup_opts.width or self:_theme_value("lxsecrets_popup_width", 380)
+                return popup_opts
+            end,
+            actions = {
+                Right = function(self)
+                    self:activate_selected_popup_secondary()
+                end,
+            },
+        },
     },
 })
 

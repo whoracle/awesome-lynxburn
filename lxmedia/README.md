@@ -61,8 +61,8 @@ Example layout:
     ├── audio.lua
     ├── media.lua
     ├── runtime.lua
+    ├── devices_popup_controller.lua
     ├── media_popup_controller.lua
-    ├── popup_controller.lua
     ├── popup_devices.lua
     ├── popup_media.lua
     └── widget.lua
@@ -140,8 +140,8 @@ Inside the devices popup:
 | `refresh_interval` | `5` | Polling interval in seconds. |
 | `width` | `50` | Width of the volume bar in the compact widget. |
 | `step` | `0.05` | Volume step for scroll actions, expressed as `0.05 == 5%`. |
-| `hover_close_timeout` | `beautiful.lxmedia_hover_close_timeout` or `1.5` | Seconds the pointer must stay outside the popup and anchor before auto-close. |
-| `hover_close_poll_interval` | `beautiful.lxmedia_hover_close_poll_interval` or `0.25` | Poll interval used by the hover-close logic. |
+| `hover_close_timeout` | `beautiful.lxmedia_hover_close_timeout` or `1.5` | Seconds the pointer must stay outside the popup and anchor before auto-close when `hover_close = true` is passed. |
+| `hover_close_poll_interval` | `beautiful.lxmedia_hover_close_poll_interval` or `0.25` | Poll interval used by the optional hover-close logic. |
 
 Example:
 
@@ -237,8 +237,8 @@ root.keys(gears.table.join(
 
 Notes:
 
-- `toggle_*_popup({ hover_close = false, placement = "center" })` is the
-  keyboard-friendly centered form.
+- popups stay open until `Esc`, toggle, or outside click by default.
+- `toggle_*_popup({ hover_close = true })` opts into pointer-leave auto-close behavior.
 - `toggle_*_popup(mouse.current_widget_geometry)` remains the mouse-oriented form and anchors the popup to the widget.
 - popup placement follows the shared `"center"` / `"side"` contract; actual
   left/right side selection comes from `lxmodules.lxbar.popup_side`
@@ -339,15 +339,14 @@ Fallbacks:
 - The widget is primarily focused on the default sink for top-level volume/mute operations.
 - Popup layout and text density may need theme tuning for very narrow widths or unusually long device/stream names.
 - The widget both polls and subscribes. That keeps it responsive, but it can still momentarily lag behind fast external changes depending on backend timing.
-- Hover-close behavior depends on pointer geometry and popup anchoring. On unusual layouts or rapid mouse movement, the close timing may feel slightly aggressive or slightly delayed.
-- Keyboard-invoked popups should usually be shown with `hover_close = false`; otherwise they may close immediately if the pointer is already outside the popup.
+- Optional hover-close behavior depends on pointer geometry and popup anchoring. On unusual layouts or rapid mouse movement, the close timing may feel slightly aggressive or slightly delayed.
 
 ## File Overview
 
 - [init.lua](/home/anthrax/tmp/awesome/lxmedia/init.lua): constructor plus core volume/input actions
 - [runtime.lua](/home/anthrax/tmp/awesome/lxmedia/runtime.lua): widget rebuild, timer/subscription setup, refresh, and OSD helpers
+- [devices_popup_controller.lua](/home/anthrax/tmp/awesome/lxmedia/devices_popup_controller.lua): device-popup selection and activation helpers
 - [media_popup_controller.lua](/home/anthrax/tmp/awesome/lxmedia/media_popup_controller.lua): media-popup selection, player transport, and keyboard actions
-- [popup_controller.lua](/home/anthrax/tmp/awesome/lxmedia/popup_controller.lua): popup show/toggle/close flow and hover-close handling
 - [widget.lua](/home/anthrax/tmp/awesome/lxmedia/widget.lua): compact bar widget and mouse bindings
 - [audio.lua](/home/anthrax/tmp/awesome/lxmedia/audio.lua): sink/source/stream inspection and control via `pactl`
 - [media.lua](/home/anthrax/tmp/awesome/lxmedia/media.lua): MPRIS player lookup, metadata, artwork, and transport control via `playerctl`

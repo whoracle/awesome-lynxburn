@@ -38,8 +38,8 @@ Internal:
 - interactive Vault login keeps VPN-gated runs alive until success or timeout
 - Vault login can use an explicit browser command instead of ambient desktop
   browser resolution
-- expiry information is shown per card and synced back into the keyring as
-  `expiry_date` metadata when a live check succeeds
+- expiry information is shown per card and stored as `expiry_date` metadata
+  when a provider writes a replacement secret value
 - popup sorting groups by provider, then VPN, then expiry urgency
 
 ## Controls
@@ -232,4 +232,4 @@ Current provider support:
 - `browser` or `secrets[].browser` is exported as `BROWSER` for Vault OIDC
   login when set
 - if `expiry_date` is missing from the keyring item, the card shows `unknown`
-  until the next successful live refresh writes it
+  until a provider replaces the secret value and stores fresh metadata

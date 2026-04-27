@@ -1,12 +1,9 @@
-local awful = require("awful")
 local gears = require("gears")
 local beautiful = require("beautiful")
-local keygrabber = require("awful.keygrabber")
-local unpack = table.unpack or unpack
-local popup_control = require("lxcommon.popup_control")
+local popup_placement = require("lxcommon.popup_placement")
+local popup_controller = require("lxcommon.popup_controller")
 local devices_popup_controller = require("lxmedia.devices_popup_controller")
 local media_popup_controller = require("lxmedia.media_popup_controller")
-local popup_controller = require("lxmedia.popup_controller")
 local runtime = require("lxmedia.runtime")
 
 local M = {}
@@ -42,7 +39,127 @@ end
 runtime.extend(M)
 devices_popup_controller.extend(M)
 media_popup_controller.extend(M)
-popup_controller.extend(M)
+popup_controller.extend(M, {
+    default_popup = "media",
+    popups = {
+        media = {
+            popup_key = "_media_popup",
+            opts_key = "_media_popup_opts",
+            build = function(self)
+                return require("lxmedia.popup_media").build(self)
+            end,
+            prepare_opts = function(_, popup_opts, anchor_geo)
+                if popup_opts.hover_close == nil then
+                    popup_opts.hover_close = false
+                end
+                if popup_opts.anchor == nil then
+                    popup_opts.anchor = anchor_geo and "widget" or "center"
+                end
+                if popup_opts.placement == nil then
+                    popup_opts.placement = popup_placement.normalize(beautiful.lxmedia_popup_placement_media, "center")
+                end
+
+                popup_opts.bg = popup_opts.bg or beautiful.lxmedia_popup_bg or beautiful.bg_normal or "#222222"
+                popup_opts.width = popup_opts.width or beautiful.lxmedia_popup_width_media or 360
+                return popup_opts
+            end,
+            actions = function(self)
+                local actions = {
+                    Up = function()
+                        self:move_media_popup_selection(-1)
+                    end,
+                    Down = function()
+                        self:move_media_popup_selection(1)
+                    end,
+                    Return = function()
+                        self:activate_selected_media_popup_item()
+                    end,
+                    KP_Enter = function()
+                        self:activate_selected_media_popup_item()
+                    end,
+                    Left = function()
+                        self:change_selected_media_stream_volume(-(self.opts.step or 0.05))
+                    end,
+                    Right = function()
+                        self:change_selected_media_stream_volume(self.opts.step or 0.05)
+                    end,
+                    Home = function()
+                        self:set_selected_media_stream_volume(100)
+                    end,
+                    End = function()
+                        self:toggle_selected_media_stream_mute()
+                    end,
+                }
+
+                for key, action in pairs(self.opts.popup_key_actions or {}) do
+                    actions[key] = function()
+                        self:_handle_popup_media_action(action)
+                    end
+                end
+
+                return actions
+            end,
+            default_actions = false,
+        },
+        devices = {
+            popup_key = "_devices_popup",
+            opts_key = "_devices_popup_opts",
+            build = function(self)
+                return require("lxmedia.popup_devices").build(self)
+            end,
+            prepare_opts = function(_, popup_opts, anchor_geo)
+                if popup_opts.hover_close == nil then
+                    popup_opts.hover_close = false
+                end
+                if popup_opts.anchor == nil then
+                    popup_opts.anchor = anchor_geo and "widget" or "center"
+                end
+                if popup_opts.placement == nil then
+                    popup_opts.placement = popup_placement.normalize(beautiful.lxmedia_popup_placement_devices, "center")
+                end
+
+                popup_opts.bg = popup_opts.bg or beautiful.lxmedia_popup_bg or beautiful.bg_normal or "#222222"
+                popup_opts.width = popup_opts.width or beautiful.lxmedia_popup_width_devices or 360
+                return popup_opts
+            end,
+            actions = {
+                Up = function(self)
+                    self:move_devices_popup_selection(-1)
+                end,
+                Down = function(self)
+                    self:move_devices_popup_selection(1)
+                end,
+                Return = function(self)
+                    self:activate_selected_devices_popup_item()
+                end,
+                KP_Enter = function(self)
+                    self:activate_selected_devices_popup_item()
+                end,
+            },
+            default_actions = false,
+        },
+    },
+})
+
+function M:toggle_media_popup(anchor_geo, opts)
+    return self:toggle_named_popup("media", anchor_geo, opts)
+end
+
+function M:toggle_devices_popup(anchor_geo, opts)
+    return self:toggle_named_popup("devices", anchor_geo, opts)
+end
+
+function M:show_media_popup(anchor_geo, opts)
+    return self:show_named_popup("media", anchor_geo, opts)
+end
+
+function M:show_devices_popup(anchor_geo, opts)
+    return self:show_named_popup("devices", anchor_geo, opts)
+end
+
+function M:close_popups()
+    return self:close_all_popups()
+end
 
 -- Toggle mute on the current default output device.
 function M:toggle_mute(opts)

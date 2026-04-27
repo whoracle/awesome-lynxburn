@@ -1,5 +1,4 @@
 local awful = require("awful")
-local awful_keyboard = require("awful.keyboard")
 local gears = require("gears")
 local keygrabber = require("awful.keygrabber")
 local awful_key = require("awful.key")
@@ -31,6 +30,10 @@ local function filtered_modifiers(modifiers)
     return filtered
 end
 
+local function has_modifiers(modifiers)
+    return #filtered_modifiers(modifiers) > 0
+end
+
 local function modifiers_match(binding_modifiers, pressed_modifiers)
     local wanted = filtered_modifiers(binding_modifiers)
     local active = filtered_modifiers(pressed_modifiers)
@@ -59,6 +62,104 @@ local function modifiers_match(binding_modifiers, pressed_modifiers)
     return true
 end
 
+local function keybinding_matches(keybinding, pressed_modifiers, key)
+    if not keybinding then
+        return false, nil
+    end
+
+    if type(keybinding.match) == "function" and keybinding:match(pressed_modifiers, key) then
+        return true, keybinding
+    end
+
+    if keybinding.key == key and modifiers_match(keybinding.modifiers, pressed_modifiers) then
+        return true, keybinding
+    end
+
+    for _, sub_key in ipairs(keybinding) do
+        if sub_key.key == key and modifiers_match(sub_key.modifiers, pressed_modifiers) then
+            return true, sub_key
+        end
+    end
+
+    return false, nil
+end
+
+local function keybinding_entries(keybinding)
+    if type(keybinding) ~= "table" then
+        return {}
+    end
+
+    if type(keybinding.key) == "string" then
+        return {
+            {
+                key = keybinding.key,
+                modifiers = filtered_modifiers(keybinding.modifiers),
+                matched_binding = keybinding,
+            },
+        }
+    end
+
+    local entries = {}
+    for _, sub_key in ipairs(keybinding) do
+        if type(sub_key) == "table" and type(sub_key.key) == "string" then
+            entries[#entries + 1] = {
+                key = sub_key.key,
+                modifiers = filtered_modifiers(sub_key.modifiers),
+                matched_binding = sub_key,
+            }
+        end
+    end
+
+    return entries
+end
+
+local function keybinding_owner(keybinding)
+    if type(keybinding) ~= "table" then
+        return keybinding
+    end
+
+    local private = rawget(keybinding, "_private")
+    if type(private) == "table" and private._legacy_convert_to then
+        return private._legacy_convert_to
+    end
+
+    return keybinding
+end
+
+local function trigger_callback(keybinding, matched_binding)
+    local owner = keybinding_owner(matched_binding or keybinding)
+
+    if type(owner) == "table" and type(owner.trigger) == "function" then
+        return function()
+            owner:trigger()
+        end
+    end
+
+    if type(keybinding) == "table" and type(keybinding.trigger) == "function" then
+        return function()
+            keybinding:trigger()
+        end
+    end
+
+    if type(owner) == "table" and type(owner.on_press) == "function" then
+        return function()
+            owner.on_press()
+        end
+    end
+
+    if type(keybinding) == "table" and type(keybinding.on_press) == "function" then
+        return function()
+            keybinding.on_press()
+        end
+    end
+
+    return nil
+end
+
+local function blocked_global_key(blocked, key, modifiers)
+    return blocked[key] and not has_modifiers(modifiers)
+end
+
 ---Try to execute a matching root/global keybinding for a popup-owned key event.
 function M.dispatch_global_keybinding(modifiers, key, opts)
     opts = opts or {}
@@ -71,24 +172,56 @@ function M.dispatch_global_keybinding(modifiers, key, opts)
         blocked[blocked_key] = true
     end
 
-    if blocked[key] then
+    if blocked_global_key(blocked, key, modifiers) then
         return false
     end
 
     for _, keybinding in ipairs(root_keys) do
-        if keybinding
-            and keybinding.key == key
-            and modifiers_match(keybinding.modifiers, pressed_modifiers) then
+        local matches, matched_binding = keybinding_matches(keybinding, pressed_modifiers, key)
+        local trigger = matches and trigger_callback(keybinding, matched_binding) or nil
+
+        if trigger then
             if type(opts.before_dispatch) == "function" then
                 opts.before_dispatch()
             end
 
-            awful_keyboard.emulate_key_combination(pressed_modifiers, key)
+            gears.timer.delayed_call(trigger)
             return true
         end
     end
 
     return false
+end
+
+function M.build_global_fallback_keybindings(opts)
+    opts = opts or {}
+
+    local blocked = {}
+    for _, blocked_key in ipairs(opts.blocked_keys or {}) do
+        blocked[blocked_key] = true
+    end
+
+    local bindings = {}
+    for _, keybinding in ipairs(root.keys and root.keys() or {}) do
+        for _, entry in ipairs(keybinding_entries(keybinding)) do
+            if entry.key and not blocked_global_key(blocked, entry.key, entry.modifiers) then
+                bindings[#bindings + 1] = awful_key(entry.modifiers, entry.key, function()
+                    local trigger = trigger_callback(keybinding, entry.matched_binding)
+                    if not trigger then
+                        return
+                    end
+
+                    if type(opts.before_dispatch) == "function" then
+                        opts.before_dispatch()
+                    end
+
+                    gears.timer.delayed_call(trigger)
+                end)
+            end
+        end
+    end
+
+    return bindings
 end
 
 ---Normalize the supported popup-helper call styles into one opts table.
@@ -398,6 +531,7 @@ function M.ensure_popup_keygrabber(instance, opts)
 
     if not instance[grabber_key] then
         instance[grabber_key] = keygrabber({
+            keybindings = M.build_global_fallback_keybindings(opts.global_fallback),
             stop_callback = function()
                 instance[active_key] = false
                 if type(opts.on_stop) == "function" then
@@ -408,6 +542,11 @@ function M.ensure_popup_keygrabber(instance, opts)
                 handler(grabber, modifiers, key, event)
             end,
         })
+    else
+        instance[grabber_key]._private.keybindings = {}
+        for _, keybinding in ipairs(M.build_global_fallback_keybindings(opts.global_fallback)) do
+            instance[grabber_key]:add_keybinding(keybinding)
+        end
     end
 
     return instance[grabber_key]

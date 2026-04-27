@@ -1,5 +1,3 @@
-local popup_control = require("lxcommon.popup_control")
-
 local M = {}
 
 function M.extend(instance_methods)
@@ -50,47 +48,6 @@ function M.extend(instance_methods)
         end
     end
 
-    function instance_methods:_handle_devices_popup_navigation_key(modifiers, key, event)
-        local handled = popup_control.dispatch_popup_keypress({
-            event = event,
-            modifiers = modifiers,
-            key = key,
-            is_open = function()
-                return self._devices_popup and self._devices_popup.visible or false
-            end,
-            on_not_open = function()
-                self:blur_devices_popup_keyboard_navigation()
-            end,
-            prev_keychain = self._devices_popup_prev_keychain,
-            next_keychain = self._devices_popup_next_keychain,
-            toggle_key = self._devices_popup_toggle_key,
-            on_cycle_prev = self._devices_popup_on_cycle_prev,
-            on_cycle_next = self._devices_popup_on_cycle_next,
-            on_close = function()
-                self:close_popups()
-            end,
-            actions = {
-                Up = function()
-                    self:move_devices_popup_selection(-1)
-                end,
-                Down = function()
-                    self:move_devices_popup_selection(1)
-                end,
-                Return = function()
-                    self:activate_selected_devices_popup_item()
-                end,
-                KP_Enter = function()
-                    self:activate_selected_devices_popup_item()
-                end,
-            },
-            blocked_global_keys = { "Up", "Down", "Return", "KP_Enter", "Escape" },
-            on_global_fallback = function()
-                self:close_devices_popup()
-            end,
-        })
-
-        return handled
-    end
 end
 
 return M

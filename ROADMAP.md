@@ -52,16 +52,11 @@ Rationale:
 
 ### `lxcommon`
 
-- keep popup keyboard, hover-close, outside-click, and placement behavior
+- keep popup keyboard, optional hover-close, outside-click, and placement behavior
   consistent across modules
 - revisit popup input handling so open `lx*` popups do not block unrelated
   global shortcuts; prefer a focus-based model or otherwise preserve normal key
   bindings while popups are open
-- fix the current partial popup key fallback path; global shortcuts still do not
-  reliably work while popups are open
-- when a popup opened via mouse is also keyboard-active, keep it from closing
-  immediately just because the pointer is not hovering the popup; hover-close
-  and keyboard-focus need a cleaner coexistence model
 - keep `lxcommon` small and utility-focused rather than turning it into a
   generic dumping ground
 
@@ -81,7 +76,9 @@ Rationale:
 - keep the two-popup model:
   - primary popup for playback streams and transport
   - secondary popup for devices and routing
-- continue smoothing top-level bar show/hide behavior
+- investigate whether popup build/refresh heavy hitters can move to async or
+  deferred work so cycling into the media popup feels as snappy as lightweight
+  modules
 
 ### `lxnotify`
 
@@ -135,12 +132,14 @@ Rationale:
 
 - keep the native provider runtime stable for GitLab and Vault
 - continue polishing popup card layout, sorting, and state presentation
+- investigate whether popup build/refresh heavy hitters can move to async or
+  deferred work so cycling into secrets does not stall the shared popup shell
 - keep secret definitions in `config.lua`
 - support VPN-gated refresh/login flows where required
 - surface failures in `~/.xsession-errors` and via notifications
 - define a pragmatic plugin API for adding more secret providers later
-- write back `expiry_date` metadata reliably even when the original keyring
-  entry did not already contain that attribute
+- keep `expiry_date` metadata writes tied to replacement-secret stores unless a
+  reliable keyring-safe way to amend existing item attributes appears
 - improve startup refresh behavior so the first pass waits for usable network
   availability instead of relying only on a blind timer delay
 - add a secondary card action to open the corresponding secret in a keyring UI
@@ -163,8 +162,6 @@ Rationale:
   - `everforest`
 - consider an opt-in startup mode that picks a random bundled color scheme on
   each Awesome start as an easter egg feature
-- smooth top-level widget bar reveal/hide behavior with a delayed ease-in/out
-  animation instead of the current delayed pop-in
 - keep these as theme-owned unless the repo shape changes materially:
   - wallpaper application
   - wibar assembly

@@ -49,6 +49,7 @@ local function build_popup_handle(spec)
         end,
         close = spec.close,
         is_visible = spec.is_visible,
+        shared_shell = spec.shared_shell,
     }
 end
 

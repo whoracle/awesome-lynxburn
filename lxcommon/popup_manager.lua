@@ -1,6 +1,7 @@
 local M = {}
 
 local popups = {}
+local active = nil
 local POPUP_ROLE_ORDER = {
     primary = 1,
     secondary = 2,
@@ -44,6 +45,10 @@ function M.unregister(module_id, popup_id)
     local module_popups = popups[module_id]
     if not module_popups then
         return
+    end
+
+    if active and active.module_id == module_id and active.popup_id == (popup_id or "default") then
+        active = nil
     end
 
     module_popups[popup_id] = nil
@@ -137,29 +142,51 @@ function M.find_by_popup_role(module_id, popup_role)
     return nil
 end
 
----Close every registered popup that exposes a close handler.
-function M.close_all()
-    for _, module_popups in pairs(popups) do
-        for _, handle in pairs(module_popups) do
-            if handle and type(handle.close) == "function" then
-                handle.close()
-            end
+local function active_is_visible()
+    if not active then
+        return false
+    end
+
+    local handle = active.handle
+    if type(handle.is_visible) == "function" then
+        if handle.is_visible() then
+            return true
         end
+
+        active = nil
+        return false
+    end
+
+    return true
+end
+
+local function close_active()
+    if not active then
+        return
+    end
+
+    local handle = active.handle
+    active = nil
+
+    if handle and type(handle.close) == "function" then
+        handle.close()
     end
 end
 
----Return the first popup handle currently reporting itself as visible.
+---Close the currently active popup, if any.
+function M.close_current()
+    close_active()
+end
+
+---Compatibility alias for older callers.
+function M.close_all()
+    close_active()
+end
+
+---Return the popup handle currently tracked as visible.
 function M.current_visible()
-    for module_id, module_popups in pairs(popups) do
-        for popup_id, handle in pairs(module_popups) do
-            if handle and type(handle.is_visible) == "function" and handle.is_visible() then
-                return {
-                    module_id = module_id,
-                    popup_id = popup_id,
-                    handle = handle,
-                }
-            end
-        end
+    if active_is_visible() then
+        return active
     end
 
     return nil
@@ -167,24 +194,39 @@ end
 
 ---Show one popup and close every other registered popup first.
 function M.show(module_id, popup_id, opts)
+    popup_id = popup_id or "default"
     local handle = M.get(module_id, popup_id)
     if not (handle and type(handle.open) == "function") then
         return false
     end
 
-    M.close_all()
+    local visible = M.current_visible()
+    local already_active = visible
+        and visible.module_id == module_id
+        and visible.popup_id == popup_id
+
+    if visible and not already_active and not (handle.shared_shell and visible.handle.shared_shell) then
+        close_active()
+    end
+
     handle.open(opts or {})
-    return true
+    active = {
+        module_id = module_id,
+        popup_id = popup_id,
+        handle = handle,
+    }
+    return active_is_visible()
 end
 
 ---Toggle one popup, treating it as exclusive with every other registered popup.
 function M.toggle(module_id, popup_id, opts)
+    popup_id = popup_id or "default"
     local visible = M.current_visible()
 
     if visible
         and visible.module_id == module_id
-        and visible.popup_id == (popup_id or "default") then
-        M.close_all()
+        and visible.popup_id == popup_id then
+        close_active()
         return false
     end
 

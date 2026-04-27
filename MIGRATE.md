@@ -4,7 +4,7 @@ This file tracks only migrations between tagged releases.
 
 Current baseline:
 
-- assume users are already on `v1.7.0`
+- assume users are already on `v1.8.0`
 - document only incremental migrations from that point forward
 - do not use this file for one-off machine migration notes anymore
 
@@ -17,6 +17,32 @@ Current baseline:
   config-shape changes
 
 ## Documented Migrations
+
+### `v1.8.0` -> `v1.9.0`
+
+No required user-facing config migration is currently required.
+
+Optional cleanup and new config surface:
+
+- if you want `lxbar` only on selected screens, set
+  `lxmodules.lxbar.screens` to configured monitor names, for example:
+  `screens = { "center", "left" }`
+- for `lxsecrets` GitLab entries, `secrets[].selectors` is now the canonical
+  selector for the managed token; remove `token_selector` from local configs
+  unless you intentionally need the backwards-compatibility override
+- keep `secrets[].admin_selector` only when the admin PAT lives under different
+  keyring attributes than the managed token selector
+- if the managed GitLab PAT is missing but the admin PAT exists, `lxsecrets`
+  can bootstrap and store the managed selector entry on a successful check or
+  rotation
+
+Internal API note for local extensions:
+
+- popup lifecycle is now descriptor-driven through `lxcommon.popup_controller`
+  and the shared popup session
+- `lxmedia.popup_controller` was removed; custom code should use the public
+  `lxmedia` methods such as `show_media_popup`, `show_devices_popup`, and
+  `close_popups`, or register named popup descriptors through `lxcommon`
 
 ### `v1.7.0` -> `v1.8.0`
 

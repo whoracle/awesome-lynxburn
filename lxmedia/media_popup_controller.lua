@@ -1,5 +1,3 @@
-local popup_control = require("lxcommon.popup_control")
-
 local M = {}
 
 local function defer_media_popup_refresh(instance)
@@ -169,101 +167,6 @@ function M.extend(instance_methods)
         return true
     end
 
-    function instance_methods:_handle_media_popup_keygrabber(_, modifiers, key, event)
-        local popup_key_actions = self.opts.popup_key_actions or {}
-        local handled = popup_control.dispatch_popup_keypress({
-            event = event,
-            modifiers = modifiers,
-            key = key,
-            is_open = function()
-                return self._media_popup and self._media_popup.visible or false
-            end,
-            on_not_open = function()
-                self:blur_media_popup_keyboard_navigation()
-            end,
-            prev_keychain = self._media_popup_prev_keychain,
-            next_keychain = self._media_popup_next_keychain,
-            toggle_key = self._media_popup_toggle_key,
-            on_cycle_prev = self._media_popup_on_cycle_prev,
-            on_cycle_next = self._media_popup_on_cycle_next,
-            on_close = function()
-                self:close_popups()
-            end,
-            actions = {
-                Up = function()
-                    self:move_media_popup_selection(-1)
-                end,
-                Down = function()
-                    self:move_media_popup_selection(1)
-                end,
-                Return = function()
-                    self:activate_selected_media_popup_item()
-                end,
-                KP_Enter = function()
-                    self:activate_selected_media_popup_item()
-                end,
-                Left = function()
-                    self:change_selected_media_stream_volume(-(self.opts.step or 0.05))
-                end,
-                Right = function()
-                    self:change_selected_media_stream_volume(self.opts.step or 0.05)
-                end,
-                Home = function()
-                    self:set_selected_media_stream_volume(100)
-                end,
-                End = function()
-                    self:toggle_selected_media_stream_mute()
-                end,
-            },
-            blocked_global_keys = {
-                "Up", "Down", "Return", "KP_Enter", "Left", "Right", "Home", "End", "Escape",
-            },
-            allow_global_fallback = false,
-        })
-
-        if handled then
-            return
-        end
-
-        if self:_handle_popup_media_action(popup_key_actions[key]) then
-            return
-        end
-
-        if popup_control.dispatch_global_keybinding(modifiers, key, {
-            blocked_keys = {
-                "Up", "Down", "Return", "KP_Enter", "Left", "Right", "Home", "End", "Escape",
-            },
-        }) then
-            self:close_media_popup()
-        end
-    end
-
-    function instance_methods:focus_media_popup_keyboard_navigation()
-        popup_control.focus_popup_keygrabber(self, {
-            grabber_key = "_media_popup_keygrabber",
-            active_key = "_media_popup_keyboard_navigation_active",
-            handler = function(grabber, modifiers, key, event)
-                self:_handle_media_popup_keygrabber(grabber, modifiers, key, event)
-            end,
-            on_start = function()
-                self:_start_media_popup_outside_click_dismiss()
-            end,
-        })
-    end
-
-    function instance_methods:blur_media_popup_keyboard_navigation()
-        self._media_popup_keyboard_navigation_active = false
-        self._media_popup_toggle_key = nil
-        self._media_popup_prev_keychain = nil
-        self._media_popup_next_keychain = nil
-        self._media_popup_on_cycle_prev = nil
-        self._media_popup_on_cycle_next = nil
-        self:_stop_media_popup_outside_click_dismiss()
-        popup_control.blur_popup_keygrabber(self, {
-            grabber_key = "_media_popup_keygrabber",
-            active_key = "_media_popup_keyboard_navigation_active",
-        })
-    end
 end
 
 return M
