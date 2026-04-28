@@ -4,7 +4,8 @@ This file tracks only migrations between tagged releases.
 
 Current baseline:
 
-- assume users are already on `v1.8.0`
+- check what the latest git tag in the current worktree is and assume that as the baseline to migrate from
+- the repo is allowed to be ahead of a given tag, but still assume the last tag as the baseline and check against that
 - document only incremental migrations from that point forward
 - do not use this file for one-off machine migration notes anymore
 
