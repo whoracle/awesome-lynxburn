@@ -168,10 +168,21 @@ Rationale:
   - tasklist/taglist/layout switcher composition
   - clock / date / power-menu placement
 
-### Proposed `lxmenu`
+## Proposed further lxmodules
+
+### `lxmenu`
 
 - consider a future `lxmenu` module as the replacement home for the current
   theme-owned power menu popup and similar session/menu actions
 - keep this proposal late until there is a clearer decision on scope:
   - just session/power actions
   - or a broader launcher/menu surface
+
+### `lxsnippets`
+
+- have text snippets from git snippets available for copy pasting
+- store clipboard pastes
+
+### `lxsession`
+
+see [`lxsession`](./lxsession/SPEC.md)
