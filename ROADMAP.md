@@ -146,6 +146,7 @@ Rationale:
   such as Seahorse
 - define plugin scaffolding for providers, then migrate the current GitLab and
   Vault implementations onto that plugin interface once the contract is stable
+- evaluate `last checked` field
 
 ### `themes/lynxburn`
 
