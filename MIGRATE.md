@@ -4,8 +4,8 @@ This file tracks only migrations between tagged releases.
 
 Current baseline:
 
-- check what the latest git tag in the current worktree is and assume that as the baseline to migrate from
-- the repo is allowed to be ahead of a given tag, but still assume the last tag as the baseline and check against that
+- check what the latest semver-compliant git tag in the current worktree is and assume that as the baseline to migrate from
+- the repo is allowed to be ahead of a given tag, but still assume the last tag as the baseline and check against that (e.g., the most recent tag chronologically)
 - document only incremental migrations from that point forward
 - do not use this file for one-off machine migration notes anymore
 
