@@ -23,17 +23,22 @@ local function deactivate_current(run_hook)
         return
     end
 
-    if run_hook ~= false and type(session.owner._deactivate_popup_session) == "function" then
-        session.owner:_deactivate_popup_session()
+    local owner = session.owner
+    local popup_key = session.popup_key
+
+    owner._popup_session_active = false
+    if popup_key and owner[popup_key] == session.popup then
+        owner[popup_key] = nil
     end
 
-    session.owner._popup_session_active = false
-    if session.popup_key and session.owner[session.popup_key] == session.popup then
-        session.owner[session.popup_key] = nil
+    if run_hook ~= false and type(owner._deactivate_popup_session) == "function" then
+        owner:_deactivate_popup_session()
     end
 
-    session.owner = nil
-    session.popup_key = nil
+    if session.owner == owner then
+        session.owner = nil
+        session.popup_key = nil
+    end
 end
 
 local function ensure_popup(opts)
