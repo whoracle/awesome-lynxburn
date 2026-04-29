@@ -76,9 +76,6 @@ Rationale:
 - keep the two-popup model:
   - primary popup for playback streams and transport
   - secondary popup for devices and routing
-- investigate whether popup build/refresh heavy hitters can move to async or
-  deferred work so cycling into the media popup feels as snappy as lightweight
-  modules
 
 ### `lxnotify`
 
@@ -132,8 +129,6 @@ Rationale:
 
 - keep the native provider runtime stable for GitLab and Vault
 - continue polishing popup card layout, sorting, and state presentation
-- investigate whether popup build/refresh heavy hitters can move to async or
-  deferred work so cycling into secrets does not stall the shared popup shell
 - keep secret definitions in `config.lua`
 - support VPN-gated refresh/login flows where required
 - surface failures in `~/.xsession-errors` and via notifications
