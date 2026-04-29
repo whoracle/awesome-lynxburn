@@ -10,6 +10,23 @@ local COLORS = {
     idle = beautiful.lxmedia_button_bg or beautiful.bg_minimize or "#333333",
 }
 
+local function request_popup_data(instance)
+    if instance._devices_popup_data_pending then
+        return
+    end
+
+    instance._devices_popup_data_pending = true
+
+    require("lxmedia.audio").collect_popup_data_async(function(data)
+        instance._devices_popup_data = data
+        instance._devices_popup_data_pending = false
+
+        if popup_session.is_visible(instance, "_devices_popup") then
+            M.rebuild(instance)
+        end
+    end)
+end
+
 local function make_card(child)
     return popup_ui.make_card(child, {
         margins = 10,
@@ -89,6 +106,24 @@ end
 
 local function make_card_info_row(text, opts)
     return make_row_card(make_info_line(text, opts))
+end
+
+local function loading_widget(text)
+    return wibox.widget {
+        {
+            make_card(make_info_line(text or "Loading audio devices...", {
+                left = 8,
+                right = 8,
+                top = 6,
+                bottom = 6,
+            })),
+            margins = 10,
+            widget = wibox.container.margin,
+        },
+        forced_width = beautiful.lxmedia_popup_width_devices or 420,
+        strategy = "max",
+        widget = wibox.container.constraint,
+    }
 end
 
 local function build_header(default_sink_label, default_source_label)
@@ -401,12 +436,17 @@ local function build_advanced_card(instance, popup_items)
 end
 
 local function build_widget(instance)
-    local audio = require("lxmedia.audio")
     local popup_items = {}
 
-    local sinks = audio.list_sinks() or {}
-    local sources = audio.list_sources() or {}
-    local streams = audio.list_sink_inputs() or {}
+    if not instance._devices_popup_data then
+        request_popup_data(instance)
+        instance._devices_popup_items = {}
+        return loading_widget("Loading audio devices...")
+    end
+
+    local sinks = instance._devices_popup_data.sinks or {}
+    local sources = instance._devices_popup_data.sources or {}
+    local streams = instance._devices_popup_data.streams or {}
 
     local default_sink_label = nil
     local default_source_label = nil

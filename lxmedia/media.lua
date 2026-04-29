@@ -179,7 +179,11 @@ end
 
 -- Best-effort mapping from a playback stream to an MPRIS player name.
 function M.player_for_stream(stream)
-    local players = M.list_players()
+    return M.player_for_stream_from_players(stream, M.list_players())
+end
+
+function M.player_for_stream_from_players(stream, players)
+    players = players or {}
     local candidates = candidate_names_for_stream(stream)
 
     -- exact candidate match first
@@ -204,6 +208,102 @@ function M.player_for_stream(stream)
     end
 
     return nil
+end
+
+local function collect_player_info(player, callback)
+    local fmt = "{{playerName}}\t{{status}}\t{{artist}}\t{{title}}"
+    local metadata_cmd = "playerctl -p " .. util.shell_escape(player) ..
+        " metadata --format " .. util.shell_escape(fmt) .. " 2>/dev/null"
+    local art_cmd = "playerctl -p " .. util.shell_escape(player) .. " metadata mpris:artUrl 2>/dev/null"
+
+    awful.spawn.easy_async_with_shell(metadata_cmd, function(metadata_stdout)
+        awful.spawn.easy_async_with_shell(art_cmd, function(art_stdout)
+            local info = {
+                player = player,
+                status = nil,
+                artist = nil,
+                title = nil,
+                art_url = util.trim(art_stdout or ""),
+            }
+
+            local out = util.trim(metadata_stdout or "")
+            local a, b, c, d = out:match("([^\t]*)\t([^\t]*)\t([^\t]*)\t(.*)")
+            if a then
+                info.player = (a ~= "") and a or player
+                info.status = (b and b ~= "") and b or nil
+                info.artist = (c and c ~= "") and c or nil
+                info.title = (d and d ~= "") and d or nil
+            end
+
+            if info.art_url == "" then
+                info.art_url = nil
+            else
+                art_cache[player] = {
+                    url = info.art_url,
+                    timestamp = os.time(),
+                }
+            end
+
+            callback(info)
+        end)
+    end)
+end
+
+function M.collect_stream_player_data_async(streams, callback)
+    streams = streams or {}
+
+    awful.spawn.easy_async_with_shell("playerctl -l 2>/dev/null", function(stdout)
+        local players = {}
+        for _, line in ipairs(util.split_lines(stdout or "")) do
+            if line ~= "" then
+                players[#players + 1] = line
+            end
+        end
+
+        local matched = {}
+        for _, stream in ipairs(streams) do
+            stream._async_player_info = true
+            local player = M.player_for_stream_from_players(stream, players)
+            if player then
+                stream._matched_player = player
+                matched[player] = true
+            end
+        end
+
+        local player_count = 0
+        for _ in pairs(matched) do
+            player_count = player_count + 1
+        end
+
+        if player_count == 0 then
+            callback(streams)
+            return
+        end
+
+        local player_info = {}
+        local remaining = player_count
+        for player in pairs(matched) do
+            collect_player_info(player, function(info)
+                player_info[player] = info
+                remaining = remaining - 1
+
+                if remaining > 0 then
+                    return
+                end
+
+                for _, stream in ipairs(streams) do
+                    local info_for_stream = stream._matched_player and player_info[stream._matched_player] or nil
+                    if info_for_stream then
+                        stream._player_info = info_for_stream
+                        stream._art_url = info_for_stream.art_url
+                        stream._async_player_info = true
+                    end
+                end
+
+                callback(streams)
+            end)
+        end
+    end)
 end
 
 function M.play_pause(player)

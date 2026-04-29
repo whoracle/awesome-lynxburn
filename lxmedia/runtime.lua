@@ -79,6 +79,7 @@ function M.extend(instance_methods)
         end
 
         audio.subscribe(function()
+            self:_invalidate_popup_data()
             self:refresh()
         end)
     end
@@ -166,6 +167,11 @@ function M.extend(instance_methods)
         end)
     end
 
+    function instance_methods:_invalidate_popup_data()
+        self._media_popup_data = nil
+        self._devices_popup_data = nil
+    end
+
     function instance_methods:_schedule_refresh(delay, opts)
         opts = opts or {}
 
@@ -176,6 +182,7 @@ function M.extend(instance_methods)
 
         self._post_action_refresh_timer = gears.timer.start_new(delay or 0.12, function()
             self._post_action_refresh_timer = nil
+            self:_invalidate_popup_data()
             self:refresh()
 
             if opts.refresh_media_popup and self._media_popup and self._media_popup.visible then

@@ -7,6 +7,10 @@ local subscription_pid = nil
 local subscription_debounce = nil
 local subscription_exit_hook_registered = false
 local parse_first_percent
+local map_sink_input_mutes
+local map_sink_input_volumes
+local map_source_output_mutes
+local map_source_output_volumes
 
 -- Parse `pactl list short ...` output into small typed row tables.
 local function parse_tabular_short_list(out, kind)
@@ -112,6 +116,141 @@ local function get_source_volume_percent(name)
     return parse_first_percent(out)
 end
 
+local function build_sinks(short_out, default_name)
+    local short = parse_tabular_short_list(short_out or "", "sink")
+
+    for _, sink in ipairs(short) do
+        sink.is_default = (sink.name == default_name)
+        sink.label = sink.name
+    end
+
+    return short
+end
+
+local function build_sources(short_out, default_name, sources_dump)
+    local short = parse_tabular_short_list(short_out or "", "source")
+    local source_mutes = {}
+
+    local current_id = nil
+    for _, line in ipairs(util.split_lines(sources_dump or "")) do
+        local id = line:match("^Source #(%d+)")
+        if id then
+            current_id = id
+        elseif current_id then
+            if line:match("^%s*Mute:%s*yes") then
+                source_mutes[current_id] = true
+            elseif line:match("^%s*Mute:%s*no") then
+                source_mutes[current_id] = false
+            end
+        end
+    end
+
+    local filtered = {}
+    for _, source in ipairs(short) do
+        if not source.name:match("%.monitor$") then
+            source.is_default = (source.name == default_name)
+            source.label = source.name
+            source.muted = source_mutes[source.id] or false
+            filtered[#filtered + 1] = source
+        end
+    end
+
+    return filtered
+end
+
+local function build_sink_inputs(short_out, sink_inputs_dump, sinks)
+    local short = parse_tabular_short_list(short_out or "", "sink-input")
+    local props = map_stream_props_by_id(sink_inputs_dump or "")
+    local sink_map = {}
+    local volumes = map_sink_input_volumes(sink_inputs_dump or "")
+    local mutes = map_sink_input_mutes(sink_inputs_dump or "")
+
+    for _, sink in ipairs(sinks or {}) do
+        sink_map[sink.id] = sink
+    end
+
+    for _, stream in ipairs(short) do
+        local p = props[stream.id] or {}
+        local app_name = p["application.name"]
+        local media_name = p["media.name"]
+        local window_title = p["window.x11.title"] or p["application.process.title"] or p["node.description"]
+        local binary = p["application.process.binary"] or p["application.process.name"]
+
+        stream.app_name = app_name or media_name or ("Stream " .. tostring(stream.id))
+        stream.media_name = media_name
+        stream.window_title = window_title
+        stream.binary = binary
+        stream.props = p
+        stream.label = stream.app_name
+        stream.volume = volumes[stream.id] or nil
+        stream.muted = mutes[stream.id] or false
+
+        if stream.media_name and stream.media_name ~= stream.app_name then
+            stream.label = stream.app_name .. " — " .. stream.media_name
+        end
+
+        if stream.window_title and stream.window_title ~= ""
+            and stream.window_title ~= stream.media_name
+            and stream.window_title ~= stream.app_name
+        then
+            stream.detail = stream.window_title
+        elseif stream.media_name and stream.media_name ~= "" and stream.media_name ~= stream.app_name then
+            stream.detail = stream.media_name
+        elseif stream.binary and stream.binary ~= "" and stream.binary ~= stream.app_name then
+            stream.detail = stream.binary
+        end
+
+        local sink = sink_map[stream.sink_id]
+        if sink then
+            stream.sink_name = sink.name
+            stream.sink_label = sink.label or sink.name
+        end
+    end
+
+    return short
+end
+
+local function build_source_outputs(short_out, source_outputs_dump, sources)
+    local short = parse_tabular_short_list(short_out or "", "source-output")
+    local mutes = map_source_output_mutes(source_outputs_dump or "")
+    local volumes = map_source_output_volumes(source_outputs_dump or "")
+    local props = map_stream_props_by_id(source_outputs_dump or "")
+    local source_map = {}
+
+    for _, source in ipairs(sources or {}) do
+        source_map[source.id] = source
+    end
+
+    for _, source_output in ipairs(short) do
+        local p = props[source_output.id] or {}
+        local app_name = p["application.name"]
+        local media_name = p["media.name"]
+        local window_title = p["window.x11.title"] or p["application.process.title"] or p["node.description"]
+        local binary = p["application.process.binary"] or p["application.process.name"]
+
+        source_output.app_name = app_name or media_name or ("Source Output " .. tostring(source_output.id))
+        source_output.media_name = media_name
+        source_output.window_title = window_title
+        source_output.binary = binary
+        source_output.props = p
+        source_output.label = source_output.app_name
+        source_output.volume = volumes[source_output.id] or nil
+        source_output.muted = mutes[source_output.id] or false
+
+        if source_output.media_name and source_output.media_name ~= source_output.app_name then
+            source_output.label = source_output.app_name .. " — " .. source_output.media_name
+        end
+
+        local source = source_map[source_output.source_id]
+        if source then
+            source_output.source_name = source.name
+            source_output.source_label = source.label or source.name
+        end
+    end
+
+    return short
+end
+
 -- Read widget-facing default output volume and mute state from `pactl`.
 local function get_volume_info()
     local sink = get_default_sink()
@@ -198,7 +337,7 @@ local function get_sink_input_volume_percent(stream_id)
     return nil
 end
 
-local function map_sink_input_mutes(out)
+map_sink_input_mutes = function(out)
     local result = {}
 
     local current_id = nil
@@ -219,7 +358,7 @@ local function map_sink_input_mutes(out)
     return result
 end
 
-local function map_source_output_mutes(out)
+map_source_output_mutes = function(out)
     local result = {}
 
     local current_id = nil
@@ -239,7 +378,7 @@ local function map_source_output_mutes(out)
     return result
 end
 
-local function map_source_output_volumes(out)
+map_source_output_volumes = function(out)
     local result = {}
 
     local current_id = nil
@@ -378,49 +517,16 @@ end
 
 -- List available output devices, tagging the current default sink.
 function M.list_sinks()
-    local short = parse_tabular_short_list(util.read_command("pactl list short sinks 2>/dev/null"), "sink")
-    local default_name = get_default_sink()
-
-    for _, sink in ipairs(short) do
-        sink.is_default = (sink.name == default_name)
-        sink.label = sink.name
-    end
-
-    return short
+    return build_sinks(util.read_command("pactl list short sinks 2>/dev/null"), get_default_sink())
 end
 
 -- List available input devices, excluding monitor sources.
 function M.list_sources()
-    local short = parse_tabular_short_list(util.read_command("pactl list short sources 2>/dev/null"), "source")
-    local default_name = get_default_source()
-    local sources_dump = util.read_command("pactl list sources 2>/dev/null")
-    local source_mutes = {}
-
-    local current_id = nil
-    for _, line in ipairs(util.split_lines(sources_dump)) do
-        local id = line:match("^Source #(%d+)")
-        if id then
-            current_id = id
-        elseif current_id then
-            if line:match("^%s*Mute:%s*yes") then
-                source_mutes[current_id] = true
-            elseif line:match("^%s*Mute:%s*no") then
-                source_mutes[current_id] = false
-            end
-        end
-    end
-
-    local filtered = {}
-    for _, source in ipairs(short) do
-        if not source.name:match("%.monitor$") then
-            source.is_default = (source.name == default_name)
-            source.label = source.name
-            source.muted = source_mutes[source.id] or false
-            filtered[#filtered + 1] = source
-        end
-    end
-
-    return filtered
+    return build_sources(
+        util.read_command("pactl list short sources 2>/dev/null"),
+        get_default_source(),
+        util.read_command("pactl list sources 2>/dev/null")
+    )
 end
 
 function M.set_default_sink(name)
@@ -431,7 +537,7 @@ function M.set_default_source(name)
     awful.spawn("pactl set-default-source " .. util.shell_escape(name), false)
 end
 
-local function map_sink_input_volumes(out)
+map_sink_input_volumes = function(out)
     local result = {}
 
     local current_id = nil
@@ -453,57 +559,11 @@ end
 -- Enumerate active playback streams together with their sink routing and
 -- best-effort metadata extracted from stream properties.
 function M.list_sink_inputs()
-    local short = parse_tabular_short_list(util.read_command("pactl list short sink-inputs 2>/dev/null"), "sink-input")
-    local sink_inputs_dump = util.read_command("pactl list sink-inputs 2>/dev/null")
-    local props = map_stream_props_by_id(sink_inputs_dump)
-    local sinks = M.list_sinks()
-    local sink_map = {}
-    local volumes = map_sink_input_volumes(sink_inputs_dump)
-    local mutes = map_sink_input_mutes(sink_inputs_dump)
-
-    for _, sink in ipairs(sinks) do
-        sink_map[sink.id] = sink
-    end
-
-    for _, stream in ipairs(short) do
-        local p = props[stream.id] or {}
-        local app_name = p["application.name"]
-        local media_name = p["media.name"]
-        local window_title = p["window.x11.title"] or p["application.process.title"] or p["node.description"]
-        local binary = p["application.process.binary"] or p["application.process.name"]
-
-        stream.app_name = app_name or media_name or ("Stream " .. tostring(stream.id))
-        stream.media_name = media_name
-        stream.window_title = window_title
-        stream.binary = binary
-        stream.props = p
-        stream.label = stream.app_name
-        stream.volume = volumes[stream.id] or nil
-        stream.muted = mutes[stream.id] or false
-
-        if stream.media_name and stream.media_name ~= stream.app_name then
-            stream.label = stream.app_name .. " — " .. stream.media_name
-        end
-
-        if stream.window_title and stream.window_title ~= ""
-            and stream.window_title ~= stream.media_name
-            and stream.window_title ~= stream.app_name
-        then
-            stream.detail = stream.window_title
-        elseif stream.media_name and stream.media_name ~= "" and stream.media_name ~= stream.app_name then
-            stream.detail = stream.media_name
-        elseif stream.binary and stream.binary ~= "" and stream.binary ~= stream.app_name then
-            stream.detail = stream.binary
-        end
-
-        local sink = sink_map[stream.sink_id]
-        if sink then
-            stream.sink_name = sink.name
-            stream.sink_label = sink.label or sink.name
-        end
-    end
-
-    return short
+    return build_sink_inputs(
+        util.read_command("pactl list short sink-inputs 2>/dev/null"),
+        util.read_command("pactl list sink-inputs 2>/dev/null"),
+        M.list_sinks()
+    )
 end
 
 -- Change volume for a single sink input rather than the default sink.
@@ -547,46 +607,11 @@ M.set_sink_input_value = M.set_sink_input_volume
 
 -- Source outputs are used as a coarse "microphone currently active" signal.
 function M.list_source_outputs()
-    local short = parse_tabular_short_list(util.read_command("pactl list short source-outputs 2>/dev/null"), "source-output")
-    local source_outputs_dump = util.read_command("pactl list source-outputs 2>/dev/null")
-    local mutes = map_source_output_mutes(source_outputs_dump)
-    local volumes = map_source_output_volumes(source_outputs_dump)
-    local props = map_stream_props_by_id(source_outputs_dump)
-    local sources = M.list_sources()
-    local source_map = {}
-
-    for _, source in ipairs(sources) do
-        source_map[source.id] = source
-    end
-
-    for _, source_output in ipairs(short) do
-        local p = props[source_output.id] or {}
-        local app_name = p["application.name"]
-        local media_name = p["media.name"]
-        local window_title = p["window.x11.title"] or p["application.process.title"] or p["node.description"]
-        local binary = p["application.process.binary"] or p["application.process.name"]
-
-        source_output.app_name = app_name or media_name or ("Source Output " .. tostring(source_output.id))
-        source_output.media_name = media_name
-        source_output.window_title = window_title
-        source_output.binary = binary
-        source_output.props = p
-        source_output.label = source_output.app_name
-        source_output.volume = volumes[source_output.id] or nil
-        source_output.muted = mutes[source_output.id] or false
-
-        if source_output.media_name and source_output.media_name ~= source_output.app_name then
-            source_output.label = source_output.app_name .. " — " .. source_output.media_name
-        end
-
-        local source = source_map[source_output.source_id]
-        if source then
-            source_output.source_name = source.name
-            source_output.source_label = source.label or source.name
-        end
-    end
-
-    return short
+    return build_source_outputs(
+        util.read_command("pactl list short source-outputs 2>/dev/null"),
+        util.read_command("pactl list source-outputs 2>/dev/null"),
+        M.list_sources()
+    )
 end
 
 function M.set_source_output_volume(source_output_id, percent)
@@ -602,6 +627,52 @@ M.set_source_output_value = M.set_source_output_volume
 
 function M.toggle_source_output_mute(source_output_id)
     awful.spawn("pactl set-source-output-mute " .. util.shell_escape(source_output_id) .. " toggle", false)
+end
+
+function M.collect_popup_data_async(callback)
+    local commands = {
+        sinks_short = "pactl list short sinks 2>/dev/null",
+        sources_short = "pactl list short sources 2>/dev/null",
+        sink_inputs_short = "pactl list short sink-inputs 2>/dev/null",
+        source_outputs_short = "pactl list short source-outputs 2>/dev/null",
+        sources_dump = "pactl list sources 2>/dev/null",
+        sink_inputs_dump = "pactl list sink-inputs 2>/dev/null",
+        source_outputs_dump = "pactl list source-outputs 2>/dev/null",
+        default_sink = "pactl get-default-sink 2>/dev/null",
+        default_source = "pactl get-default-source 2>/dev/null",
+    }
+
+    local results = {}
+    local remaining = 0
+    for _ in pairs(commands) do
+        remaining = remaining + 1
+    end
+
+    local function finish()
+        remaining = remaining - 1
+        if remaining > 0 then
+            return
+        end
+
+        local sinks = build_sinks(results.sinks_short, util.trim(results.default_sink or ""))
+        local sources = build_sources(results.sources_short, util.trim(results.default_source or ""), results.sources_dump)
+        local streams = build_sink_inputs(results.sink_inputs_short, results.sink_inputs_dump, sinks)
+        local source_outputs = build_source_outputs(results.source_outputs_short, results.source_outputs_dump, sources)
+
+        callback({
+            sinks = sinks,
+            sources = sources,
+            streams = streams,
+            source_outputs = source_outputs,
+        })
+    end
+
+    for key, cmd in pairs(commands) do
+        awful.spawn.easy_async_with_shell(cmd, function(stdout)
+            results[key] = stdout or ""
+            finish()
+        end)
+    end
 end
 
 function M.move_sink_input(stream_id, sink_name)
