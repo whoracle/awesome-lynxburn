@@ -80,7 +80,9 @@ local function resolve_actions(self, descriptor)
 
     if descriptor.default_actions ~= false then
         for key, action in pairs(DEFAULT_ACTIONS) do
-            actions[key] = action
+            actions[key] = function()
+                action(self)
+            end
         end
     end
 
