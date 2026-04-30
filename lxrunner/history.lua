@@ -1,27 +1,12 @@
 local awful = require("awful")
 local gears = require("gears")
+local json = require("lxcommon.dkjson")
 local util = require("lxcommon.util")
 
 local M = {}
 
 local function strip_trailing_newlines(s)
     return tostring(s or ""):gsub("[\r\n]+$", "")
-end
-
-local function escape_field(s)
-    s = tostring(s or "")
-    s = s:gsub("\\", "\\\\")
-    s = s:gsub("\t", "\\t")
-    s = s:gsub("\n", "\\n")
-    return s
-end
-
-local function unescape_field(s)
-    s = tostring(s or "")
-    s = s:gsub("\\n", "\n")
-    s = s:gsub("\\t", "\t")
-    s = s:gsub("\\\\", "\\")
-    return s
 end
 
 local function longest_common_prefix(values)
@@ -80,6 +65,21 @@ local function split_alias_query(input)
     return alias_name or "", util.trim(arg_tail or "")
 end
 
+local function normalize_history_entry(entry)
+    if type(entry) ~= "table" or not entry.command or entry.command == "" then
+        return nil
+    end
+
+    return {
+        last_used = tonumber(entry.last_used) or 0,
+        launch_source = tostring(entry.launch_source or entry.source or ""),
+        count = math.max(1, tonumber(entry.count) or 1),
+        name = tostring(entry.name or entry.command or ""),
+        command = tostring(entry.command or ""),
+        source = "history",
+    }
+end
+
 ---Attach history, ranking, and query/filter helpers to lxrunner.
 function M.extend(instance_methods)
     ---Keep persisted history sorted by usage first, then recency.
@@ -111,44 +111,24 @@ function M.extend(instance_methods)
             return
         end
 
-        for line in handle:lines() do
-            local ts, launch_source, count, name, command = line:match("^([^\t]*)\t([^\t]*)\t([^\t]*)\t([^\t]*)\t(.*)$")
-            if ts and launch_source and count and name and command then
-                table.insert(self._history, {
-                    last_used = tonumber(ts) or 0,
-                    launch_source = launch_source,
-                    count = math.max(1, tonumber(count) or 1),
-                    name = unescape_field(name),
-                    command = unescape_field(command),
-                    source = "history",
-                })
-            else
-                ts, launch_source, name, command = line:match("^([^\t]*)\t([^\t]*)\t([^\t]*)\t(.*)$")
-                if ts and launch_source and name and command then
-                    table.insert(self._history, {
-                        last_used = tonumber(ts) or 0,
-                        launch_source = launch_source,
-                        count = 1,
-                        name = unescape_field(name),
-                        command = unescape_field(command),
-                        source = "history",
-                    })
-                else
-                    ts, name, command = line:match("^([^\t]*)\t([^\t]*)\t(.*)$")
-                    if ts and name and command then
-                        table.insert(self._history, {
-                            last_used = tonumber(ts) or 0,
-                            count = 1,
-                            name = unescape_field(name),
-                            command = unescape_field(command),
-                            source = "history",
-                        })
-                    end
-                end
+        local contents = handle:read("*a")
+        handle:close()
+
+        local decoded = json.decode(contents or "")
+        if type(decoded) ~= "table"
+            or decoded.format ~= "lxrunner-history"
+            or tonumber(decoded.version) ~= 1
+            or type(decoded.entries) ~= "table" then
+            return
+        end
+
+        for _, entry in ipairs(decoded.entries) do
+            local normalized = normalize_history_entry(entry)
+            if normalized then
+                table.insert(self._history, normalized)
             end
         end
 
-        handle:close()
         self:_sort_history()
     end
 
@@ -186,18 +166,26 @@ function M.extend(instance_methods)
             return
         end
 
+        local entries = {}
         for i = 1, math.min(#self._history, self.opts.history_limit) do
             local entry = self._history[i]
-            handle:write(string.format(
-                "%s\t%s\t%s\t%s\t%s\n",
-                tostring(entry.last_used or 0),
-                tostring(entry.launch_source or entry.source or ""),
-                tostring(math.max(1, tonumber(entry.count) or 1)),
-                escape_field(entry.name),
-                escape_field(entry.command)
-            ))
+            entries[#entries + 1] = {
+                last_used = tonumber(entry.last_used) or 0,
+                launch_source = tostring(entry.launch_source or entry.source or ""),
+                count = math.max(1, tonumber(entry.count) or 1),
+                name = tostring(entry.name or ""),
+                command = tostring(entry.command or ""),
+            }
         end
 
+        handle:write(json.encode({
+            format = "lxrunner-history",
+            version = 1,
+            entries = entries,
+        }, {
+            indent = true,
+        }))
+        handle:write("\n")
         handle:close()
     end
 
