@@ -66,18 +66,61 @@ local function split_alias_query(input)
 end
 
 local function normalize_history_entry(entry)
-    if type(entry) ~= "table" or not entry.command or entry.command == "" then
+    if type(entry) ~= "table" then
+        return nil
+    end
+
+    local launch_source = tostring(entry.launch_source or entry.source or "")
+    local count = math.max(1, tonumber(entry.count) or 1)
+    local last_used = tonumber(entry.last_used) or 0
+
+    if launch_source == "alias" then
+        local alias_name = util.trim(entry.alias_name or entry.name or "")
+        if alias_name == "" then
+            return nil
+        end
+
+        local alias_args = util.trim(entry.alias_args or entry.args or "")
+        local name = util.trim(entry.name or alias_name)
+        if name == "" then
+            name = alias_name
+        end
+
+        return {
+            last_used = last_used,
+            launch_source = "alias",
+            count = count,
+            name = name,
+            alias_name = alias_name,
+            alias_args = alias_args,
+            source = "history",
+        }
+    end
+
+    if not entry.command or entry.command == "" then
         return nil
     end
 
     return {
-        last_used = tonumber(entry.last_used) or 0,
-        launch_source = tostring(entry.launch_source or entry.source or ""),
-        count = math.max(1, tonumber(entry.count) or 1),
+        last_used = last_used,
+        launch_source = launch_source,
+        count = count,
         name = tostring(entry.name or entry.command or ""),
         command = tostring(entry.command or ""),
         source = "history",
     }
+end
+
+local function history_identity(entry)
+    if (entry.launch_source or entry.source) == "alias" then
+        return table.concat({
+            "alias",
+            tostring(entry.alias_name or entry.name or ""),
+            tostring(entry.alias_args or ""),
+        }, "\0")
+    end
+
+    return "command\0" .. tostring(entry.command or "")
 end
 
 ---Attach history, ranking, and query/filter helpers to lxrunner.
@@ -143,7 +186,10 @@ function M.extend(instance_methods)
             local same_name = history_entry.name ~= ""
                 and entry.name ~= nil
                 and history_entry.name == entry.name
-            local same_alias = entry.alias_name ~= nil and history_entry.name == entry.alias_name
+            local same_alias = entry.alias_name ~= nil
+                and history_entry.launch_source == "alias"
+                and history_entry.alias_name == entry.alias_name
+                and tostring(history_entry.alias_args or "") == tostring(entry.alias_args or "")
 
             if same_command or same_name or same_alias then
                 local recency_bonus = math.max(0, (self.opts.history_limit - index + 1) * 10)
@@ -169,13 +215,24 @@ function M.extend(instance_methods)
         local entries = {}
         for i = 1, math.min(#self._history, self.opts.history_limit) do
             local entry = self._history[i]
-            entries[#entries + 1] = {
+            local saved = {
                 last_used = tonumber(entry.last_used) or 0,
                 launch_source = tostring(entry.launch_source or entry.source or ""),
                 count = math.max(1, tonumber(entry.count) or 1),
                 name = tostring(entry.name or ""),
-                command = tostring(entry.command or ""),
             }
+
+            if saved.launch_source == "alias" then
+                saved.alias_name = tostring(entry.alias_name or entry.name or "")
+                local alias_args = util.trim(entry.alias_args or "")
+                if alias_args ~= "" then
+                    saved.alias_args = alias_args
+                end
+            else
+                saved.command = tostring(entry.command or "")
+            end
+
+            entries[#entries + 1] = saved
         end
 
         handle:write(json.encode({
@@ -189,6 +246,40 @@ function M.extend(instance_methods)
         handle:close()
     end
 
+    ---Find a configured alias by name.
+    function instance_methods:_find_alias(alias_name)
+        for _, alias in ipairs(self._aliases or {}) do
+            if alias.name == alias_name then
+                return alias
+            end
+        end
+
+        return nil
+    end
+
+    ---Resolve a semantic alias history row through the current alias config.
+    function instance_methods:_resolve_history_alias(entry)
+        local alias = self:_find_alias(entry.alias_name or entry.name)
+        if not alias then
+            return nil
+        end
+
+        local alias_args = util.trim(entry.alias_args or "")
+        local raw_input = alias.name
+        if alias_args ~= "" then
+            raw_input = raw_input .. " " .. alias_args
+        end
+
+        local resolved = self:_resolved_alias_entry(alias, raw_input, alias_args)
+        resolved.source = "history"
+        resolved.launch_source = "alias"
+        resolved.name = entry.name or resolved.name
+        resolved.last_used = entry.last_used
+        resolved.count = entry.count
+
+        return resolved
+    end
+
     ---Choose the user-facing history label based on the original launch source.
     function instance_methods:_history_label(entry)
         if not entry then
@@ -198,7 +289,7 @@ function M.extend(instance_methods)
         local source = entry.launch_source or entry.source
 
         if source == "alias" then
-            return util.trim(entry.alias_name or entry.name or entry.command)
+            return util.trim(entry.name or entry.alias_name or entry.command)
         end
 
         if source == "desktop" then
@@ -214,24 +305,42 @@ function M.extend(instance_methods)
 
     ---Move a launch to the front of history and keep the list size bounded.
     function instance_methods:_record_history(entry)
-        if not entry or not entry.command or entry.command == "" then
+        if not entry then
+            return
+        end
+
+        local launch_source = entry.launch_source or entry.source
+        local is_alias = launch_source == "alias"
+
+        if not is_alias and (not entry.command or entry.command == "") then
             return
         end
 
         local updated = {
             name = self:_history_label(entry),
-            command = entry.command,
             source = "history",
-            launch_source = entry.launch_source or entry.source,
+            launch_source = launch_source,
             last_used = os.time(),
             count = 1,
         }
 
+        if is_alias then
+            updated.alias_name = util.trim(entry.alias_name or entry.name or "")
+            updated.alias_args = util.trim(entry.alias_args or "")
+
+            if updated.alias_name == "" then
+                return
+            end
+        else
+            updated.command = entry.command
+        end
+
+        local updated_identity = history_identity(updated)
         local existing_count = 0
         local new_history = { updated }
 
         for _, existing in ipairs(self._history) do
-            if existing.command == updated.command then
+            if history_identity(existing) == updated_identity then
                 existing_count = math.max(existing_count, tonumber(existing.count) or 1)
             else
                 table.insert(new_history, existing)
@@ -320,7 +429,20 @@ function M.extend(instance_methods)
     ---Return the active result set: history while empty, filtered matches while typing.
     function instance_methods:_visible_entries()
         if self._input == "" then
-            return self._history
+            local visible = {}
+
+            for _, entry in ipairs(self._history) do
+                if entry.launch_source == "alias" then
+                    local resolved = self:_resolve_history_alias(entry)
+                    if resolved then
+                        table.insert(visible, resolved)
+                    end
+                else
+                    table.insert(visible, entry)
+                end
+            end
+
+            return visible
         end
 
         return self._matches
@@ -446,7 +568,9 @@ function M.extend(instance_methods)
             return
         end
 
-        if selected.source == "alias"
+        local is_alias_launch = selected.source == "alias" or selected.launch_source == "alias"
+
+        if is_alias_launch
             and selected.notify
             and type(self.opts.service_refresh) == "function" then
             awful.spawn.easy_async_with_shell(selected.command, function()

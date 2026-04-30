@@ -33,10 +33,12 @@ release:
     launch history after upgrading
   - expected JSON shape:
     `{ "format": "lxrunner-history", "version": 1, "entries": [ ... ] }`
-  - each entry should contain at least `last_used`, `launch_source`, `count`,
-    `name`, and `command`
-  - local aliases from `lxmodules.lxrunner.aliases` continue to resolve from
-    `config.lua`; the history file stores only launched/resolved entries
+  - non-alias entries should contain at least `last_used`, `launch_source`,
+    `count`, `name`, and `command`
+  - alias entries should contain `last_used`, `launch_source = "alias"`,
+    `count`, `name`, `alias_name`, and optional `alias_args`
+  - local aliases from `lxmodules.lxrunner.aliases` resolve from `config.lua`;
+    the history file stores alias identity instead of resolved shell commands
 
 ### `v1.8.0` -> `v1.9.0`
 

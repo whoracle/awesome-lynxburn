@@ -334,6 +334,7 @@ function M.extend(instance_methods)
             command = resolved_command,
             source = "alias",
             alias_name = alias.name,
+            alias_args = arg_tail,
             notify = alias.notify,
             icon = alias.icon,
             glyph = alias.glyph,
