@@ -7,6 +7,8 @@ Current baseline:
 - check what the latest semver-compliant git tag in the current worktree is and assume that as the baseline to migrate from
 - the repo is allowed to be ahead of a given tag, but still assume the last tag as the baseline and check against that (e.g., the most recent tag chronologically)
 - document only incremental migrations from that point forward
+- when the repo is ahead of the latest tag, use a topmost
+  `` `latest-tag` -> `next` `` section until the next release tag exists
 - do not use this file for one-off machine migration notes anymore
 
 ## Migration Policy
@@ -19,6 +21,23 @@ Current baseline:
 
 ## Documented Migrations
 
+### `v1.9.0` -> `next`
+
+Apply these user-facing migrations when moving from `v1.9.0` to the next
+release:
+
+- `lxrunner` launch history moved from the previous escaped TSV file to a
+  versioned JSON object; no backwards-compatible TSV reader is kept
+  - keep the default file path as `~/.lxrunner_history`
+  - migrate or delete the live `~/.lxrunner_history` before relying on old
+    launch history after upgrading
+  - expected JSON shape:
+    `{ "format": "lxrunner-history", "version": 1, "entries": [ ... ] }`
+  - each entry should contain at least `last_used`, `launch_source`, `count`,
+    `name`, and `command`
+  - local aliases from `lxmodules.lxrunner.aliases` continue to resolve from
+    `config.lua`; the history file stores only launched/resolved entries
+
 ### `v1.8.0` -> `v1.9.0`
 
 No required user-facing config migration is currently required.
@@ -28,18 +47,6 @@ Optional cleanup and new config surface:
 - if you want `lxbar` only on selected screens, set
   `lxmodules.lxbar.screens` to configured monitor names, for example:
   `screens = { "center", "left" }`
-- `lxrunner` launch history should move from the current escaped TSV file to a
-  versioned JSON object; no backwards-compatible TSV reader is required for this
-  repo
-  - keep the default file path as `~/.lxrunner_history`
-  - do not edit or rewrite a live `~/.lxrunner_history` before explicitly being
-    instructed to migrate that machine
-  - expected JSON shape:
-    `{ "format": "lxrunner-history", "version": 1, "entries": [ ... ] }`
-  - each entry should contain at least `last_used`, `launch_source`, `count`,
-    `name`, and `command`
-  - local aliases from `lxmodules.lxrunner.aliases` continue to resolve from
-    `config.lua`; the history file stores only launched/resolved entries
 - for `lxsecrets` GitLab entries, `secrets[].selectors` is now the canonical
   selector for the managed token; remove `token_selector` from local configs
   unless you intentionally need the backwards-compatibility override
