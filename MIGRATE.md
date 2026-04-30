@@ -28,6 +28,18 @@ Optional cleanup and new config surface:
 - if you want `lxbar` only on selected screens, set
   `lxmodules.lxbar.screens` to configured monitor names, for example:
   `screens = { "center", "left" }`
+- `lxrunner` launch history should move from the current escaped TSV file to a
+  versioned JSON object; no backwards-compatible TSV reader is required for this
+  repo
+  - keep the default file path as `~/.lxrunner_history`
+  - do not edit or rewrite a live `~/.lxrunner_history` before explicitly being
+    instructed to migrate that machine
+  - expected JSON shape:
+    `{ "format": "lxrunner-history", "version": 1, "entries": [ ... ] }`
+  - each entry should contain at least `last_used`, `launch_source`, `count`,
+    `name`, and `command`
+  - local aliases from `lxmodules.lxrunner.aliases` continue to resolve from
+    `config.lua`; the history file stores only launched/resolved entries
 - for `lxsecrets` GitLab entries, `secrets[].selectors` is now the canonical
   selector for the managed token; remove `token_selector` from local configs
   unless you intentionally need the backwards-compatibility override
