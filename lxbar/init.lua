@@ -59,23 +59,6 @@ local function cycle_target(ordered, visible, direction)
     return ordered[target_index]
 end
 
-local function same_popup(left, right)
-    return left
-        and right
-        and left.module_id == right.module_id
-        and left.popup_id == right.popup_id
-end
-
-local function entry_in_order(ordered, candidate)
-    for _, entry in ipairs(ordered) do
-        if same_popup(entry, candidate) then
-            return entry
-        end
-    end
-
-    return nil
-end
-
 ---Rebuild the visible lxbar widget row from the shared registry order.
 function M:refresh()
     self._layout:reset()
@@ -97,43 +80,34 @@ end
 
 ---Show one specific popup by module id and popup id.
 function M:show_popup(module_id, popup_id, opts)
-    self._last_cycle_target = nil
     return popup_manager.show(module_id, popup_id or "default", opts)
 end
 
 ---Toggle one specific popup by module id and popup id.
 function M:toggle_popup(module_id, popup_id, opts)
-    self._last_cycle_target = nil
     return popup_manager.toggle(module_id, popup_id or "default", opts)
 end
 
 ---Show the popup registered for a semantic popup role.
 function M:show_popup_by_role(module_id, popup_role, opts)
-    self._last_cycle_target = nil
     return popup_manager.show_by_popup_role(module_id, popup_role, opts)
 end
 
 ---Toggle the popup registered for a semantic popup role.
 function M:toggle_popup_by_role(module_id, popup_role, opts)
-    self._last_cycle_target = nil
     return popup_manager.toggle_by_popup_role(module_id, popup_role, opts)
 end
 
 ---Cycle through visible popup candidates using bar order plus popup-role order.
 function M:cycle_popups(direction, opts)
     local ordered = ordered_popup_entries()
-    local visible = popup_manager.current_visible()
-    local anchor = entry_in_order(ordered, self._last_cycle_target) or visible
-    local target = cycle_target(ordered, anchor, direction)
+    local target = cycle_target(ordered, popup_manager.current_visible(), direction)
 
     if not target then
-        self._last_cycle_target = nil
         return false
     end
 
-    local shown = popup_manager.show(target.module_id, target.popup_id, opts)
-    self._last_cycle_target = shown and target or nil
-    return shown
+    return popup_manager.show(target.module_id, target.popup_id, opts)
 end
 
 ---Cycle through popup candidates from an explicit module/popup anchor.
@@ -159,7 +133,6 @@ function M.new(opts)
     opts = opts or {}
 
     local self = setmetatable({}, M)
-    self._last_cycle_target = nil
     self._layout = wibox.layout.fixed.horizontal()
     self.widget = wibox.widget({
         self._layout,
