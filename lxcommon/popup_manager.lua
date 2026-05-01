@@ -160,6 +160,23 @@ local function active_is_visible()
     return true
 end
 
+local function scan_visible()
+    for module_id, module_popups in pairs(popups) do
+        for popup_id, handle in pairs(module_popups) do
+            if handle and type(handle.is_visible) == "function" and handle.is_visible() then
+                active = {
+                    module_id = module_id,
+                    popup_id = popup_id,
+                    handle = handle,
+                }
+                return active
+            end
+        end
+    end
+
+    return nil
+end
+
 local function close_active()
     if not active then
         return
@@ -189,7 +206,7 @@ function M.current_visible()
         return active
     end
 
-    return nil
+    return scan_visible()
 end
 
 ---Show one popup and close every other registered popup first.
