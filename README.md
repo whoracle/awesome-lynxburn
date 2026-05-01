@@ -22,12 +22,13 @@ first rather than a polished general-purpose distribution.
 Core runtime:
 
 - AwesomeWM
+  SomeWM 1.4 is also supported as an experimental Wayland compatibility target.
 - the Lua libraries shipped with AwesomeWM, including `awful`, `beautiful`,
   `gears`, `naughty`, and `wibox`
 - a font with broad glyph coverage for the bar and popup icons, ideally
   something like `Hack Nerd Font Mono`
 
-Common external commands used by the current config:
+Common external commands used by the current Awesome/X11 defaults:
 
 - `playerctl`
 - `xbacklight` or an equivalent brightness backend if you override it
@@ -57,6 +58,16 @@ Common desktop programs referenced by the defaults:
 This README intentionally does not include distro-specific installation steps
 yet.
 
+SomeWM/Wayland defaults use Wayland-native commands where practical:
+
+- `foot`
+- `grim`
+- `slurp`
+- `brightnessctl`
+- `wlopm`
+- `wlr-randr`
+- optional `wl-paste` for lxrunner primary-selection paste
+
 ## Startup Preflight
 
 After Awesome has loaded successfully, the config runs a startup preflight pass
@@ -70,9 +81,9 @@ Current behavior:
 - the same report is shown as a `naughty` notification
 - bar-module checks are only performed for modules currently enabled through
   `lxmodules.lxbar.order`
-- shipped screenshot-command dependencies such as `scrot` / `xdg-open` are only
-  checked when those default commands are still in use rather than overridden
-  locally
+- shipped screenshot-command dependencies such as `scrot` / `grim` / `slurp` /
+  `xdg-open` are only checked when those default commands are still in use
+  rather than overridden locally
 
 This is intentionally a concrete binary/command inventory, not a broader
 service-health or environment-diagnostics framework.
@@ -232,7 +243,8 @@ Modules:
 - [`lxpower`](./lxpower/README.md): power-profile widget for AC/battery-aware
   profile switching, pinning, and dGPU status display
 - [`lxdisplay`](./lxdisplay/README.md): display-control widget for brightness,
-  DPMS off, redshift-style temperature handling, and xrandr profile application
+  DPMS/display off, redshift-style temperature handling, and backend-specific
+  display-profile application
 - [`lxsecrets`](./lxsecrets/README.md): secret/token health widget for GitLab
   and Vault refresh flows, expiry display, VPN-gated checks, and login-needed
   attention state

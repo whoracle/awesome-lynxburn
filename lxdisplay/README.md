@@ -4,7 +4,7 @@
 config.
 
 Right now it owns brightness control, built-in night-mode/redshift-style gamma
-scheduling, and a compact `xrandr`-driven popup for activating configured
+scheduling on X11, and a compact backend-driven popup for activating configured
 display profiles or attaching transient displays. It is intentionally not a
 full display manager.
 
@@ -20,7 +20,8 @@ External:
 
 - AwesomeWM core libraries: `awful`, `gears`, `wibox`, `beautiful`
 - brightness backend command such as `xbacklight` or `brightnessctl`
-- `xrandr` for gamma application
+- `xrandr` for X11 gamma/profile application
+- `wlr-randr` for SomeWM/Wayland profile application
 
 Internal:
 
@@ -29,8 +30,8 @@ Internal:
   - `util`
 
 The top-level startup preflight checks the effective brightness commands plus
-the `xrandr`-compatible command used for redshift and display-profile actions
-when `lxdisplay` is enabled in `lxmodules.lxbar.order`.
+the active display backend command when `lxdisplay` is enabled in
+`lxmodules.lxbar.order`.
 
 ## Features
 
@@ -43,7 +44,7 @@ when `lxdisplay` is enabled in `lxmodules.lxbar.order`.
 - sunrise/sunset scheduling when latitude/longitude are configured
 - fallback clock-based day/night scheduling
 - middle-click suspend/resume for redshift behavior
-- config-driven `xrandr` display profiles with passthrough output arguments
+- config-driven display profiles with backend-specific output arguments
 - one-shot detection for transient displays outside the active profile
 - startup auto-apply for one chosen profile, with a panic mirror fallback
 
@@ -247,15 +248,22 @@ to the primary output so some screen stays usable.
 - `"auto"` becomes `--auto`
 - any other string becomes `--mode <value>`
 
-Every other output key is passed through to `xrandr` by turning underscores
-into dashes and prefixing `--`. Examples:
+Every other output key is passed through to the active display backend by
+turning underscores into dashes and prefixing `--`. Examples on X11:
 
 - `left_of = "eDP-1"` becomes `--left-of eDP-1`
 - `rotate = "left"` becomes `--rotate left`
 - `primary = true` becomes `--primary`
 
+On SomeWM/Wayland, `wlr-randr` is used instead:
+
+- `left_of = "eDP-1"` becomes `--left-of eDP-1`
+- `rotate = "left"` becomes `--transform 90`
+- `pos = "1200x0"` becomes `--pos 1200,0`
+- `primary` is display-only metadata and is not passed to `wlr-randr`
+
 `friendly_name` is display-only metadata for the popup/profile summaries and is
-not passed through to `xrandr`.
+not passed through to the display backend.
 
 Optional outputs stay attached to a profile without making the profile fail
 when the hardware is absent:
@@ -313,7 +321,10 @@ when the hardware is absent:
 
 - `init.lua`: constructor and instance wiring
 - `helpers.lua`: pure math and scheduling helpers
-- `displays.lua`: display-profile normalization, detection, and `xrandr` apply logic
+- `backend.lua`: active display backend resolver
+- `backend_x11.lua`: X11 `xrandr` backend
+- `backend_somewm.lua`: SomeWM/Wayland `wlr-randr` backend
+- `displays.lua`: display-profile normalization, detection, and backend apply flow
 - `popup.lua`: popup rendering and popup-selection behavior
 - `theme.lua`: widget rendering, OSD, and theme-driven display state
 - `brightness.lua`: brightness command execution and refresh flow

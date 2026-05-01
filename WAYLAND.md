@@ -36,7 +36,7 @@ somewm --check /home/anthrax/tmp/awesome/rc.lua
 
 ## Initial Compatibility Findings
 
-The current `somewm --check` report flagged these areas:
+The initial `somewm --check` report flagged these areas:
 
 - `scrot` in `config/defaults.lua`
   Use `grim`/`slurp` or a compositor-native screenshot path instead
@@ -146,25 +146,29 @@ Implemented:
 - config-dir-aware theme loading so a `~/.config/somewm` checkout does not
   assume `~/.config/awesome`
 - tracked `config.somewm.example.lua` and `config.awesome.example.lua`
+- Wayland screenshot defaults based on `grim` / `slurp`
+- Wayland primary-selection paste for `lxrunner` through `wl-paste`
+- SomeWM `lxdisplay` backend for display profiles through `wlr-randr`
+- Wayland-safe default brightness commands through `brightnessctl`
+- Wayland-safe default display-off command through `wlopm`
 - shared `settings.keyboard` handling:
   - `setxkbmap` on Awesome/X11
   - `awful.input.xkb_*` on SomeWM/Wayland
 - translated `foot` config at `wayland/foot.ini.example`
 
-Still pending from `somewm --check`:
+Current `somewm --check /home/anthrax/tmp/awesome/rc.lua` status:
 
-- `scrot`
-- `xset`
-- `xclip` / `xsel`
-- `lpeg` environment/package issue
+- no compatibility issues found
 
 ## Open Questions
 
-- whether `brightnessctl` is the right cross-session default backend
-- whether `grim` / `slurp` is preferable to any compositor-native screenshot
-  API for the first pass
 - how much of `lxdisplay` can stay config-compatible while swapping out the
   underlying backend
+- whether `wlr-randr` is dependable enough for startup display-profile
+  application on real hardware or should remain a best-effort helper next to a
+  user shell script
+- whether `grim` / `slurp` is preferable to any compositor-native screenshot
+  API long-term
 - whether SomeWM-specific compatibility quirks from the Awesome `4.4` base
   should be handled via runtime detection or explicit `config.lua.platform`
 - whether it is worth explicitly version-gating SomeWM quirks if `1.4` and
