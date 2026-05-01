@@ -19,7 +19,8 @@ External:
 Internal:
 
 - `lxcommon.popup_control`
-- `lxcommon.popup_shell`
+- `lxcommon.popup_controller`
+- `lxcommon.popup_session`
 - `lxcommon.popup_ui`
 - `lxcommon.util`
 - `lxcommon.widget_feedback`
