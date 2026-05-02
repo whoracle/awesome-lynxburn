@@ -8,7 +8,7 @@ Unless otherwise noted, the original code in this repository is licensed under
 the GNU General Public License, version 2 or, at your option, any later
 version.
 
-This repository is **not** a single-uniform-license tree. It contains vendored
+This repository is **not** a single-uniform-license tree. It contains
 third-party components and inherited assets that retain their own licensing
 terms.
 
@@ -36,16 +36,18 @@ WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or
 
 ## Third-Party Components
 
-The following vendored components retain their upstream licenses:
+The following third-party components retain their upstream licenses:
 
 - `lain/`
-  Upstream ships a GPL v2 license file in [`lain/LICENSE`](./lain/LICENSE).
+  Included as a git submodule from
+  [`lcpz/lain`](https://github.com/lcpz/lain). Upstream ships a GPL v2 license
+  file in [`lain/LICENSE`](./lain/LICENSE).
 - `lxcommon/dkjson.lua`
   Vendored from David Kolf's `dkjson`; see the header in
   [`lxcommon/dkjson.lua`](./lxcommon/dkjson.lua) for upstream attribution and
   licensing terms.
 
-These vendored components are not relicensed by this file.
+These third-party components are not relicensed by this file.
 
 ## Theme And Asset Notes
 
@@ -71,7 +73,7 @@ as third-party material that keeps its existing terms where applicable.
 
 ## Additional Asset Notice
 
-At least one vendored asset subdirectory already carries its own explicit
+At least one third-party asset subdirectory already carries its own explicit
 non-GPL notice:
 
 - `lain/icons/openweathermap/`
@@ -104,7 +106,7 @@ by the Free Software Foundation, either:
 - version 2 of the License, or
 - at your option, any later version
 
-The GPL v2 license text is reproduced in vendored upstream copies here:
+The GPL v2 license text is reproduced in third-party upstream copies here:
 
 - [`lain/LICENSE`](./lain/LICENSE)
 

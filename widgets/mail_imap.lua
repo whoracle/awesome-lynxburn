@@ -1,4 +1,6 @@
 local beautiful = require("beautiful")
+local awful = require("awful")
+local gears = require("gears")
 local lain = require("lain")
 local wibox = require("wibox")
 local metric = require("widgets.lain_metric")
@@ -22,35 +24,95 @@ return function(context)
 
     local mail_icon = metric.icon(theme.icon_mail)
 
-    local mail = lain.widget.imap({
-        timeout = mail_timeout,
-        server = mail_server,
-        mail = mail_account,
-        password = mail_password_lookup,
-        login_options = mail_login_options,
-        settings = function()
-            local count = ""
+    local mail_widget = wibox.widget.textbox()
+    local password
 
-            if mailcount > 0 then
-                count = markup.font(theme.font, (theme.space or " ") .. mailcount .. (theme.space or " "))
-                metric.show(mail_icon)
-            else
-                metric.hide(mail_icon)
+    local function update_count(mailcount)
+        local count = ""
+
+        if mailcount > 0 then
+            count = markup.font(theme.font, (theme.space or " ") .. mailcount .. (theme.space or " "))
+            metric.show(mail_icon)
+        else
+            metric.hide(mail_icon)
+        end
+
+        mail_widget:set_markup(count)
+    end
+
+    local function request_status()
+        if type(password) ~= "string" then
+            return
+        end
+
+        local curl = {
+            "curl",
+            "--connect-timeout", "3",
+            "-f",
+            "-s",
+            "-m", "3",
+            "--url", string.format("imaps://%s:993/INBOX", mail_server),
+            "-u", string.format("%s:%s", mail_account, password),
+            "-X", "STATUS INBOX (MESSAGES RECENT UNSEEN)",
+            "-k",
+        }
+
+        if type(mail_login_options) == "string" and #mail_login_options > 0 then
+            curl[#curl + 1] = "--login-options"
+            curl[#curl + 1] = mail_login_options
+        end
+
+        awful.spawn.easy_async(curl, function(stdout, _, _, exit_code)
+            if exit_code ~= 0 then
+                return
             end
 
-            widget:set_markup(count)
-        end,
-    })
+            local unseen = 0
+            for name, value in stdout:gmatch("(%w+)%s+(%d+)") do
+                if name == "UNSEEN" then
+                    unseen = tonumber(value) or 0
+                    break
+                end
+            end
 
-    if not mail or not mail.widget then
-        return nil
+            update_count(unseen)
+        end)
     end
+
+    local function load_password(callback)
+        if type(password) == "string" then
+            callback()
+            return
+        end
+
+        local function done(stdout, _, _, exit_code)
+            if exit_code == 0 then
+                password = stdout:gsub("\n", "")
+            end
+            callback()
+        end
+
+        if type(mail_password_lookup) == "table" then
+            awful.spawn.easy_async(mail_password_lookup, done)
+        else
+            awful.spawn.easy_async_with_shell(mail_password_lookup, done)
+        end
+    end
+
+    local function refresh()
+        load_password(request_status)
+    end
+
+    local timer = gears.timer({ timeout = mail_timeout })
+    timer:connect_signal("timeout", refresh)
+    timer:start()
+    refresh()
 
     return {
         widget = wibox.widget({
             {
                 mail_icon,
-                mail.widget,
+                mail_widget,
                 layout = wibox.layout.fixed.horizontal,
             },
             draw_empty = false,

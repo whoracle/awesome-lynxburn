@@ -39,6 +39,9 @@ release:
     `count`, `name`, `alias_name`, and optional `alias_args`
   - local aliases from `lxmodules.lxrunner.aliases` resolve from `config.lua`;
     the history file stores alias identity instead of resolved shell commands
+- `lain` is now a git submodule again instead of a vendored source tree; after
+  pulling this change, run `git submodule update --init lain` if your checkout
+  does not populate `./lain` automatically
 
 ### `v1.8.0` -> `v1.9.0`
 
