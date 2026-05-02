@@ -48,6 +48,22 @@ Rationale:
 - do one later cleanup pass to remove stale glue, prune dead definitions, and
   tighten boundaries after feature work settles
 
+## Layout Ownership
+
+- replace `lain.util.useless_gaps_resize` with a tiny local gap-resize helper;
+  clamp gaps to sane values instead of blindly allowing negative gaps
+- reimplement `centerwork` and `centerwork.horizontal` as local layouts because
+  those are part of the actual daily-driver contract
+- treat `quake` as optional: either drop it from defaults if unused, or
+  reimplement it deliberately as a local dropdown-terminal helper instead of
+  copying `lain.util.quake` verbatim
+- remove currently dead `termfair` and `cascade` setup from `config.layouts`
+  unless they become explicitly selectable again
+- add an explicit third-party layout extension point so local configs can
+  register external layouts such as `lain` layouts without editing core files;
+  expose the necessary knobs in config rather than hardcoding vendor-specific
+  layout setup
+
 ## Module And Theme Roadmap
 
 ### `lxcommon`
