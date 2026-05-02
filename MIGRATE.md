@@ -42,6 +42,9 @@ release:
 - `lain` has been removed as a dependency; if your local config still uses
   `commands.lain` for the bundled IMAP custom widget, rename that table to
   `commands.imap`
+- third-party layouts can now be registered through top-level `layouts.custom`
+  and configured through `layouts.setup`; this is the intended way to opt into
+  external layouts such as `lain` without editing repo-owned files
 
 ### `v1.8.0` -> `v1.9.0`
 

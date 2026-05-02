@@ -1,4 +1,5 @@
 local awful = require("awful")
+local config_data = require("config.config_data")
 local quake = require("config.quake")
 local tags = require("config.tags")
 
@@ -8,6 +9,14 @@ local M = {}
 ---@param settings {terminal:string}
 function M.setup(settings)
     awful.util.terminal = settings.terminal
+    local layout_config = config_data.layouts()
+
+    if type(layout_config.setup) == "function" then
+        layout_config.setup({
+            awful = awful,
+        })
+    end
+
     awful.layout.append_default_layouts(tags.default_layouts())
 end
 

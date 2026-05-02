@@ -35,6 +35,19 @@ return {
     --         },
     --     },
     -- },
+    -- layouts = {
+    --     -- Optional third-party layouts can be registered here without changing
+    --     -- core files. Example for users who install `lain` themselves:
+    --     -- custom = {
+    --     --     termfair = require("lain").layout.termfair,
+    --     --     ["cascade.tile"] = require("lain").layout.cascade.tile,
+    --     -- },
+    --     -- setup = function()
+    --     --     local lain = require("lain")
+    --     --     lain.layout.termfair.nmaster = 3
+    --     --     lain.layout.termfair.ncol = 1
+    --     -- end,
+    -- },
     -- commands = {
     --     terminal = "alacritty",
     --     launcher = "rofi -show drun",

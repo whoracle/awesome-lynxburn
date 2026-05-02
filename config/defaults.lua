@@ -39,6 +39,11 @@ M.settings = {
     },
 }
 
+M.layouts = {
+    custom = {},
+    setup = nil,
+}
+
 M.commands = {
     terminal = "alacritty",
     scrlocker = "i3lock -c 000000",

@@ -56,10 +56,8 @@ Rationale:
   polish focus/swap/mouse-resize behavior if real friction appears
 - treat `quake` as optional: either polish the local dropdown-terminal helper
   or drop it from defaults if unused
-- add an explicit third-party layout extension point so local configs can
-  register external layouts without editing core files;
-  expose the necessary knobs in config rather than hardcoding vendor-specific
-  layout setup
+- daily-drive the new third-party layout extension point and refine it only if
+  real external layout use shows missing knobs
 
 ## Module And Theme Roadmap
 

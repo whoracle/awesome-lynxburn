@@ -141,6 +141,25 @@ lxmodules = {
 }
 ```
 
+Optional third-party layouts can be registered without editing core files:
+
+```lua
+layouts = {
+    custom = {
+        termfair = require("lain").layout.termfair,
+        ["cascade.tile"] = require("lain").layout.cascade.tile,
+    },
+    setup = function()
+        local lain = require("lain")
+        lain.layout.termfair.nmaster = 3
+        lain.layout.termfair.ncol = 1
+    end,
+}
+```
+
+After registration, use those names in `screens.tag_defaults[*].layout` or
+`screens.tag_defaults[*].layouts`.
+
 ## Configuration Model
 
 The current config layers are:
@@ -156,6 +175,7 @@ The main top-level sections are:
 
 - `commands`
 - `keys`
+- `layouts`
 - `lxmodules`
 - `rules`
 - `screens`
