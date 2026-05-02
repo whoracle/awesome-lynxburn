@@ -81,7 +81,9 @@ service-health or environment-diagnostics framework.
 
 The user-facing config entrypoint is top-level `config.lua`.
 
-1. Copy `config.example.lua` to `config.lua`.
+1. Copy `config.minimal.example.lua` to `config.lua` if you want the smallest
+   practical starting point, or copy `config.example.lua` if you want broader
+   commented examples.
 2. Adjust `commands` so the config points at programs that actually exist on
    your system.
 3. Adjust `screens` so monitor indices, tag names, and per-tag layouts match
@@ -141,6 +143,11 @@ lxmodules = {
 }
 ```
 
+The tracked [`config.minimal.example.lua`](./config.minimal.example.lua) file is
+the preferred starter template. The larger [`config.example.lua`](./config.example.lua)
+is intentionally more verbose and is better treated as a reference catalog for
+available knobs.
+
 Optional third-party layouts can be registered without editing core files:
 
 ```lua
@@ -166,6 +173,8 @@ The current config layers are:
 
 - `config/defaults.lua`
   Narrow shipped baseline
+- `config.minimal.example.lua`
+  Small practical starter config for new checkouts
 - `config.example.lua`
   Tracked example override file with more opinionated/expanded examples
 - `config.lua`
@@ -249,6 +258,10 @@ module/theme `SPEC.md` files.
 - [`SPEC.md`](./SPEC.md): top-level scope and explicit non-goals
 - [`ROADMAP.md`](./ROADMAP.md): current implementation backlog and priority order
 - [`DEVELOPMENT.md`](./DEVELOPMENT.md): internal architecture and extension notes
+- [`config.minimal.example.lua`](./config.minimal.example.lua): small starter
+  config template
+- [`config.example.lua`](./config.example.lua): larger commented config
+  reference
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md): contribution scope and expectations
 - [`CHANGELOG.md`](./CHANGELOG.md): repository changelog generated from commit history
 - [`MIGRATE.md`](./MIGRATE.md): tagged-release migration notes for user-facing config changes

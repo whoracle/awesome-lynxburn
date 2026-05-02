@@ -55,10 +55,50 @@ Top-level docs split:
   Current implementation backlog and priority order.
 - `CHANGELOG.md`
   Repository change history generated from commit metadata.
+- `config.minimal.example.lua`
+  Small practical starter config for new checkouts.
+- `config.example.lua`
+  Larger commented reference catalog for available local override knobs.
 - module/theme `README.md` and `SPEC.md`
   Module-local usage and plans.
 - `MIGRATE.md`
   Incremental migration notes between tagged releases.
+
+## Glossary
+
+These terms describe repository-local concepts. They are not generic AwesomeWM
+terms unless explicitly noted.
+
+- `lxmodule`
+  One repo-owned feature module such as `lxmedia`, `lxnetwork`, `lxrunner`, or
+  `lxsecrets`.
+- `module id`
+  Public config identifier for an `lxmodule`. In user config, prefer the full
+  `lx*` form such as `lxmedia` or `lxnetwork`.
+- `short module id`
+  Internal shorthand without the `lx` prefix, such as `media` or `network`.
+  Registry and service internals may use this form, but user-facing docs should
+  prefer full `lx*` ids.
+- `service`
+  Long-lived singleton instance created by `config.services`. Services own
+  module runtime state and are shared by keybindings, bar widgets, and popup
+  routing.
+- `widget registry`
+  Shared registry populated by `config.services` and consumed by `lxbar` to
+  build the top-level compact widget row in configured order.
+- `semantic popup`
+  Popup handle registered by module id, popup id, and role. This lets `lxbar`
+  open “the primary popup for lxnetwork” without knowing module internals.
+- `popup role`
+  User-facing popup intent. Current common roles are `primary` and `secondary`.
+- `popup session`
+  Shared `lxcommon` popup shell that owns the visible popup window while a
+  module owns only the popup contents and actions.
+- `custom:<name>`
+  Configured non-`lx*` bar widget entry, for example `custom:systray`.
+- `theme shell`
+  The structural theme layer in `themes/lynxburn` that owns wibar composition,
+  spacing, sizing, wallpaper application, and non-color theme defaults.
 
 ## Tooling
 
@@ -127,15 +167,18 @@ The layering is:
 
 1. `config/defaults.lua`
    Base defaults tracked in git.
-2. `config.example.lua`
-   Example override file for users.
-3. top-level `config.lua`
+2. `config.minimal.example.lua`
+   Small starter override file for users.
+3. `config.example.lua`
+   Larger commented reference file for users.
+4. top-level `config.lua`
    Local machine-specific overrides, loaded by `config/config_data.lua`.
 
 The main config sections are:
 
 - `commands`
 - `keys`
+- `layouts`
 - `lxmodules`
 - `rules`
 - `screens`
@@ -148,6 +191,8 @@ General ownership rules:
   External commands and backend choices.
 - `keys`
   User-facing keybinding overrides.
+- `layouts`
+  Third-party layout registration and optional layout setup hooks.
 - `lxmodules.lxbar`
   Bar order, popup side, and cycle participation.
 - `lxmodules.<module>`
@@ -186,6 +231,39 @@ Relevant files:
 - `config/services/state.lua`
 - `config/services/popup_cycle.lua`
 
+### Startup Flow Map
+
+The startup path is intentionally split by ownership. The shortest useful
+mental model is:
+
+```text
+rc.lua
+  -> config.init
+  -> config.config_data
+       loads config.defaults
+       merges local config.lua sections on demand
+  -> config.theme.init(beautiful)
+       loads themes/<name>/theme.lua
+       applies color scheme and theme overrides
+  -> config.services.bootstrap()
+       creates long-lived lxmodule service instances
+       registers top-level widgets
+       registers semantic popups
+  -> config.layouts / config.keys / config.mouse / config.rules / config.signals
+  -> config.screens.setup()
+  -> themes/lynxburn/widgets.lua
+       builds per-screen wibars
+       asks lxbar for the ordered compact widget row
+  -> lxbar
+       consumes the widget registry
+       delegates popup opens/cycling to lxcommon.popup_manager
+```
+
+The most important rule is that `config.services` sits between raw modules and
+the rest of the desktop. If a keybinding, bar entry, or popup cycle needs an
+`lxmodule`, it should get the shared instance from `config.services` rather than
+constructing a second instance.
+
 ## Existing Module Work
 
 For existing modules, keep ownership boundaries clear:
@@ -205,6 +283,74 @@ Avoid re-growing giant `init.lua` files. The current preferred shape is:
 
 If you meaningfully reshape a module, update that module’s `README.md` and
 `SPEC.md` as part of the same work cycle.
+
+### Add Or Change An Existing lxmodule
+
+Use this checklist when touching an existing module or adding a small new one:
+
+1. Decide the public id first and document it as a full `lx*` id.
+2. Put user-facing defaults under `config/defaults.lua`.
+3. Add richer optional examples to `config.example.lua`, not to defaults.
+4. Create or update the module through `config.services`.
+5. Register its top-level widget in `config.services.registry`.
+6. Register semantic popups in `config.services` if the module has popups.
+7. Keep popup content/actions inside the module; keep popup shell/input behavior
+   in `lxcommon`.
+8. Add dependency checks to `config/preflight.lua` if missing binaries would
+   produce confusing runtime behavior.
+9. Update the module `README.md` for user-facing behavior and config knobs.
+10. Update the module `SPEC.md` or `ROADMAP.md` only for future work, not for
+    already-completed implementation detail.
+
+Do not put module behavior in `themes/lynxburn/widgets.lua` just because the
+module appears in the bar. The theme may place widgets, but the module should
+own its behavior.
+
+## Popup Lifecycle
+
+Most `lx*` popup behavior goes through shared `lxcommon` infrastructure. The
+point is to keep module popups visually and interactively consistent without
+making every module implement its own keygrabber and shell lifecycle.
+
+The normal path is:
+
+```text
+config.services
+  registers module widget
+  registers semantic popup
+    -> lxcommon.popup_manager
+       stores popup handles and cycle order
+    -> lxbar
+       opens primary/secondary popups or cycles to the next handle
+    -> lxcommon.popup_controller
+       asks the module for popup content and action handlers
+    -> lxcommon.popup_session
+       owns the shared awful.popup shell
+    -> lxcommon.popup_control / popup_input_session
+       owns keyboard input, outside-click close, and popup-specific actions
+```
+
+File responsibilities:
+
+- `lxcommon.popup_manager`
+  Registry of popup handles and popup cycling order.
+- `lxcommon.popup_controller`
+  Mixin for module methods such as `toggle_popup`, `close_popup`, selection
+  movement, and descriptor-based popup opens.
+- `lxcommon.popup_session`
+  Shared popup window shell. Modules provide contents; this owns the actual
+  visible popup instance.
+- `lxcommon.popup_control`
+  Key handling and global-key fallback logic for active popups.
+- `lxcommon.popup_input_session`
+  Lower-level active input session state for popup keyboard/mouse handling.
+- `lxcommon.popup_ui`
+  Reusable rows, cards, click targets, and popup visual primitives.
+
+When changing popup behavior, first identify whether the change is about module
+content, popup routing, shell lifecycle, input handling, or reusable UI. Editing
+the wrong layer is the fastest way to reintroduce flicker, stale highlight
+state, or inconsistent keyboard behavior.
 
 ## Keybinding Workflow
 
