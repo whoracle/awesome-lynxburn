@@ -81,16 +81,14 @@ service-health or environment-diagnostics framework.
 
 The user-facing config entrypoint is top-level `config.lua`.
 
-1. Clone this repository with submodules, or run `git submodule update --init`
-   after cloning.
-2. Copy `config.example.lua` to `config.lua`.
-3. Adjust `commands` so the config points at programs that actually exist on
+1. Copy `config.example.lua` to `config.lua`.
+2. Adjust `commands` so the config points at programs that actually exist on
    your system.
-4. Adjust `screens` so monitor indices, tag names, and per-tag layouts match
+3. Adjust `screens` so monitor indices, tag names, and per-tag layouts match
    your setup.
-5. Adjust `lxmodules` to choose bar order, popup cycling participation, and
+4. Adjust `lxmodules` to choose bar order, popup cycling participation, and
    module-specific behavior.
-6. Adjust `theme` only for appearance-related overrides.
+5. Adjust `theme` only for appearance-related overrides.
 
 Minimal example:
 
