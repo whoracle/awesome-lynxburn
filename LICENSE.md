@@ -40,9 +40,6 @@ The following vendored components retain their upstream licenses:
 
 - `lain/`
   Upstream ships a GPL v2 license file in [`lain/LICENSE`](./lain/LICENSE).
-- `freedesktop/`
-  Upstream ships a GPL v2 license file in
-  [`freedesktop/LICENSE`](./freedesktop/LICENSE).
 - `lxcommon/dkjson.lua`
   Vendored from David Kolf's `dkjson`; see the header in
   [`lxcommon/dkjson.lua`](./lxcommon/dkjson.lua) for upstream attribution and
@@ -110,7 +107,6 @@ by the Free Software Foundation, either:
 The GPL v2 license text is reproduced in vendored upstream copies here:
 
 - [`lain/LICENSE`](./lain/LICENSE)
-- [`freedesktop/LICENSE`](./freedesktop/LICENSE)
 
 If you need the SPDX form of the license text, Arch and other modern systems
 also ship it as `GPL-2.0-or-later`.
