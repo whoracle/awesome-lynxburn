@@ -167,7 +167,7 @@ Awesome titlebar assets:
 - `titlebar_maximized_button_normal_active`
 - `titlebar_maximized_button_focus_active`
 
-Legacy/bundled widget assets:
+Legacy/custom widget glyph specs:
 
 - `icon_mail`
 - `icon_cpu`

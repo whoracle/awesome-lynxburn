@@ -6,10 +6,21 @@ local markup = lain.util.markup
 
 local M = {}
 
-local function metric_icon(icon_path)
-    local icon = wibox.widget.imagebox(icon_path)
-    icon.forced_width = 0
-    icon.forced_height = 0
+local function metric_icon(icon_spec)
+    local icon
+
+    if type(icon_spec) == "table" and icon_spec.glyph then
+        icon = wibox.widget.textbox(icon_spec.glyph)
+        icon.font = icon_spec.font or beautiful.font
+        icon.align = icon_spec.align or "center"
+        icon.valign = icon_spec.valign or "center"
+        icon._lx_visible_width = icon_spec.width
+        icon._lx_visible_height = icon_spec.height
+    else
+        icon = wibox.widget.imagebox(icon_spec)
+    end
+
+    M.hide(icon)
     return icon
 end
 
@@ -39,8 +50,8 @@ function M.wrap(context, icon, widget)
 end
 
 function M.show(icon)
-    icon.forced_width = nil
-    icon.forced_height = nil
+    icon.forced_width = icon._lx_visible_width
+    icon.forced_height = icon._lx_visible_height
 end
 
 function M.hide(icon)

@@ -50,12 +50,12 @@ function M.build(opts)
         titlebar_maximized_button_normal_active = zenburn_dir .. "/titlebar/maximized_normal_active.png",
         titlebar_maximized_button_focus_active = zenburn_dir .. "/titlebar/maximized_focus_active.png",
 
-        icon_mail = theme_dir .. "/icons/mail.png",
-        icon_cpu = theme_dir .. "/icons/cpu.png",
-        icon_sysload = theme_dir .. "/icons/cpu.png",
-        icon_mem = theme_dir .. "/icons/mem.png",
-        icon_fs = theme_dir .. "/icons/hdd.png",
-        icon_powermenu = theme_dir .. "/icons/cpu.png",
+        icon_mail = { glyph = "󰇰", font = fonts.icon or fonts.base, width = 14 },
+        icon_cpu = { glyph = "", font = fonts.icon or fonts.base, width = 14 },
+        icon_sysload = { glyph = "󰾆", font = fonts.icon or fonts.base, width = 14 },
+        icon_mem = { glyph = "󰘚", font = fonts.icon or fonts.base, width = 14 },
+        icon_fs = { glyph = "", font = fonts.icon or fonts.base, width = 14 },
+        icon_powermenu = { glyph = "⏻", font = fonts.icon or fonts.base, width = 14 },
 
         layout_txt_fairv = "vertical",
         layout_txt_fairh = "horizontal",

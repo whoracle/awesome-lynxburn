@@ -1,6 +1,7 @@
 local beautiful = require("beautiful")
 local lain = require("lain")
 local wibox = require("wibox")
+local metric = require("widgets.lain_metric")
 
 local markup = lain.util.markup
 
@@ -19,9 +20,7 @@ return function(context)
         return nil
     end
 
-    local mail_icon = wibox.widget.imagebox(theme.icon_mail)
-    mail_icon.forced_width = 0
-    mail_icon.forced_height = 0
+    local mail_icon = metric.icon(theme.icon_mail)
 
     local mail = lain.widget.imap({
         timeout = mail_timeout,
@@ -34,11 +33,9 @@ return function(context)
 
             if mailcount > 0 then
                 count = markup.font(theme.font, (theme.space or " ") .. mailcount .. (theme.space or " "))
-                mail_icon.forced_width = nil
-                mail_icon.forced_height = nil
+                metric.show(mail_icon)
             else
-                mail_icon.forced_width = 0
-                mail_icon.forced_height = 0
+                metric.hide(mail_icon)
             end
 
             widget:set_markup(count)
