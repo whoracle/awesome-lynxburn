@@ -34,6 +34,7 @@ function Dropdown:find_client()
 end
 
 function Dropdown:spawn()
+    self.pending_spawn = true
     awful.spawn(string.format("%s -name %s", self.app, self.name), {
         tag = awful.screen.focused().selected_tag,
     })
@@ -84,10 +85,12 @@ function M.new(opts)
         position = opts.position or "top",
         overlap = opts.overlap or false,
         visible = false,
+        pending_spawn = false,
     }, Dropdown)
 
     client.connect_signal("manage", function(c)
-        if client_matches(dropdown.name)(c) and dropdown.visible then
+        if client_matches(dropdown.name)(c) and dropdown.pending_spawn then
+            dropdown.pending_spawn = false
             dropdown:show(c)
         end
     end)
