@@ -110,6 +110,24 @@ function M:cycle_popups(direction, opts)
     return popup_manager.show(target.module_id, target.popup_id, opts)
 end
 
+---Cycle through popup candidates from an explicit module/popup anchor.
+---Popup keygrabbers use this so cycling does not depend on compositor-specific
+---visibility state while the currently active popup is dispatching the key.
+function M:cycle_popups_from(anchor, direction, opts)
+    if not (anchor and anchor.module_id and anchor.popup_id) then
+        return self:cycle_popups(direction, opts)
+    end
+
+    local ordered = ordered_popup_entries()
+    local target = cycle_target(ordered, anchor, direction)
+
+    if not target then
+        return false
+    end
+
+    return popup_manager.show(target.module_id, target.popup_id, opts)
+end
+
 ---Create the lxbar container backed by the shared widget registry.
 function M.new(opts)
     opts = opts or {}

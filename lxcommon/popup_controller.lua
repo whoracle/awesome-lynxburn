@@ -225,6 +225,7 @@ function M.extend(instance_methods, opts)
             toggle_key = state.toggle_key,
             on_cycle_prev = state.on_cycle_prev,
             on_cycle_next = state.on_cycle_next,
+            cycle_anchor = state.cycle_anchor,
             on_close = function()
                 self:close_popup()
             end,
@@ -241,16 +242,7 @@ function M.extend(instance_methods, opts)
     end
 
     function instance_methods:focus_popup_keyboard_navigation()
-        local _, descriptor = self:_active_popup_descriptor()
-        local blocked_keys = blocked_keys_for(resolve_actions(self, descriptor))
-
         popup_control.focus_popup_keygrabber(self, {
-            global_fallback = {
-                blocked_keys = blocked_keys,
-                before_dispatch = function()
-                    self:close_popup()
-                end,
-            },
             handler = function(grabber, modifiers, key, event)
                 self:_handle_popup_keygrabber(grabber, modifiers, key, event)
             end,
@@ -342,6 +334,7 @@ function M.extend(instance_methods, opts)
             }),
             on_cycle_prev = popup_opts.on_cycle_prev,
             on_cycle_next = popup_opts.on_cycle_next,
+            cycle_anchor = popup_opts.cycle_anchor,
         }
         self._popup_session_opts = popup_opts
         self[descriptor.opts_key or "_popup_session_opts"] = popup_opts

@@ -36,10 +36,14 @@ function M.register_widget(id, widget, default_order, opts)
     end
 end
 
-local function build_popup_handle(spec)
+local function build_popup_handle(module_id, popup_id, spec)
     return {
         open = function(opts)
             local popup_opts = popup_cycle.options(opts)
+            popup_opts.cycle_anchor = {
+                module_id = module_id,
+                popup_id = popup_id,
+            }
 
             if spec.hover_close ~= nil then
                 popup_opts.hover_close = spec.hover_close
@@ -59,7 +63,7 @@ end
 ---@param popup_role string
 ---@param spec table
 function M.register_semantic_popup(module_id, popup_id, popup_role, spec)
-    popup_manager.register(module_id, popup_id, build_popup_handle(spec), {
+    popup_manager.register(module_id, popup_id, build_popup_handle(module_id, popup_id, spec), {
         popup_role = popup_role,
     })
 end

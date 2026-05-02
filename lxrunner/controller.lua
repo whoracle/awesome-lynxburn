@@ -1,4 +1,5 @@
 local awful = require("awful")
+local gears = require("gears")
 
 local M = {}
 
@@ -69,10 +70,21 @@ function M.extend(instance_methods)
         end
 
         self._mousegrabber_running = true
+        self._mousegrabber_armed = false
         mousegrabber.run(function(mouse_state)
             if not self.visible or not self.popup.visible then
                 self._mousegrabber_running = false
+                self._mousegrabber_armed = false
                 return false
+            end
+
+            local button_down = mouse_state.buttons[1] or mouse_state.buttons[2] or mouse_state.buttons[3]
+            if not self._mousegrabber_armed then
+                if button_down then
+                    return true
+                end
+
+                self._mousegrabber_armed = true
             end
 
             local geometry = self.popup:geometry()
@@ -81,8 +93,9 @@ function M.extend(instance_methods)
                 and mouse_state.y >= geometry.y
                 and mouse_state.y < geometry.y + geometry.height
 
-            if not inside and (mouse_state.buttons[1] or mouse_state.buttons[2] or mouse_state.buttons[3]) then
+            if not inside and button_down then
                 self._mousegrabber_running = false
+                self._mousegrabber_armed = false
                 self:hide()
                 return false
             end
@@ -96,6 +109,7 @@ function M.extend(instance_methods)
         if self._mousegrabber_running then
             mousegrabber.stop()
             self._mousegrabber_running = false
+            self._mousegrabber_armed = false
         end
     end
 
@@ -113,7 +127,11 @@ function M.extend(instance_methods)
         awful.placement.centered(self.popup, { honor_workarea = true, parent = awful.screen.focused() })
         self:_refresh()
         self:_start_keygrabber()
-        self:_start_mousegrabber()
+        gears.timer.delayed_call(function()
+            if self.visible and self.popup.visible then
+                self:_start_mousegrabber()
+            end
+        end)
     end
 
     ---Close the runner and tear down transient grabbers.
