@@ -1,4 +1,4 @@
-local metric = require("widgets.lain_metric")
+local metric = require("widgets.metric")
 local system_metrics = require("widgets.system_metrics")
 
 return function(context)

@@ -24,7 +24,6 @@ Core runtime:
 - AwesomeWM
 - the Lua libraries shipped with AwesomeWM, including `awful`, `beautiful`,
   `gears`, `naughty`, and `wibox`
-- `lain`, included through the repository submodule at `./lain`
 - a font with broad glyph coverage for the bar and popup icons, ideally
   something like `Hack Nerd Font Mono`
 
@@ -40,7 +39,7 @@ Common external commands used by the current config:
   Then configure the IMAP widget like this:
   ```lua
     commands = {
-      lain = {
+      imap = {
         imap_mail = "me@example.org",
         imap_secret = "secret-tool lookup service awesomewm-imap account me@example.org",
         imap_server = "mail.example.org",

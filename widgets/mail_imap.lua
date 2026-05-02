@@ -2,19 +2,19 @@ local beautiful = require("beautiful")
 local awful = require("awful")
 local gears = require("gears")
 local wibox = require("wibox")
-local metric = require("widgets.lain_metric")
+local metric = require("widgets.metric")
 
 local markup = require("widgets.markup")
 
 return function(context)
     local config_data = require("config.config_data")
     local commands = config_data.commands()
-    local lain_commands = commands.lain or {}
-    local mail_account = lain_commands.imap_mail
-    local mail_password_lookup = lain_commands.imap_secret
-    local mail_server = lain_commands.imap_server
-    local mail_login_options = lain_commands.imap_login_options or "AUTH=LOGIN"
-    local mail_timeout = tonumber(lain_commands.imap_timeout) or 60
+    local imap_commands = commands.imap or {}
+    local mail_account = imap_commands.imap_mail
+    local mail_password_lookup = imap_commands.imap_secret
+    local mail_server = imap_commands.imap_server
+    local mail_login_options = imap_commands.imap_login_options or "AUTH=LOGIN"
+    local mail_timeout = tonumber(imap_commands.imap_timeout) or 60
     local theme = context and context.beautiful or beautiful
 
     if not mail_account or not mail_password_lookup or not mail_server then

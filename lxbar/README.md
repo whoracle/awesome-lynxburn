@@ -78,7 +78,7 @@ lxmodules = {
         screens = { "center", "left" },
         custom_widgets = {
             mail = require("widgets.mail_imap"),
-            cpu = require("widgets.lain_cpu"),
+            cpu = require("widgets.cpu"),
             systray = require("widgets.systray"),
         },
     },

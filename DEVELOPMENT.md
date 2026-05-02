@@ -34,7 +34,7 @@ High-level ownership:
   OSD behavior.
 - `lxcommon/dkjson.lua`
   Vendored JSON helper used by repo-owned modules so JSON support does not
-  depend on `lain` internals.
+  depend on external widget/layout helper internals.
 - `lxbar/`
   Shared compact-widget bar integration and popup cycling.
 - `lx*/`

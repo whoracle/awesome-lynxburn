@@ -11,7 +11,7 @@ local lxmodules = require("config.lxmodules")
 local services = require("config.services")
 local tags = require("config.tags")
 local layouts = require("config.layouts")
-local metric = require("widgets.lain_metric")
+local metric = require("widgets.metric")
 local calendar = require("widgets.calendar")
 local markup = require("widgets.markup")
 

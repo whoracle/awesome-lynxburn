@@ -39,9 +39,9 @@ release:
     `count`, `name`, `alias_name`, and optional `alias_args`
   - local aliases from `lxmodules.lxrunner.aliases` resolve from `config.lua`;
     the history file stores alias identity instead of resolved shell commands
-- `lain` is now a git submodule again instead of a vendored source tree; after
-  pulling this change, run `git submodule update --init lain` if your checkout
-  does not populate `./lain` automatically
+- `lain` has been removed as a dependency; if your local config still uses
+  `commands.lain` for the bundled IMAP custom widget, rename that table to
+  `commands.imap`
 
 ### `v1.8.0` -> `v1.9.0`
 
@@ -77,7 +77,7 @@ Apply these user-facing config migrations:
   bar flow via `custom:<name>` entries
 - define those widgets under `lxmodules.lxbar.custom_widgets`, for example:
   `mail = require("widgets.mail_imap")` or `systray = require("widgets.systray")`
-- the tracked `lynxburn` setup now expects the old theme-owned IMAP and `lain`
+- the tracked `lynxburn` setup now expects the old theme-owned IMAP and metric
   metric widgets to live in `lxbar`, not in `themes/lynxburn/widgets.lua`
 - if you previously copied older examples using `theme.color_scheme = "default"`,
   switch to `theme.color_scheme = "lynxburn"`

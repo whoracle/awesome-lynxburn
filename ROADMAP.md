@@ -50,17 +50,14 @@ Rationale:
 
 ## Layout Ownership
 
-- replace `lain.util.useless_gaps_resize` with a tiny local gap-resize helper;
+- keep the local gap-resize helper tiny and predictable;
   clamp gaps to sane values instead of blindly allowing negative gaps
-- reimplement `centerwork` and `centerwork.horizontal` as local layouts because
-  those are part of the actual daily-driver contract
-- treat `quake` as optional: either drop it from defaults if unused, or
-  reimplement it deliberately as a local dropdown-terminal helper instead of
-  copying `lain.util.quake` verbatim
-- remove currently dead `termfair` and `cascade` setup from `config.layouts`
-  unless they become explicitly selectable again
+- daily-drive the local `centerwork` and `centerwork.horizontal` layouts and
+  polish focus/swap/mouse-resize behavior if real friction appears
+- treat `quake` as optional: either polish the local dropdown-terminal helper
+  or drop it from defaults if unused
 - add an explicit third-party layout extension point so local configs can
-  register external layouts such as `lain` layouts without editing core files;
+  register external layouts without editing core files;
   expose the necessary knobs in config rather than hardcoding vendor-specific
   layout setup
 

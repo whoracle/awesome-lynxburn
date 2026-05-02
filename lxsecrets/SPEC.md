@@ -25,9 +25,10 @@ Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 - no persistent per-secret popup state across Awesome reloads
   Why: first-pass runtime state is intentionally kept in memory only
 
-- no hard dependency on `lain` internals for provider logic
-  Why: `lxsecrets` should stay usable even if repo-owned code continues to move
-  away from `lain`
+- no hard dependency on external widget/layout helper internals for provider
+  logic
+  Why: `lxsecrets` should stay usable even if repo-owned code continues to
+  replace external helpers with local implementations
 
 - no broad provider matrix yet
   Why: only the providers currently used in the config should shape the module

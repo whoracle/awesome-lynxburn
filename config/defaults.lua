@@ -48,7 +48,7 @@ M.commands = {
     blueman_manager = "blueman-manager",
     launcher = "rofi -show drun",
     filebrowser = "xdg-open",
-    lain = {
+    imap = {
         imap_server = nil,
         imap_mail = nil,
         imap_secret = nil,
@@ -76,10 +76,10 @@ M.lxmodules = {
         modules = {},
         custom_widgets = {
             mail = require("widgets.mail_imap"),
-            sysload = require("widgets.lain_sysload"),
-            cpu = require("widgets.lain_cpu"),
-            mem = require("widgets.lain_mem"),
-            fs_root = require("widgets.lain_fs_root"),
+            sysload = require("widgets.sysload"),
+            cpu = require("widgets.cpu"),
+            mem = require("widgets.mem"),
+            fs_root = require("widgets.fs_root"),
             systray = require("widgets.systray"),
         },
     },

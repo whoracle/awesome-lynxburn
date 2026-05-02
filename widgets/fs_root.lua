@@ -3,7 +3,7 @@ local gears = require("gears")
 local naughty = require("naughty")
 local wibox = require("wibox")
 
-local metric = require("widgets.lain_metric")
+local metric = require("widgets.metric")
 
 return function(context)
     local theme = (context and context.beautiful) or require("beautiful")

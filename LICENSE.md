@@ -38,10 +38,6 @@ WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or
 
 The following third-party components retain their upstream licenses:
 
-- `lain/`
-  Included as a git submodule from
-  [`lcpz/lain`](https://github.com/lcpz/lain). Upstream ships a GPL v2 license
-  file in [`lain/LICENSE`](./lain/LICENSE).
 - `lxcommon/dkjson.lua`
   Vendored from David Kolf's `dkjson`; see the header in
   [`lxcommon/dkjson.lua`](./lxcommon/dkjson.lua) for upstream attribution and
@@ -73,13 +69,6 @@ as third-party material that keeps its existing terms where applicable.
 
 ## Additional Asset Notice
 
-At least one third-party asset subdirectory already carries its own explicit
-non-GPL notice:
-
-- `lain/icons/openweathermap/`
-  See [`lain/icons/openweathermap/README.md`](./lain/icons/openweathermap/README.md),
-  which references Creative Commons BY-NC-SA 2.5 for those weather icons.
-
 Additional known or suspected third-party asset provenance:
 
 - `themes/lynxburn/icons/square_sel.png` and
@@ -105,10 +94,6 @@ by the Free Software Foundation, either:
 
 - version 2 of the License, or
 - at your option, any later version
-
-The GPL v2 license text is reproduced in third-party upstream copies here:
-
-- [`lain/LICENSE`](./lain/LICENSE)
 
 If you need the SPDX form of the license text, Arch and other modern systems
 also ship it as `GPL-2.0-or-later`.
