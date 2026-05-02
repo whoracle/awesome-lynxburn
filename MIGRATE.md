@@ -81,7 +81,7 @@ Apply these user-facing config migrations:
 - define those widgets under `lxmodules.lxbar.custom_widgets`, for example:
   `mail = require("widgets.mail_imap")` or `systray = require("widgets.systray")`
 - the tracked `lynxburn` setup now expects the old theme-owned IMAP and metric
-  metric widgets to live in `lxbar`, not in `themes/lynxburn/widgets.lua`
+  widgets to live in `lxbar`, not in `themes/lynxburn/widgets.lua`
 - if you previously copied older examples using `theme.color_scheme = "default"`,
   switch to `theme.color_scheme = "lynxburn"`
   `default` still works as a compatibility alias, but it is no longer the

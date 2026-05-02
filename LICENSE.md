@@ -29,6 +29,9 @@ The following repository-owned code is intended to be covered by
 - `lxpower/`
 - `lxrunner/`
 - `lxsecrets/`
+- `widgets/`
+- `themes/lynxburn/*.lua`
+- `themes/lynxburn/colors/`
 
 This code is distributed in the hope that it will be useful, but **WITHOUT ANY
 WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or
@@ -45,31 +48,12 @@ The following third-party components retain their upstream licenses:
 
 These third-party components are not relicensed by this file.
 
-## Theme And Asset Notes
+## Theme And Asset Notices
 
-The active theme tree under `themes/lynxburn/` contains a mix of original work,
-older inherited Awesome theme material, and a small number of bundled image
-assets.
-
-Known points to treat conservatively:
-
-- `themes/lynxburn/theme.lua` still explicitly references a "copycats-era"
-  lineage in comments
-- `themes/lynxburn/icons/square_sel.png` and
-  `themes/lynxburn/icons/square_unsel.png` are inherited taglist square assets
-  from the Awesome Copycats theme lineage
-- Awesome Zenburn titlebar button assets are referenced from the installed
-  Awesome theme directory, not relicensed here
-
-This file therefore does **not** claim that every asset under
-`themes/lynxburn/` is newly relicensed as `GPL-2.0-or-later`.
-
-Until a finer-grained audit is done, treat inherited or bundled non-code assets
-as third-party material that keeps its existing terms where applicable.
-
-## Additional Asset Notice
-
-Additional known or suspected third-party asset provenance:
+The active theme tree under `themes/lynxburn/` contains a mix of original work
+and a small number of inherited non-code assets. This file does **not** claim
+that every asset under `themes/lynxburn/` is newly relicensed as
+`GPL-2.0-or-later`.
 
 - `themes/lynxburn/icons/square_sel.png` and
   `themes/lynxburn/icons/square_unsel.png`
@@ -77,6 +61,8 @@ Additional known or suspected third-party asset provenance:
   now maintained as [`lcpz/awesome-copycats`](https://github.com/lcpz/awesome-copycats).
   The upstream project credits Luca CPZ and lists its theme assets under a
   Creative Commons ShareAlike license.
+- Awesome Zenburn titlebar button assets are referenced from the installed
+  Awesome theme directory, not relicensed here.
 - Bundled default wallpaper, historically known as `dwallpaper`
   This wallpaper was previously distributed as `Terraform Green` /
   `Terraform-green.jpg` in GNOME backgrounds. Public GNOME commit history shows
@@ -85,6 +71,9 @@ Additional known or suspected third-party asset provenance:
   the official GNOME backgrounds around the GNOME 3.2 era. Clear original
   authorship/licensing attribution has not been pinned down in this repository.
   If someone has clean attribution for this asset, a PR is welcome.
+
+Until a finer-grained audit is done, treat inherited or bundled non-code assets
+as third-party material that keeps its existing terms where applicable.
 
 ## GPL Terms
 

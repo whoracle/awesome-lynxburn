@@ -58,8 +58,7 @@ Top-level docs split:
 - module/theme `README.md` and `SPEC.md`
   Module-local usage and plans.
 - `MIGRATE.md`
-  Temporary machine migration notes for old checkouts still anchored on the
-  `migrate` tag.
+  Incremental migration notes between tagged releases.
 
 ## Tooling
 
