@@ -53,15 +53,16 @@ These vendored components are not relicensed by this file.
 ## Theme And Asset Notes
 
 The active theme tree under `themes/lynxburn/` contains a mix of original work,
-older inherited Awesome theme material, and bundled image assets.
+older inherited Awesome theme material, and a small number of bundled image
+assets.
 
 Known points to treat conservatively:
 
 - `themes/lynxburn/theme.lua` still explicitly references a "copycats-era"
   lineage in comments
-- `themes/lynxburn/icons/` contains a large set of inherited icon/image assets
-- `themes/lynxburn/*.jpg` and `themes/lynxburn/*.png` wallpaper/image assets may
-  have different provenance than the Lua code
+- `themes/lynxburn/icons/square_sel.png` and
+  `themes/lynxburn/icons/square_unsel.png` are inherited taglist square assets
+  from the Awesome Copycats theme lineage
 - Awesome Zenburn titlebar button assets are referenced from the installed
   Awesome theme directory, not relicensed here
 
@@ -79,6 +80,23 @@ non-GPL notice:
 - `lain/icons/openweathermap/`
   See [`lain/icons/openweathermap/README.md`](./lain/icons/openweathermap/README.md),
   which references Creative Commons BY-NC-SA 2.5 for those weather icons.
+
+Additional known or suspected third-party asset provenance:
+
+- `themes/lynxburn/icons/square_sel.png` and
+  `themes/lynxburn/icons/square_unsel.png`
+  These taglist square assets are inherited from the Awesome Copycats lineage,
+  now maintained as [`lcpz/awesome-copycats`](https://github.com/lcpz/awesome-copycats).
+  The upstream project credits Luca CPZ and lists its theme assets under a
+  Creative Commons ShareAlike license.
+- Bundled default wallpaper, historically known as `dwallpaper`
+  This wallpaper was previously distributed as `Terraform Green` /
+  `Terraform-green.jpg` in GNOME backgrounds. Public GNOME commit history shows
+  it was still present until a cleanup commit in November 2017 removed it from
+  the active background set. Older public references also describe it as part of
+  the official GNOME backgrounds around the GNOME 3.2 era. Clear original
+  authorship/licensing attribution has not been pinned down in this repository.
+  If someone has clean attribution for this asset, a PR is welcome.
 
 ## GPL Terms
 
