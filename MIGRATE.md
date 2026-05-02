@@ -21,10 +21,9 @@ Current baseline:
 
 ## Documented Migrations
 
-### `v1.9.0` -> `next`
+### `v1.9.0` -> `v1.10.0`
 
-Apply these user-facing migrations when moving from `v1.9.0` to the next
-release:
+Apply these user-facing migrations when moving from `v1.9.0` to `v1.10.0`:
 
 - `lxrunner` launch history moved from the previous escaped TSV file to a
   versioned JSON object; no backwards-compatible TSV reader is kept
