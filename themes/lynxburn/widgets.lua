@@ -3,7 +3,6 @@ local ipairs = ipairs
 local table = table
 
 local gears = require("gears")
-local lain = require("lain")
 local awful = require("awful")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
@@ -13,9 +12,10 @@ local services = require("config.services")
 local tags = require("config.tags")
 local layouts = require("config.layouts")
 local metric = require("widgets.lain_metric")
+local calendar = require("widgets.calendar")
+local markup = require("widgets.markup")
 
 local my_table = awful.util.table or gears.table
-local markup = lain.util.markup
 
 local M = {}
 
@@ -246,8 +246,7 @@ function M.build(theme)
     local mytextdate = wibox.widget.textclock(markup(theme.tasklist_fg_normal, " %a, %d %b %y "))
     local mydate = build_text_widget(theme, mytextdate)
 
-    lain.widget.cal({
-        attach_to = { myclock, mydate },
+    calendar.attach({ myclock, mydate }, {
         followtag = true,
         week_number = "left",
         notification_preset = {

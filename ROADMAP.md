@@ -146,6 +146,10 @@ Rationale:
 - keep the structural-vs-color-scheme split stable and well-documented
 - continue normalizing explicit theme keys so modules rely less on generic
   Awesome fallbacks
+- review the local replacement widgets for CPU, memory, load, filesystem,
+  IMAP, calendar, and markup after daily-driving; look for clearer thresholds,
+  better failure reporting, and whether any of them should become proper
+  `lx*` modules instead of simple custom widgets
 - align popup/action button border treatment across modules during the theme
   split pass; some current buttons still mix orange and gray border behavior
 - discuss UI and maintenance feasibility before adding many more bundled color

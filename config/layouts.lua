@@ -31,6 +31,10 @@ function M.create_quake(terminal)
     })
 end
 
+function M.resize_useless_gaps(delta)
+    lain.util.useless_gaps_resize(delta)
+end
+
 function M.cycle_selected_tag(step)
     local screen = awful.screen.focused()
     local tag = screen and screen.selected_tag

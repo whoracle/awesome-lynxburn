@@ -1,11 +1,10 @@
 local beautiful = require("beautiful")
 local awful = require("awful")
 local gears = require("gears")
-local lain = require("lain")
 local wibox = require("wibox")
 local metric = require("widgets.lain_metric")
 
-local markup = lain.util.markup
+local markup = require("widgets.markup")
 
 return function(context)
     local config_data = require("config.config_data")

@@ -1,8 +1,7 @@
 local beautiful = require("beautiful")
-local lain = require("lain")
 local wibox = require("wibox")
 
-local markup = lain.util.markup
+local markup = require("widgets.markup")
 
 local M = {}
 

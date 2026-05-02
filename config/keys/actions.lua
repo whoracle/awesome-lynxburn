@@ -1,4 +1,5 @@
 local awful = require("awful")
+local calendar = require("widgets.calendar")
 
 local M = {}
 
@@ -15,7 +16,6 @@ function M.build(context)
     local lxrunner = context.lxrunner
     local lxpower = context.lxpower
     local osd = context.osd
-    local lain = context.lain
     local layouts = context.layouts
     local hotkeys_popup = context.hotkeys_popup
 
@@ -63,11 +63,11 @@ function M.build(context)
     end
 
     local function grow_gaps()
-        lain.util.useless_gaps_resize(1)
+        layouts.resize_useless_gaps(1)
     end
 
     local function shrink_gaps()
-        lain.util.useless_gaps_resize(-1)
+        layouts.resize_useless_gaps(-1)
     end
 
     local function show_media_popup()
@@ -125,7 +125,7 @@ function M.build(context)
     end
 
     local function show_calendar()
-        lain.widget.calendar.show(7)
+        calendar.show(7)
     end
 
     local function open_launcher()

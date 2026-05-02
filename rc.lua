@@ -12,7 +12,6 @@ local gears = require("gears")
 local awful = require("awful")
 require("awful.autofocus")
 local beautiful = require("beautiful")
-local lain = require("lain")
 local naughty = require("naughty")
 
 local my_table = awful.util.table or gears.table
@@ -66,7 +65,6 @@ local keymaps = config.keys.build({
     runtime = runtime,
     commands = commands,
     layouts = config.layouts,
-    lain = lain,
     lxmedia = lxmedia,
     lxbar = lxbar,
     lxbluetooth = lxbluetooth,
