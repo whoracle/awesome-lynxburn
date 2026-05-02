@@ -48,6 +48,17 @@ Rationale:
 - do one later cleanup pass to remove stale glue, prune dead definitions, and
   tighten boundaries after feature work settles
 
+## Layout Ownership
+
+- keep the local gap-resize helper tiny and predictable;
+  clamp gaps to sane values instead of blindly allowing negative gaps
+- daily-drive the local `centerwork` and `centerwork.horizontal` layouts and
+  polish focus/swap/mouse-resize behavior if real friction appears
+- treat `quake` as optional: either polish the local dropdown-terminal helper
+  or drop it from defaults if unused
+- daily-drive the new third-party layout extension point and refine it only if
+  real external layout use shows missing knobs
+
 ## Module And Theme Roadmap
 
 ### `lxcommon`
@@ -76,9 +87,6 @@ Rationale:
 - keep the two-popup model:
   - primary popup for playback streams and transport
   - secondary popup for devices and routing
-- investigate whether popup build/refresh heavy hitters can move to async or
-  deferred work so cycling into the media popup feels as snappy as lightweight
-  modules
 
 ### `lxnotify`
 
@@ -93,8 +101,6 @@ Rationale:
 ### `lxrunner`
 
 - keep the keyboard-first launcher flow stable
-- add left-click launch on result rows later so mouse usage is possible without
-  changing the rest of the runner model
 - continue shrinking `init.lua` into thin entry-point/public API code
 - harden notification action invocation for browser/web-app edge cases if
   daily-driving proves it worthwhile
@@ -132,8 +138,6 @@ Rationale:
 
 - keep the native provider runtime stable for GitLab and Vault
 - continue polishing popup card layout, sorting, and state presentation
-- investigate whether popup build/refresh heavy hitters can move to async or
-  deferred work so cycling into secrets does not stall the shared popup shell
 - keep secret definitions in `config.lua`
 - support VPN-gated refresh/login flows where required
 - surface failures in `~/.xsession-errors` and via notifications
@@ -146,12 +150,17 @@ Rationale:
   such as Seahorse
 - define plugin scaffolding for providers, then migrate the current GitLab and
   Vault implementations onto that plugin interface once the contract is stable
+- evaluate `last checked` field
 
 ### `themes/lynxburn`
 
 - keep the structural-vs-color-scheme split stable and well-documented
 - continue normalizing explicit theme keys so modules rely less on generic
   Awesome fallbacks
+- review the local replacement widgets for CPU, memory, load, filesystem,
+  IMAP, calendar, and markup after daily-driving; look for clearer thresholds,
+  better failure reporting, and whether any of them should become proper
+  `lx*` modules instead of simple custom widgets
 - align popup/action button border treatment across modules during the theme
   split pass; some current buttons still mix orange and gray border behavior
 - discuss UI and maintenance feasibility before adding many more bundled color
@@ -168,10 +177,21 @@ Rationale:
   - tasklist/taglist/layout switcher composition
   - clock / date / power-menu placement
 
-### Proposed `lxmenu`
+## Proposed further lxmodules
+
+### `lxmenu`
 
 - consider a future `lxmenu` module as the replacement home for the current
   theme-owned power menu popup and similar session/menu actions
 - keep this proposal late until there is a clearer decision on scope:
   - just session/power actions
   - or a broader launcher/menu surface
+
+### `lxsnippets`
+
+- have text snippets from git snippets available for copy pasting
+- store clipboard pastes
+
+### `lxsession`
+
+see [`lxsession`](./lxsession/SPEC.md)

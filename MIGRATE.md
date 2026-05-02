@@ -4,8 +4,11 @@ This file tracks only migrations between tagged releases.
 
 Current baseline:
 
-- assume users are already on `v1.8.0`
+- check what the latest semver-compliant git tag in the current worktree is and assume that as the baseline to migrate from
+- the repo is allowed to be ahead of a given tag, but still assume the last tag as the baseline and check against that (e.g., the most recent tag chronologically)
 - document only incremental migrations from that point forward
+- when the repo is ahead of the latest tag, use a topmost
+  `` `latest-tag` -> `next` `` section until the next release tag exists
 - do not use this file for one-off machine migration notes anymore
 
 ## Migration Policy
@@ -17,6 +20,30 @@ Current baseline:
   config-shape changes
 
 ## Documented Migrations
+
+### `v1.9.0` -> `v1.10.0`
+
+Apply these user-facing migrations when moving from `v1.9.0` to `v1.10.0`:
+
+- `lxrunner` launch history moved from the previous escaped TSV file to a
+  versioned JSON object; no backwards-compatible TSV reader is kept
+  - keep the default file path as `~/.lxrunner_history`
+  - migrate or delete the live `~/.lxrunner_history` before relying on old
+    launch history after upgrading
+  - expected JSON shape:
+    `{ "format": "lxrunner-history", "version": 1, "entries": [ ... ] }`
+  - non-alias entries should contain at least `last_used`, `launch_source`,
+    `count`, `name`, and `command`
+  - alias entries should contain `last_used`, `launch_source = "alias"`,
+    `count`, `name`, `alias_name`, and optional `alias_args`
+  - local aliases from `lxmodules.lxrunner.aliases` resolve from `config.lua`;
+    the history file stores alias identity instead of resolved shell commands
+- `lain` has been removed as a dependency; if your local config still uses
+  `commands.lain` for the bundled IMAP custom widget, rename that table to
+  `commands.imap`
+- third-party layouts can now be registered through top-level `layouts.custom`
+  and configured through `layouts.setup`; this is the intended way to opt into
+  external layouts such as `lain` without editing repo-owned files
 
 ### `v1.8.0` -> `v1.9.0`
 
@@ -52,8 +79,8 @@ Apply these user-facing config migrations:
   bar flow via `custom:<name>` entries
 - define those widgets under `lxmodules.lxbar.custom_widgets`, for example:
   `mail = require("widgets.mail_imap")` or `systray = require("widgets.systray")`
-- the tracked `lynxburn` setup now expects the old theme-owned IMAP and `lain`
-  metric widgets to live in `lxbar`, not in `themes/lynxburn/widgets.lua`
+- the tracked `lynxburn` setup now expects the old theme-owned IMAP and metric
+  widgets to live in `lxbar`, not in `themes/lynxburn/widgets.lua`
 - if you previously copied older examples using `theme.color_scheme = "default"`,
   switch to `theme.color_scheme = "lynxburn"`
   `default` still works as a compatibility alias, but it is no longer the

@@ -35,6 +35,19 @@ return {
     --         },
     --     },
     -- },
+    -- layouts = {
+    --     -- Optional third-party layouts can be registered here without changing
+    --     -- core files. Example for users who install `lain` themselves:
+    --     -- custom = {
+    --     --     termfair = require("lain").layout.termfair,
+    --     --     ["cascade.tile"] = require("lain").layout.cascade.tile,
+    --     -- },
+    --     -- setup = function()
+    --     --     local lain = require("lain")
+    --     --     lain.layout.termfair.nmaster = 3
+    --     --     lain.layout.termfair.ncol = 1
+    --     -- end,
+    -- },
     -- commands = {
     --     terminal = "alacritty",
     --     launcher = "rofi -show drun",
@@ -43,7 +56,7 @@ return {
     --     autostart_once = {
     --         "nm-applet --sm-disable",
     --     },
-    --     lain = {
+    --     imap = {
     --         imap_mail = "me@example.org",
     --         imap_secret = "secret-tool lookup service awesomewm-imap account me@example.org",
     --         imap_server = "mail.example.org",
@@ -80,10 +93,10 @@ return {
     --         },
     --         custom_widgets = {
     --             mail = require("widgets.mail_imap"),
-    --             sysload = require("widgets.lain_sysload"),
-    --             cpu = require("widgets.lain_cpu"),
-    --             mem = require("widgets.lain_mem"),
-    --             fs_root = require("widgets.lain_fs_root"),
+    --             sysload = require("widgets.sysload"),
+    --             cpu = require("widgets.cpu"),
+    --             mem = require("widgets.mem"),
+    --             fs_root = require("widgets.fs_root"),
     --             systray = require("widgets.systray"),
     --         },
     --     },

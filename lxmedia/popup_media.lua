@@ -14,6 +14,28 @@ local COLORS = {
     button_hover = beautiful.lxmedia_button_hover or beautiful.bg_urgent or "#140c0b",
 }
 
+local function request_popup_data(instance)
+    if instance._media_popup_data_pending then
+        return
+    end
+
+    instance._media_popup_data_pending = true
+
+    local audio = require("lxmedia.audio")
+    local media = require("lxmedia.media")
+    audio.collect_popup_data_async(function(data)
+        media.collect_stream_player_data_async(data.streams or {}, function(streams)
+            data.streams = streams
+            instance._media_popup_data = data
+            instance._media_popup_data_pending = false
+
+            if popup_session.is_visible(instance, "_media_popup") then
+                M.rebuild(instance)
+            end
+        end)
+    end)
+end
+
 local function make_button(label, onclick)
     local tb = wibox.widget {
         text = label,
@@ -70,6 +92,27 @@ end
 
 local function make_card(child)
     return popup_ui.make_card(child)
+end
+
+local function loading_widget(text)
+    return wibox.widget {
+        {
+            make_card(wibox.widget {
+                make_info_line(text or "Loading media streams...", {
+                    left = 8,
+                    right = 8,
+                    top = 6,
+                    bottom = 6,
+                }),
+                layout = wibox.layout.fixed.vertical,
+            }),
+            margins = 10,
+            widget = wibox.container.margin,
+        },
+        forced_width = beautiful.lxmedia_popup_width_media or 420,
+        strategy = "max",
+        widget = wibox.container.constraint,
+    }
 end
 
 local function make_volume_bar(value, muted)
@@ -390,8 +433,8 @@ end
 local function build_stream_card(instance, stream, source_output, default_sink_name, selected, selection_index)
     local media = require("lxmedia.media")
 
-    local matched_player = stream._matched_player or media.player_for_stream(stream)
-    local player_info = matched_player and media.get_player_info(matched_player) or nil
+    local matched_player = stream._matched_player or (not stream._async_player_info and media.player_for_stream(stream) or nil)
+    local player_info = stream._player_info or (matched_player and not stream._async_player_info and media.get_player_info(matched_player) or nil)
 
     local layout = wibox.widget {
         spacing = 1,
@@ -488,7 +531,10 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
         end
 
         if matched_player then
-            local art_url = media.get_player_art_url(matched_player)
+            local art_url = stream._art_url
+            if art_url == nil and not stream._async_player_info then
+                art_url = media.get_player_art_url(matched_player)
+            end
             local art_path = art_url and art_url:match("^file://(.+)$") or nil
 
             if art_path then
@@ -650,18 +696,22 @@ local function build_stream_card(instance, stream, source_output, default_sink_n
 end
 
 local function build_widget(instance)
-    local audio = require("lxmedia.audio")
-    local media = require("lxmedia.media")
+    if not instance._media_popup_data then
+        request_popup_data(instance)
+        instance._media_popup_items = {}
+        return loading_widget("Loading media streams...")
+    end
 
-    local streams = audio.list_sink_inputs() or {}
-    local source_outputs = audio.list_source_outputs() or {}
-    local sinks = audio.list_sinks() or {}
+    local data = instance._media_popup_data
+    local streams = data.streams or {}
+    local source_outputs = data.source_outputs or {}
+    local sinks = data.sinks or {}
     local streams_with_player = {}
     local streams_without_player = {}
     local popup_items = {}
 
     for _, stream in ipairs(streams) do
-        local matched_player = media.player_for_stream(stream)
+        local matched_player = stream._matched_player
         if matched_player then
             stream._matched_player = matched_player
             table.insert(streams_with_player, stream)
@@ -775,6 +825,10 @@ function M.rebuild(instance)
     if popup_session.is_visible(instance, "_media_popup") then
         popup_session.show(instance, "_media_popup", nil, build_widget, instance._media_popup_opts or {})
     end
+end
+
+function M.invalidate(instance)
+    instance._media_popup_data = nil
 end
 
 return M

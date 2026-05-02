@@ -1,3 +1,47 @@
+## v1.10.0 (2026-05-02)
+
+### Features
+
+- [core] add third-party layout registration
+- [lxrunner] launch result rows on left click
+- [lxmedia] defer heavy popup data collection
+- [core] try out ai-review against local ollama
+
+### Bug Fixes
+
+- [core] keep hidden quake terminal hidden on reload
+- [lxcommon] clear popup feedback during shared-session cycling
+- [lxcommon] bind default popup actions to instance
+
+### Refactors
+
+- [core] remove lain dependency
+- [core] replace lain widget helpers locally
+- [core] restore lain as git submodule
+- [theme] replace legacy widget PNGs with glyph icons
+- [lxcommon] centralize popup input ownership
+- [lxrunner] store alias history by identity
+- [lxrunner] store launch history as JSON
+
+### Documentation
+
+- [core] finalize v1.10.0 migration notes
+- [core] clean up release documentation
+- [core] remove stale submodule quickstart step
+- [core] document layout ownership plan
+- [theme] clarify remaining asset attribution
+- [core] clarify post-v1.9.0 migration bucket
+- [lxrunner] document JSON history migration
+- [core] remove completed popup latency follow-ups
+- [lxsecrets] add roadmap item
+- [core] describe lxmodules in README
+- [core] change baseline assumption in MIGRATE.md
+- [core] add `lxsession` SPEC for later implementation
+
+### Chores
+
+- [core] remove unused freedesktop vendor tree
+
 ## v1.9.0 (2026-04-27)
 
 ### Features

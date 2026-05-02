@@ -1,9 +1,35 @@
-local awful = require("awful")
 local gears = require("gears")
-local keygrabber = require("awful.keygrabber")
 local awful_key = require("awful.key")
+local popup_input_session = require("lxcommon.popup_input_session")
 
 local M = {}
+
+local MODIFIER_ALIASES = {
+    Ctrl = "Control",
+}
+
+local function normalize_modifier(modifier)
+    return MODIFIER_ALIASES[modifier] or modifier
+end
+
+local function current_root_keys()
+    local keys = root.keys
+
+    if type(keys) == "function" then
+        local ok, result = pcall(keys)
+        if ok and type(result) == "table" then
+            return result
+        end
+
+        return {}
+    end
+
+    if type(keys) == "table" then
+        return keys
+    end
+
+    return {}
+end
 
 local function looks_like_geometry(value)
     return type(value) == "table"
@@ -16,14 +42,18 @@ end
 local function filtered_modifiers(modifiers)
     local filtered = {}
     local ignored = {}
+    local seen = {}
 
     for _, modifier in ipairs(awful_key.ignore_modifiers or {}) do
+        modifier = normalize_modifier(modifier)
         ignored[modifier] = true
     end
 
     for _, modifier in ipairs(modifiers or {}) do
-        if not ignored[modifier] then
+        modifier = normalize_modifier(modifier)
+        if not ignored[modifier] and not seen[modifier] then
             filtered[#filtered + 1] = modifier
+            seen[modifier] = true
         end
     end
 
@@ -84,35 +114,6 @@ local function keybinding_matches(keybinding, pressed_modifiers, key)
     return false, nil
 end
 
-local function keybinding_entries(keybinding)
-    if type(keybinding) ~= "table" then
-        return {}
-    end
-
-    if type(keybinding.key) == "string" then
-        return {
-            {
-                key = keybinding.key,
-                modifiers = filtered_modifiers(keybinding.modifiers),
-                matched_binding = keybinding,
-            },
-        }
-    end
-
-    local entries = {}
-    for _, sub_key in ipairs(keybinding) do
-        if type(sub_key) == "table" and type(sub_key.key) == "string" then
-            entries[#entries + 1] = {
-                key = sub_key.key,
-                modifiers = filtered_modifiers(sub_key.modifiers),
-                matched_binding = sub_key,
-            }
-        end
-    end
-
-    return entries
-end
-
 local function keybinding_owner(keybinding)
     if type(keybinding) ~= "table" then
         return keybinding
@@ -160,11 +161,21 @@ local function blocked_global_key(blocked, key, modifiers)
     return blocked[key] and not has_modifiers(modifiers)
 end
 
+local function blocked_keychain_matches(blocked_keychains, modifiers, key)
+    for _, keychain in ipairs(blocked_keychains or {}) do
+        if M.popup_toggle_key_matches(keychain, modifiers, key) then
+            return true
+        end
+    end
+
+    return false
+end
+
 ---Try to execute a matching root/global keybinding for a popup-owned key event.
 function M.dispatch_global_keybinding(modifiers, key, opts)
     opts = opts or {}
 
-    local root_keys = root.keys and root.keys() or {}
+    local root_keys = current_root_keys()
     local pressed_modifiers = filtered_modifiers(modifiers)
     local blocked = {}
 
@@ -173,6 +184,10 @@ function M.dispatch_global_keybinding(modifiers, key, opts)
     end
 
     if blocked_global_key(blocked, key, modifiers) then
+        return false
+    end
+
+    if blocked_keychain_matches(opts.blocked_keychains, pressed_modifiers, key) then
         return false
     end
 
@@ -191,37 +206,6 @@ function M.dispatch_global_keybinding(modifiers, key, opts)
     end
 
     return false
-end
-
-function M.build_global_fallback_keybindings(opts)
-    opts = opts or {}
-
-    local blocked = {}
-    for _, blocked_key in ipairs(opts.blocked_keys or {}) do
-        blocked[blocked_key] = true
-    end
-
-    local bindings = {}
-    for _, keybinding in ipairs(root.keys and root.keys() or {}) do
-        for _, entry in ipairs(keybinding_entries(keybinding)) do
-            if entry.key and not blocked_global_key(blocked, entry.key, entry.modifiers) then
-                bindings[#bindings + 1] = awful_key(entry.modifiers, entry.key, function()
-                    local trigger = trigger_callback(keybinding, entry.matched_binding)
-                    if not trigger then
-                        return
-                    end
-
-                    if type(opts.before_dispatch) == "function" then
-                        opts.before_dispatch()
-                    end
-
-                    gears.timer.delayed_call(trigger)
-                end)
-            end
-        end
-    end
-
-    return bindings
 end
 
 ---Normalize the supported popup-helper call styles into one opts table.
@@ -254,6 +238,7 @@ function M.normalize_popup_toggle_key(toggle_key, opts)
 
     if type(toggle_key.modifiers) == "table" then
         for _, modifier in ipairs(toggle_key.modifiers) do
+            modifier = normalize_modifier(modifier)
             if type(modifier) == "string" and modifier ~= "" and not ignored_modifiers[modifier] then
                 normalized.modifier_set[modifier] = true
             end
@@ -280,6 +265,7 @@ function M.popup_toggle_key_matches(toggle_key, modifiers, key, opts)
 
     local active_modifiers = {}
     for _, modifier in ipairs(modifiers or {}) do
+        modifier = normalize_modifier(modifier)
         if not ignored_modifiers[modifier] then
             active_modifiers[modifier] = true
         end
@@ -337,18 +323,7 @@ end
 function M.stop_outside_click_dismiss(instance, opts)
     opts = opts or {}
 
-    local binding_key = opts.binding_key or "_popup_outside_click_binding"
-    local buttons_key = opts.saved_root_buttons_key or "_popup_saved_root_buttons"
     local handler_key = opts.handler_key or "_popup_outside_click_handler"
-
-    if instance[binding_key] then
-        instance[binding_key] = nil
-    end
-
-    if instance[buttons_key] then
-        root.buttons(instance[buttons_key])
-        instance[buttons_key] = nil
-    end
 
     if instance[handler_key] then
         if client and client.disconnect_signal then
@@ -370,8 +345,6 @@ function M.start_outside_click_dismiss(instance, opts)
     opts = opts or {}
     M.stop_outside_click_dismiss(instance, opts)
 
-    local binding_key = opts.binding_key or "_popup_outside_click_binding"
-    local buttons_key = opts.saved_root_buttons_key or "_popup_saved_root_buttons"
     local handler_key = opts.handler_key or "_popup_outside_click_handler"
     local is_open = opts.is_open or function()
         return false
@@ -393,12 +366,6 @@ function M.start_outside_click_dismiss(instance, opts)
     end
 
     instance[handler_key] = handler
-    instance[binding_key] = awful.button({}, 1, handler)
-    instance[buttons_key] = M.copy_button_list(root.buttons())
-
-    local merged_root_buttons = M.copy_button_list(instance[buttons_key])
-    merged_root_buttons[#merged_root_buttons + 1] = instance[binding_key]
-    root.buttons(merged_root_buttons)
 
     if client and client.connect_signal then
         client.connect_signal("button::press", handler)
@@ -486,13 +453,13 @@ function M.dispatch_popup_keypress(opts)
 
     if M.popup_toggle_key_matches(opts.prev_keychain, opts.modifiers, opts.key, match_opts)
         and type(opts.on_cycle_prev) == "function" then
-        opts.on_cycle_prev()
+        opts.on_cycle_prev(opts.cycle_anchor)
         return true
     end
 
     if M.popup_toggle_key_matches(opts.next_keychain, opts.modifiers, opts.key, match_opts)
         and type(opts.on_cycle_next) == "function" then
-        opts.on_cycle_next()
+        opts.on_cycle_next(opts.cycle_anchor)
         return true
     end
 
@@ -522,69 +489,27 @@ function M.dispatch_popup_keypress(opts)
     return false
 end
 
----Create or reuse a keygrabber stored on the popup-owning instance.
-function M.ensure_popup_keygrabber(instance, opts)
-    opts = opts or {}
-    local grabber_key = opts.grabber_key or "_popup_keygrabber"
-    local active_key = opts.active_key or "_popup_keyboard_navigation_active"
-    local handler = opts.handler
-
-    if not instance[grabber_key] then
-        instance[grabber_key] = keygrabber({
-            keybindings = M.build_global_fallback_keybindings(opts.global_fallback),
-            stop_callback = function()
-                instance[active_key] = false
-                if type(opts.on_stop) == "function" then
-                    opts.on_stop()
-                end
-            end,
-            keypressed_callback = function(grabber, modifiers, key, event)
-                handler(grabber, modifiers, key, event)
-            end,
-        })
-    else
-        instance[grabber_key]._private.keybindings = {}
-        for _, keybinding in ipairs(M.build_global_fallback_keybindings(opts.global_fallback)) do
-            instance[grabber_key]:add_keybinding(keybinding)
-        end
-    end
-
-    return instance[grabber_key]
-end
-
----Focus the popup keygrabber and start keyboard navigation if needed.
+---Focus popup keyboard navigation through the shared lxcommon input session.
 function M.focus_popup_keygrabber(instance, opts)
     opts = opts or {}
-    local grabber_key = opts.grabber_key or "_popup_keygrabber"
     local active_key = opts.active_key or "_popup_keyboard_navigation_active"
-    local grabber = M.ensure_popup_keygrabber(instance, opts)
 
-    instance[active_key] = true
-
-    if grabber.grabber then
-        return grabber
-    end
-
-    grabber:start()
-    if type(opts.on_start) == "function" then
-        opts.on_start()
-    end
-
-    return grabber
+    return popup_input_session.activate(instance, {
+        active_key = active_key,
+        handler = opts.handler,
+        on_start = opts.on_start,
+        on_stop = opts.on_stop,
+    })
 end
 
----Blur the popup keygrabber and stop keyboard navigation if active.
+---Blur popup keyboard navigation if this instance owns the shared input session.
 function M.blur_popup_keygrabber(instance, opts)
     opts = opts or {}
-    local grabber_key = opts.grabber_key or "_popup_keygrabber"
     local active_key = opts.active_key or "_popup_keyboard_navigation_active"
 
-    instance[active_key] = false
-
-    local grabber = instance[grabber_key]
-    if grabber and grabber.grabber then
-        grabber:stop()
-    end
+    popup_input_session.release(instance, {
+        active_key = active_key,
+    })
 end
 
 return M

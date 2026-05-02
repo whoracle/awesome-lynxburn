@@ -1,27 +1,12 @@
 local awful = require("awful")
 local gears = require("gears")
+local json = require("lxcommon.dkjson")
 local util = require("lxcommon.util")
 
 local M = {}
 
 local function strip_trailing_newlines(s)
     return tostring(s or ""):gsub("[\r\n]+$", "")
-end
-
-local function escape_field(s)
-    s = tostring(s or "")
-    s = s:gsub("\\", "\\\\")
-    s = s:gsub("\t", "\\t")
-    s = s:gsub("\n", "\\n")
-    return s
-end
-
-local function unescape_field(s)
-    s = tostring(s or "")
-    s = s:gsub("\\n", "\n")
-    s = s:gsub("\\t", "\t")
-    s = s:gsub("\\\\", "\\")
-    return s
 end
 
 local function longest_common_prefix(values)
@@ -80,6 +65,64 @@ local function split_alias_query(input)
     return alias_name or "", util.trim(arg_tail or "")
 end
 
+local function normalize_history_entry(entry)
+    if type(entry) ~= "table" then
+        return nil
+    end
+
+    local launch_source = tostring(entry.launch_source or entry.source or "")
+    local count = math.max(1, tonumber(entry.count) or 1)
+    local last_used = tonumber(entry.last_used) or 0
+
+    if launch_source == "alias" then
+        local alias_name = util.trim(entry.alias_name or entry.name or "")
+        if alias_name == "" then
+            return nil
+        end
+
+        local alias_args = util.trim(entry.alias_args or entry.args or "")
+        local name = util.trim(entry.name or alias_name)
+        if name == "" then
+            name = alias_name
+        end
+
+        return {
+            last_used = last_used,
+            launch_source = "alias",
+            count = count,
+            name = name,
+            alias_name = alias_name,
+            alias_args = alias_args,
+            source = "history",
+        }
+    end
+
+    if not entry.command or entry.command == "" then
+        return nil
+    end
+
+    return {
+        last_used = last_used,
+        launch_source = launch_source,
+        count = count,
+        name = tostring(entry.name or entry.command or ""),
+        command = tostring(entry.command or ""),
+        source = "history",
+    }
+end
+
+local function history_identity(entry)
+    if (entry.launch_source or entry.source) == "alias" then
+        return table.concat({
+            "alias",
+            tostring(entry.alias_name or entry.name or ""),
+            tostring(entry.alias_args or ""),
+        }, "\0")
+    end
+
+    return "command\0" .. tostring(entry.command or "")
+end
+
 ---Attach history, ranking, and query/filter helpers to lxrunner.
 function M.extend(instance_methods)
     ---Keep persisted history sorted by usage first, then recency.
@@ -111,44 +154,24 @@ function M.extend(instance_methods)
             return
         end
 
-        for line in handle:lines() do
-            local ts, launch_source, count, name, command = line:match("^([^\t]*)\t([^\t]*)\t([^\t]*)\t([^\t]*)\t(.*)$")
-            if ts and launch_source and count and name and command then
-                table.insert(self._history, {
-                    last_used = tonumber(ts) or 0,
-                    launch_source = launch_source,
-                    count = math.max(1, tonumber(count) or 1),
-                    name = unescape_field(name),
-                    command = unescape_field(command),
-                    source = "history",
-                })
-            else
-                ts, launch_source, name, command = line:match("^([^\t]*)\t([^\t]*)\t([^\t]*)\t(.*)$")
-                if ts and launch_source and name and command then
-                    table.insert(self._history, {
-                        last_used = tonumber(ts) or 0,
-                        launch_source = launch_source,
-                        count = 1,
-                        name = unescape_field(name),
-                        command = unescape_field(command),
-                        source = "history",
-                    })
-                else
-                    ts, name, command = line:match("^([^\t]*)\t([^\t]*)\t(.*)$")
-                    if ts and name and command then
-                        table.insert(self._history, {
-                            last_used = tonumber(ts) or 0,
-                            count = 1,
-                            name = unescape_field(name),
-                            command = unescape_field(command),
-                            source = "history",
-                        })
-                    end
-                end
+        local contents = handle:read("*a")
+        handle:close()
+
+        local decoded = json.decode(contents or "")
+        if type(decoded) ~= "table"
+            or decoded.format ~= "lxrunner-history"
+            or tonumber(decoded.version) ~= 1
+            or type(decoded.entries) ~= "table" then
+            return
+        end
+
+        for _, entry in ipairs(decoded.entries) do
+            local normalized = normalize_history_entry(entry)
+            if normalized then
+                table.insert(self._history, normalized)
             end
         end
 
-        handle:close()
         self:_sort_history()
     end
 
@@ -163,7 +186,10 @@ function M.extend(instance_methods)
             local same_name = history_entry.name ~= ""
                 and entry.name ~= nil
                 and history_entry.name == entry.name
-            local same_alias = entry.alias_name ~= nil and history_entry.name == entry.alias_name
+            local same_alias = entry.alias_name ~= nil
+                and history_entry.launch_source == "alias"
+                and history_entry.alias_name == entry.alias_name
+                and tostring(history_entry.alias_args or "") == tostring(entry.alias_args or "")
 
             if same_command or same_name or same_alias then
                 local recency_bonus = math.max(0, (self.opts.history_limit - index + 1) * 10)
@@ -186,19 +212,72 @@ function M.extend(instance_methods)
             return
         end
 
+        local entries = {}
         for i = 1, math.min(#self._history, self.opts.history_limit) do
             local entry = self._history[i]
-            handle:write(string.format(
-                "%s\t%s\t%s\t%s\t%s\n",
-                tostring(entry.last_used or 0),
-                tostring(entry.launch_source or entry.source or ""),
-                tostring(math.max(1, tonumber(entry.count) or 1)),
-                escape_field(entry.name),
-                escape_field(entry.command)
-            ))
+            local saved = {
+                last_used = tonumber(entry.last_used) or 0,
+                launch_source = tostring(entry.launch_source or entry.source or ""),
+                count = math.max(1, tonumber(entry.count) or 1),
+                name = tostring(entry.name or ""),
+            }
+
+            if saved.launch_source == "alias" then
+                saved.alias_name = tostring(entry.alias_name or entry.name or "")
+                local alias_args = util.trim(entry.alias_args or "")
+                if alias_args ~= "" then
+                    saved.alias_args = alias_args
+                end
+            else
+                saved.command = tostring(entry.command or "")
+            end
+
+            entries[#entries + 1] = saved
         end
 
+        handle:write(json.encode({
+            format = "lxrunner-history",
+            version = 1,
+            entries = entries,
+        }, {
+            indent = true,
+        }))
+        handle:write("\n")
         handle:close()
+    end
+
+    ---Find a configured alias by name.
+    function instance_methods:_find_alias(alias_name)
+        for _, alias in ipairs(self._aliases or {}) do
+            if alias.name == alias_name then
+                return alias
+            end
+        end
+
+        return nil
+    end
+
+    ---Resolve a semantic alias history row through the current alias config.
+    function instance_methods:_resolve_history_alias(entry)
+        local alias = self:_find_alias(entry.alias_name or entry.name)
+        if not alias then
+            return nil
+        end
+
+        local alias_args = util.trim(entry.alias_args or "")
+        local raw_input = alias.name
+        if alias_args ~= "" then
+            raw_input = raw_input .. " " .. alias_args
+        end
+
+        local resolved = self:_resolved_alias_entry(alias, raw_input, alias_args)
+        resolved.source = "history"
+        resolved.launch_source = "alias"
+        resolved.name = entry.name or resolved.name
+        resolved.last_used = entry.last_used
+        resolved.count = entry.count
+
+        return resolved
     end
 
     ---Choose the user-facing history label based on the original launch source.
@@ -210,7 +289,7 @@ function M.extend(instance_methods)
         local source = entry.launch_source or entry.source
 
         if source == "alias" then
-            return util.trim(entry.alias_name or entry.name or entry.command)
+            return util.trim(entry.name or entry.alias_name or entry.command)
         end
 
         if source == "desktop" then
@@ -226,24 +305,42 @@ function M.extend(instance_methods)
 
     ---Move a launch to the front of history and keep the list size bounded.
     function instance_methods:_record_history(entry)
-        if not entry or not entry.command or entry.command == "" then
+        if not entry then
+            return
+        end
+
+        local launch_source = entry.launch_source or entry.source
+        local is_alias = launch_source == "alias"
+
+        if not is_alias and (not entry.command or entry.command == "") then
             return
         end
 
         local updated = {
             name = self:_history_label(entry),
-            command = entry.command,
             source = "history",
-            launch_source = entry.launch_source or entry.source,
+            launch_source = launch_source,
             last_used = os.time(),
             count = 1,
         }
 
+        if is_alias then
+            updated.alias_name = util.trim(entry.alias_name or entry.name or "")
+            updated.alias_args = util.trim(entry.alias_args or "")
+
+            if updated.alias_name == "" then
+                return
+            end
+        else
+            updated.command = entry.command
+        end
+
+        local updated_identity = history_identity(updated)
         local existing_count = 0
         local new_history = { updated }
 
         for _, existing in ipairs(self._history) do
-            if existing.command == updated.command then
+            if history_identity(existing) == updated_identity then
                 existing_count = math.max(existing_count, tonumber(existing.count) or 1)
             else
                 table.insert(new_history, existing)
@@ -332,7 +429,20 @@ function M.extend(instance_methods)
     ---Return the active result set: history while empty, filtered matches while typing.
     function instance_methods:_visible_entries()
         if self._input == "" then
-            return self._history
+            local visible = {}
+
+            for _, entry in ipairs(self._history) do
+                if entry.launch_source == "alias" then
+                    local resolved = self:_resolve_history_alias(entry)
+                    if resolved then
+                        table.insert(visible, resolved)
+                    end
+                else
+                    table.insert(visible, entry)
+                end
+            end
+
+            return visible
         end
 
         return self._matches
@@ -458,7 +568,9 @@ function M.extend(instance_methods)
             return
         end
 
-        if selected.source == "alias"
+        local is_alias_launch = selected.source == "alias" or selected.launch_source == "alias"
+
+        if is_alias_launch
             and selected.notify
             and type(self.opts.service_refresh) == "function" then
             awful.spawn.easy_async_with_shell(selected.command, function()

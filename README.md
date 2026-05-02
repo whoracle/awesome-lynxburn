@@ -24,7 +24,6 @@ Core runtime:
 - AwesomeWM
 - the Lua libraries shipped with AwesomeWM, including `awful`, `beautiful`,
   `gears`, `naughty`, and `wibox`
-- `lain`
 - a font with broad glyph coverage for the bar and popup icons, ideally
   something like `Hack Nerd Font Mono`
 
@@ -40,7 +39,7 @@ Common external commands used by the current config:
   Then configure the IMAP widget like this:
   ```lua
     commands = {
-      lain = {
+      imap = {
         imap_mail = "me@example.org",
         imap_secret = "secret-tool lookup service awesomewm-imap account me@example.org",
         imap_server = "mail.example.org",
@@ -142,6 +141,25 @@ lxmodules = {
 }
 ```
 
+Optional third-party layouts can be registered without editing core files:
+
+```lua
+layouts = {
+    custom = {
+        termfair = require("lain").layout.termfair,
+        ["cascade.tile"] = require("lain").layout.cascade.tile,
+    },
+    setup = function()
+        local lain = require("lain")
+        lain.layout.termfair.nmaster = 3
+        lain.layout.termfair.ncol = 1
+    end,
+}
+```
+
+After registration, use those names in `screens.tag_defaults[*].layout` or
+`screens.tag_defaults[*].layouts`.
+
 ## Configuration Model
 
 The current config layers are:
@@ -157,6 +175,7 @@ The main top-level sections are:
 
 - `commands`
 - `keys`
+- `layouts`
 - `lxmodules`
 - `rules`
 - `screens`
@@ -184,19 +203,32 @@ their own READMEs.
 
 Core shared pieces:
 
-- [`lxcommon`](./lxcommon/README.md)
-- [`lxbar`](./lxbar/README.md)
+- [`lxcommon`](./lxcommon/README.md): shared helper layer for popup sessions,
+  popup key handling, placement, reusable popup UI rows/cards, widget feedback,
+  compact OSDs, and small cross-module utilities
+- [`lxbar`](./lxbar/README.md): compact top-level widget bar, popup cycling
+  entrypoint, custom widget hosting, and per-screen bar placement
 
 Modules:
 
-- [`lxmedia`](./lxmedia/README.md)
-- [`lxnotify`](./lxnotify/README.md)
-- [`lxnetwork`](./lxnetwork/README.md)
-- [`lxbluetooth`](./lxbluetooth/README.md)
-- [`lxpower`](./lxpower/README.md)
-- [`lxdisplay`](./lxdisplay/README.md)
-- [`lxsecrets`](./lxsecrets/README.md)
-- [`lxrunner`](./lxrunner/README.md)
+- [`lxmedia`](./lxmedia/README.md): audio/media widget for volume, mute,
+  microphone state, playback stream controls, device routing, and MPRIS media
+  transport
+- [`lxnotify`](./lxnotify/README.md): notification store and popup UI with
+  grouping, keyboard navigation, dismiss actions, and top-level unread state
+- [`lxnetwork`](./lxnetwork/README.md): NetworkManager-oriented network widget
+  for Wi-Fi state, scans, VPN state, and connection actions
+- [`lxbluetooth`](./lxbluetooth/README.md): Bluetooth widget for adapter power,
+  connected device state, device actions, and manager launch integration
+- [`lxpower`](./lxpower/README.md): power-profile widget for AC/battery-aware
+  profile switching, pinning, and dGPU status display
+- [`lxdisplay`](./lxdisplay/README.md): display-control widget for brightness,
+  DPMS off, redshift-style temperature handling, and xrandr profile application
+- [`lxsecrets`](./lxsecrets/README.md): secret/token health widget for GitLab
+  and Vault refresh flows, expiry display, VPN-gated checks, and login-needed
+  attention state
+- [`lxrunner`](./lxrunner/README.md): keyboard-first launcher for apps,
+  aliases, shell commands, and service-refresh shortcuts
 
 Theme:
 

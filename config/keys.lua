@@ -39,7 +39,6 @@ function M.build(context)
         lxrunner = context.lxrunner,
         lxpower = context.lxpower,
         osd = context.osd,
-        lain = context.lain,
         layouts = context.layouts,
         hotkeys_popup = hotkeys_popup,
         quake = context.quake,

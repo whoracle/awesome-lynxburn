@@ -73,7 +73,7 @@ lxmodules = {
 Popup:
 
 - type to filter PATH commands, aliases, desktop entries, and history
-- left click result rows: no action
+- left click result rows: launch clicked result
 - right click result rows: no action
 - `Up` / `Down`: move selection
 - `Tab`: complete highlighted/common prefix
@@ -172,8 +172,12 @@ Alias `type` values currently used:
 ## Notes
 
 - `lxrunner` stores launch history in `~/.lxrunner_history` by default
-- persisted history entries also track invocation counts and use them during
-  ranking
+- persisted history is a versioned JSON object with `format =
+  "lxrunner-history"` and `version = 1`
+- persisted history entries track invocation counts and use them during ranking
+- alias history entries store `alias_name` and optional `alias_args`, not the
+  resolved shell command; aliases are resolved from the current `config.lua`
+  when launched from history
 - the top-level startup preflight checks `find` because command and
   desktop-entry discovery depend on it
 - no secrets or credentials are embedded in the module

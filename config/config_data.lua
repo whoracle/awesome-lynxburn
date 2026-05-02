@@ -115,6 +115,12 @@ local function merge_screens(merged)
     merge_section(merged, "screens", user_config.screens)
 end
 
+local function merge_layouts(merged)
+    local user_config = load_user_config()
+
+    merge_section(merged, "layouts", user_config.layouts)
+end
+
 local function merge_settings(merged)
     local user_config = load_user_config()
     merge_section(merged, "settings", user_config.settings)
@@ -187,6 +193,10 @@ end
 
 function M.screens()
     return load_section("screens", merge_screens)
+end
+
+function M.layouts()
+    return load_section("layouts", merge_layouts)
 end
 
 function M.user_config()

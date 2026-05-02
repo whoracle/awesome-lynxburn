@@ -8,7 +8,7 @@ Unless otherwise noted, the original code in this repository is licensed under
 the GNU General Public License, version 2 or, at your option, any later
 version.
 
-This repository is **not** a single-uniform-license tree. It contains vendored
+This repository is **not** a single-uniform-license tree. It contains
 third-party components and inherited assets that retain their own licensing
 terms.
 
@@ -29,6 +29,9 @@ The following repository-owned code is intended to be covered by
 - `lxpower/`
 - `lxrunner/`
 - `lxsecrets/`
+- `widgets/`
+- `themes/lynxburn/*.lua`
+- `themes/lynxburn/colors/`
 
 This code is distributed in the hope that it will be useful, but **WITHOUT ANY
 WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or
@@ -36,49 +39,41 @@ WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or
 
 ## Third-Party Components
 
-The following vendored components retain their upstream licenses:
+The following third-party components retain their upstream licenses:
 
-- `lain/`
-  Upstream ships a GPL v2 license file in [`lain/LICENSE`](./lain/LICENSE).
-- `freedesktop/`
-  Upstream ships a GPL v2 license file in
-  [`freedesktop/LICENSE`](./freedesktop/LICENSE).
 - `lxcommon/dkjson.lua`
   Vendored from David Kolf's `dkjson`; see the header in
   [`lxcommon/dkjson.lua`](./lxcommon/dkjson.lua) for upstream attribution and
   licensing terms.
 
-These vendored components are not relicensed by this file.
+These third-party components are not relicensed by this file.
 
-## Theme And Asset Notes
+## Theme And Asset Notices
 
-The active theme tree under `themes/lynxburn/` contains a mix of original work,
-older inherited Awesome theme material, and bundled image assets.
+The active theme tree under `themes/lynxburn/` contains a mix of original work
+and a small number of inherited non-code assets. This file does **not** claim
+that every asset under `themes/lynxburn/` is newly relicensed as
+`GPL-2.0-or-later`.
 
-Known points to treat conservatively:
-
-- `themes/lynxburn/theme.lua` still explicitly references a "copycats-era"
-  lineage in comments
-- `themes/lynxburn/icons/` contains a large set of inherited icon/image assets
-- `themes/lynxburn/*.jpg` and `themes/lynxburn/*.png` wallpaper/image assets may
-  have different provenance than the Lua code
+- `themes/lynxburn/icons/square_sel.png` and
+  `themes/lynxburn/icons/square_unsel.png`
+  These taglist square assets are inherited from the Awesome Copycats lineage,
+  now maintained as [`lcpz/awesome-copycats`](https://github.com/lcpz/awesome-copycats).
+  The upstream project credits Luca CPZ and lists its theme assets under a
+  Creative Commons ShareAlike license.
 - Awesome Zenburn titlebar button assets are referenced from the installed
-  Awesome theme directory, not relicensed here
-
-This file therefore does **not** claim that every asset under
-`themes/lynxburn/` is newly relicensed as `GPL-2.0-or-later`.
+  Awesome theme directory, not relicensed here.
+- Bundled default wallpaper, historically known as `dwallpaper`
+  This wallpaper was previously distributed as `Terraform Green` /
+  `Terraform-green.jpg` in GNOME backgrounds. Public GNOME commit history shows
+  it was still present until a cleanup commit in November 2017 removed it from
+  the active background set. Older public references also describe it as part of
+  the official GNOME backgrounds around the GNOME 3.2 era. Clear original
+  authorship/licensing attribution has not been pinned down in this repository.
+  If someone has clean attribution for this asset, a PR is welcome.
 
 Until a finer-grained audit is done, treat inherited or bundled non-code assets
 as third-party material that keeps its existing terms where applicable.
-
-## Additional Asset Notice
-
-At least one vendored asset subdirectory already carries its own explicit
-non-GPL notice:
-
-- `lain/icons/openweathermap/`
-  See [`lain/icons/openweathermap/README.md`](./lain/icons/openweathermap/README.md),
-  which references Creative Commons BY-NC-SA 2.5 for those weather icons.
 
 ## GPL Terms
 
@@ -88,11 +83,6 @@ by the Free Software Foundation, either:
 
 - version 2 of the License, or
 - at your option, any later version
-
-The GPL v2 license text is reproduced in vendored upstream copies here:
-
-- [`lain/LICENSE`](./lain/LICENSE)
-- [`freedesktop/LICENSE`](./freedesktop/LICENSE)
 
 If you need the SPDX form of the license text, Arch and other modern systems
 also ship it as `GPL-2.0-or-later`.

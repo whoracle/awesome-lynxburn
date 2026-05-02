@@ -1,11 +1,12 @@
 local awful = require("awful")
-local lain = require("lain")
+local config_data = require("config.config_data")
+local centerwork = require("config.layouts.centerwork")
 
 local M = {}
 
 local LAYOUTS = {
-    ["centerwork"] = lain.layout.centerwork,
-    ["centerwork.horizontal"] = lain.layout.centerwork.horizontal,
+    ["centerwork"] = centerwork,
+    ["centerwork.horizontal"] = centerwork.horizontal,
     ["fair"] = awful.layout.suit.fair,
     ["fairv"] = awful.layout.suit.fair,
     ["fair.horizontal"] = awful.layout.suit.fair.horizontal,
@@ -15,7 +16,12 @@ local LAYOUTS = {
     ["floating"] = awful.layout.suit.floating,
 }
 
----Resolve a configured layout name into an Awesome/lain layout object.
+local function custom_layouts()
+    local layout_config = config_data.layouts()
+    return type(layout_config.custom) == "table" and layout_config.custom or {}
+end
+
+---Resolve a configured layout name into an Awesome layout object.
 ---@param layout_name string|nil
 ---@return table|nil
 function M.resolve(layout_name)
@@ -23,7 +29,7 @@ function M.resolve(layout_name)
         return nil
     end
 
-    return LAYOUTS[layout_name] or awful.layout.suit.fair
+    return custom_layouts()[layout_name] or LAYOUTS[layout_name] or awful.layout.suit.fair
 end
 
 return M

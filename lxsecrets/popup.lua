@@ -294,7 +294,8 @@ function M.extend(instance_methods)
         end
     end
 
-    function instance_methods:_refresh_popup()
+    function instance_methods:_refresh_popup(opts)
+        opts = opts or {}
         if not self._popup_refs then
             return
         end
@@ -318,6 +319,16 @@ function M.extend(instance_methods)
                 self:toggle_suspended()
             end,
         }
+
+        if not opts.immediate then
+            refs.sections:add(status_line(self, "Loading secrets..."))
+            gears.timer.delayed_call(function()
+                if self._popup_refs == refs and self:popup_visible("_popup") then
+                    self:_refresh_popup({ immediate = true })
+                end
+            end)
+            return
+        end
 
         local groups, order = self:provider_groups()
         if #order == 0 then

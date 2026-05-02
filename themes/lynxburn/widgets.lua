@@ -3,7 +3,6 @@ local ipairs = ipairs
 local table = table
 
 local gears = require("gears")
-local lain = require("lain")
 local awful = require("awful")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
@@ -12,9 +11,11 @@ local lxmodules = require("config.lxmodules")
 local services = require("config.services")
 local tags = require("config.tags")
 local layouts = require("config.layouts")
+local metric = require("widgets.metric")
+local calendar = require("widgets.calendar")
+local markup = require("widgets.markup")
 
 local my_table = awful.util.table or gears.table
-local markup = lain.util.markup
 
 local M = {}
 
@@ -100,22 +101,24 @@ local function build_text_widget(theme, text_widget)
 end
 
 local function build_power_menu(theme)
+    local powermenu_icon = metric.icon(theme.icon_powermenu)
+    metric.show(powermenu_icon)
+
     local powermenu_widget = wibox.widget({
         {
-            image = theme.icon_powermenu,
-            resize = true,
-            widget = wibox.widget.imagebox,
+            powermenu_icon,
+            layout = wibox.layout.fixed.horizontal,
         },
         margins = 4,
         widget = wibox.container.margin,
     })
 
     local menu_items = {
-        { name = "Run Program", icon_name = "/icons/cpu.png", type = "shell", command = "gmrun" },
-        { name = "Shutdown", icon_name = "/icons/cpu.png", type = "shell", command = "sudo systemctl poweroff" },
-        { name = "Reboot", icon_name = "/icons/cpu.png", type = "shell", command = "sudo systemctl reboot" },
-        { name = "Lock Screen", icon_name = "/icons/cpu.png", type = "shell", command = "i3lock -c 000000 -e -t -i ~/.wallpaper" },
-        { name = "Log Out", icon_name = "/icons/cpu.png", type = "builtin", command = "quit" },
+        { name = "Run Program", icon = { glyph = "", font = theme.font, width = 12 }, type = "shell", command = "gmrun" },
+        { name = "Shutdown", icon = { glyph = "⏻", font = theme.font, width = 12 }, type = "shell", command = "sudo systemctl poweroff" },
+        { name = "Reboot", icon = { glyph = "", font = theme.font, width = 12 }, type = "shell", command = "sudo systemctl reboot" },
+        { name = "Lock Screen", icon = { glyph = "", font = theme.font, width = 12 }, type = "shell", command = "i3lock -c 000000 -e -t -i ~/.wallpaper" },
+        { name = "Log Out", icon = { glyph = "󰍃", font = theme.font, width = 12 }, type = "builtin", command = "quit" },
     }
 
     local popup = awful.popup({
@@ -138,14 +141,15 @@ local function build_power_menu(theme)
     local rows = { layout = wibox.layout.fixed.vertical }
 
     for _, item in ipairs(menu_items) do
+        local item_icon = metric.icon(item.icon)
+        metric.show(item_icon)
+
         local row = wibox.widget({
             {
                 {
                     {
-                        image = theme.dir .. item.icon_name,
-                        forced_width = 12,
-                        forced_height = 12,
-                        widget = wibox.widget.imagebox,
+                        item_icon,
+                        layout = wibox.layout.fixed.horizontal,
                     },
                     {
                         text = item.name,
@@ -242,8 +246,7 @@ function M.build(theme)
     local mytextdate = wibox.widget.textclock(markup(theme.tasklist_fg_normal, " %a, %d %b %y "))
     local mydate = build_text_widget(theme, mytextdate)
 
-    lain.widget.cal({
-        attach_to = { myclock, mydate },
+    calendar.attach({ myclock, mydate }, {
         followtag = true,
         week_number = "left",
         notification_preset = {

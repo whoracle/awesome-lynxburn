@@ -1,0 +1,29 @@
+stages:
+  - review
+
+ai-review:
+  tags:
+    - git01-docker
+  stage: review
+  image: nikitafilonov/ai-review:latest
+  rules:
+  - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    when: manual
+  script:
+    - ai-review run
+  variables:
+    # --- LLM configuration ---
+    LLM__PROVIDER: "OPENAI"
+    LLM__META__MODEL: "reviewer"
+    LLM__META__MAX_TOKENS: "15000"
+    LLM__META__TEMPERATURE: "0.3"
+    LLM__HTTP_CLIENT__API_URL: "https://litellm.home.lynxcore.org/v1"
+    LLM__HTTP_CLIENT__API_TOKEN: "unused"
+
+    # --- GitLab integration ---
+    VCS__PROVIDER: "GITLAB"
+    VCS__PIPELINE__PROJECT_ID: "$CI_PROJECT_ID"
+    VCS__PIPELINE__MERGE_REQUEST_ID: "$CI_MERGE_REQUEST_IID"
+    VCS__HTTP_CLIENT__API_URL: "$CI_SERVER_URL"
+    VCS__HTTP_CLIENT__API_TOKEN: "$AI_REVIEW_GITLAB_TOKEN"
+  allow_failure: true  # Optional: don't block pipeline if AI review fails

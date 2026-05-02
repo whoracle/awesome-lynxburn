@@ -8,8 +8,8 @@ provides the per-screen wibar assembly used by the current desktop and now
 supports swappable color schemes inside the same theme shell.
 
 Normal in-bar widgets should now go through `lxbar`, including custom
-non-`lx*` widgets such as the bundled `systray`, IMAP mail, and `lain`
-metric examples.
+non-`lx*` widgets such as the bundled `systray`, IMAP mail, and local metric
+examples.
 `themes/lynxburn/widgets.lua` remains the right place only for theme-owned
 shell composition and for extra widgets you intentionally place outside
 `lxbar`.
@@ -19,7 +19,7 @@ shell composition and for extra widgets you intentionally place outside
 External:
 
 - AwesomeWM core libraries: `awful`, `beautiful`, `gears`, `wibox`
-- `lain`
+- local custom widgets
 - the Zenburn Awesome theme assets for titlebar button images
 
 Internal:
@@ -167,7 +167,7 @@ Awesome titlebar assets:
 - `titlebar_maximized_button_normal_active`
 - `titlebar_maximized_button_focus_active`
 
-Legacy/bundled widget assets:
+Legacy/custom widget glyph specs:
 
 - `icon_mail`
 - `icon_cpu`
@@ -411,7 +411,7 @@ Layout label values:
   - wibar assembly
   - tasklist/taglist/layout switcher composition
   - clock / date / power-menu placement
-- `widgets.lua` no longer owns the old IMAP, systray, or `lain` metric bar
+- `widgets.lua` no longer owns the old IMAP, systray, or metric bar
   widgets; those now belong in `lxbar` via `lxmodules.lxbar.custom_widgets`
 - `color_scheme` changes only the scheme layer; spacing/layout/widget placement
   remains owned by the `lynxburn` theme shell

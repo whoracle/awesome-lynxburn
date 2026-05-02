@@ -43,7 +43,8 @@ local function alias_decoration(instance, alias_name)
 end
 
 ---Build one result row with optional image or glyph decoration.
-local function build_row(text, selected, decoration)
+local function build_row(text, selected, decoration, opts)
+    opts = opts or {}
     local fg = selected
         and (beautiful.lxrunner_row_selected_fg or beautiful.fg_focus or "#ffffff")
         or (beautiful.lxrunner_row_fg or beautiful.fg_normal or "#bbbbbb")
@@ -81,7 +82,7 @@ local function build_row(text, selected, decoration)
         })
     end
 
-    return wibox.widget({
+    local row = wibox.widget({
         {
             icon_widget,
             {
@@ -107,6 +108,14 @@ local function build_row(text, selected, decoration)
         fg = fg,
         widget = wibox.container.background,
     })
+
+    if type(opts.on_left_click) == "function" then
+        row:buttons(gears.table.join(
+            awful.button({}, 1, opts.on_left_click)
+        ))
+    end
+
+    return row
 end
 
 ---Attach UI rendering helpers to lxrunner.
@@ -183,7 +192,12 @@ function M.extend(instance_methods)
             for i = 1, self.opts.row_count do
                 local entry = self._history[i]
                 if entry then
-                    self._results:add(build_row(entry.name, i == self._selected_index, self:_decoration_for_entry(entry)))
+                    self._results:add(build_row(entry.name, i == self._selected_index, self:_decoration_for_entry(entry), {
+                        on_left_click = function()
+                            self._selected_index = i
+                            self:_launch_selected()
+                        end,
+                    }))
                 else
                     self._results:add(build_row("", false))
                 end
@@ -205,7 +219,12 @@ function M.extend(instance_methods)
         for i = 1, self.opts.row_count do
             local match = self._matches[i]
             if match then
-                self._results:add(build_row(match.display or match.name, i == self._selected_index, self:_decoration_for_entry(match)))
+                self._results:add(build_row(match.display or match.name, i == self._selected_index, self:_decoration_for_entry(match), {
+                    on_left_click = function()
+                        self._selected_index = i
+                        self:_launch_selected()
+                    end,
+                }))
             else
                 self._results:add(build_row("", false))
             end
