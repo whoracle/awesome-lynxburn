@@ -11,6 +11,8 @@ Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
   - visible known networks
   - visible additional networks
   - inline actions for scan and WiFi enable/disable
+- showing wired-network state in the popup is in scope later if it stays
+  display-oriented and does not grow into full connection editing
 - keyboard navigation and popup cycling stay aligned with the shared `lxbar`
   popup model
 
@@ -23,7 +25,7 @@ Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 - No separate popup ordering model.
   Reason: popup participation follows `lxbar` top-level order and semantic role
   ordering.
-- No expansion into wired, modem, VPN profile editing, or advanced connection
-  authoring workflows right now.
+- No expansion into wired editing, modem, VPN profile editing, or advanced
+  connection authoring workflows right now.
   Reason: those are outside the current scope and would push the module toward
   a different class of tool.

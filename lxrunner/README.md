@@ -61,7 +61,7 @@ lxmodules = {
             },
             {
                 name = "vpn-up",
-                command = "nmcli connection up senec",
+                command = "nmcli connection up MYVPNCONNECTIONNAME",
                 notify = "lxnetwork",
             },
         },
@@ -160,6 +160,11 @@ Alias `type` values currently used:
 - `[placeholder] empty runner`
 - `[placeholder] filtered results`
 - `[placeholder] alias with glyph/icon`
+
+## Further Reading
+
+- [Top-level roadmap](../ROADMAP.md)
+- [lxrunner spec](./SPEC.md)
 
 ## File Layout
 

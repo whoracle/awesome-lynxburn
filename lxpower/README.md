@@ -141,12 +141,19 @@ actual side follows `lxmodules.lxbar.popup_side`.
 - `theme.lua`: theme accessors, profile labels, and top-level widget refresh logic
 - `state.lua`: sysfs/powerprofilesctl reads and profile-management behavior
 - `popup.lua`: popup rendering, status lines, and popup selection state
-- `controller.lua`: popup open/close, keygrabber wiring, and hover/outside-click dismissal
+- `controller.lua`: named-popup descriptor wiring for shared popup control
 
 ## Notes
 
 - `lxpower` currently targets Linux systems exposing the expected sysfs power
   and DRM state files
+- the “dGPU disabled” display path is based on sysfs state and has not been
+  tested on every GPU/driver combination
 - the top-level startup preflight checks `powerprofilesctl` when `lxpower` is
   enabled in `lxmodules.lxbar.order`
 - no secrets or credentials are embedded in the module
+
+## Further Reading
+
+- [Top-level roadmap](../ROADMAP.md)
+- [lxpower spec](./SPEC.md)

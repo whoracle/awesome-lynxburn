@@ -3,8 +3,8 @@
 This repository accepts contributions, but it is still a personal AwesomeWM
 config first.
 
-Contributions are evaluated primarily on fit, maintainability, and whether the
-change can be verified in practice.
+I look at whether a change fits the project, stays maintainable, and can
+actually be tested.
 
 ## Scope
 
@@ -15,7 +15,7 @@ Contributions that are generally welcome:
 - documentation fixes or improvements
 - cleanup that clearly reduces maintenance cost
 
-Contributions are less likely to be accepted if they:
+Please discuss first if a change would:
 
 - expand the project far beyond its current scope
 - reshape the repo or config surface without prior discussion
@@ -50,9 +50,22 @@ documentation in the same contribution when practical.
 
 Avoid unrelated churn in the same patch.
 
+## Workflow
+
+Before opening a PR, check [`DEVELOPMENT.md`](./DEVELOPMENT.md) for the current
+architecture notes and tooling.
+
+In short:
+
+- keep the patch focused
+- run the relevant checks, such as `luac -p`, `awesome --check`, and
+  `somewm --check` when touching shared or platform-sensitive code
+- use the configured commit format
+- do not bump versions or update release metadata
+
 ## Commit Format
 
-This repository now validates commit messages through commitizen and
+This repository validates commit messages through commitizen and
 `pre-commit`.
 
 Use:
@@ -111,13 +124,8 @@ provenance or incompatible licensing.
 If a contribution adds or modifies third-party material, include the relevant
 license and provenance details with the change.
 
-## Acceptance
+## Fit
 
-Acceptance of contributions is discretionary.
-
-A contribution may be declined if it:
-
-- does not fit the project direction
-- is difficult to verify reliably
-- introduces licensing uncertainty
-- adds maintenance cost the project does not want to carry
+Not every idea will fit this config, and that is fine. A contribution may still
+be declined if it is difficult to verify reliably, introduces licensing
+uncertainty, or adds maintenance cost the project does not want to carry.

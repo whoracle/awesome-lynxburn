@@ -317,6 +317,12 @@ when the hardware is absent:
 - `[placeholder] brightness OSD`
 - `[placeholder] night-mode state`
 
+## Further Reading
+
+- [Top-level roadmap](../ROADMAP.md)
+- [lxdisplay spec](./SPEC.md)
+- [Wayland / SomeWM notes](../WAYLAND.md)
+
 ## File Layout
 
 - `init.lua`: constructor and instance wiring

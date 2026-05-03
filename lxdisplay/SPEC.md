@@ -9,9 +9,12 @@ Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
   - brightness controls
   - redshift/night-mode behavior
   - display profiles
+  - platform-specific display-profile backends
   - narrow transient-display actions from the popup
 - transient display discovery is intentionally user-triggered rather than
   always-on
+- backend-specific command details stay behind the backend layer; profile
+  configuration should remain as close as practical between X11 and SomeWM
 
 ## Explicit Non-Goals For Now
 
@@ -25,3 +28,7 @@ Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 - no always-on output polling
   Why: transient display discovery is intentionally user-triggered through the
   popup
+
+- no ad-hoc command swapping in the main module
+  Why: X11 and Wayland display tools differ enough that backend files are the
+  safer boundary

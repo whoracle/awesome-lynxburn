@@ -1,245 +1,149 @@
-# Wayland / SomeWM Notes
+# Wayland / SomeWM
 
-This file tracks the current migration plan for running this config under
-Wayland via `SomeWM`, a wlroots-based compositor that aims to be AwesomeWM Lua
-compatible.
+This repo can be run under Wayland through
+[`SomeWM`](https://github.com/trip-zip/somewm), a wlroots compositor with an
+AwesomeWM-compatible Lua surface.
 
-The goal is to keep the config hot-swappable between:
+This is not the daily-driven path yet. AwesomeWM 4.3 on X11 is still the
+baseline. SomeWM support exists so the config can be tested without permanently
+forking it.
 
-- AwesomeWM on X11
-- SomeWM on Wayland
+The compatibility target here is SomeWM `1.4`. SomeWM `2.x` is its own thing
+and should not be assumed to behave like the `1.4` compatibility branch.
 
-without permanently forking the whole config.
+## Goal
 
-Preferred end state, if at all possible:
+The intended shape is:
 
 - one repo
-- one shared config surface and one shared config entry point where possible
-- platform-specific defaults and backends only where they are genuinely needed
+- one shared `rc.lua`
+- one shared user-facing config surface where possible
+- platform-specific defaults and backends only where they are actually needed
 
-## Current Context
-
-- `SomeWM` is based on AwesomeWM `4.4`
-- it provides a compatibility checker via:
-
-```bash
-somewm --check /home/anthrax/tmp/awesome/rc.lua
-```
-
-- X11-specific code may be stubbed, ignored, or break at runtime
-- some Awesome features may also differ because of the older base version
-- the “AwesomeWM-compatible” assumption for this migration is tied to the
-  `1.4` line of SomeWM specifically
-- SomeWM `2.0` should be treated as its own target with potentially different
-  compatibility assumptions, not as an automatic continuation of the `1.4`
-  branch behavior
-
-## Initial Compatibility Findings
-
-The initial `somewm --check` report flagged these areas:
-
-- `scrot` in `config/defaults.lua`
-  Use `grim`/`slurp` or a compositor-native screenshot path instead
-- `xset` in `config/defaults.lua`, `config/preflight.lua`, and `lxdisplay`
-  Wayland compositors or tools like `wlr-randr` should own display power/state
-- `xclip` / `xsel` in `lxrunner/history.lua`
-  Replace with `wl-paste` / `wl-copy`
-- missing `lpeg`
-  This is an environment/package issue, not an X11 issue
-
-## Agreed Plan Of Attack
-
-### 1. Terminal First
-
-Before deeper Wayland work, get a dependable native terminal working for
-testing:
-
-- translate the current `urxvt` setup from `~/.Xresources` to `foot.ini`
-- switch `commands.terminal` to `foot`
-- optionally start `foot -d` in `autostart_once` for the SomeWM path
-
-The point is to have a stable Wayland-native terminal before debugging the rest
-of the config inside a Wayland session.
-
-### 2. Add Shared Platform Detection
-
-Add one shared helper such as:
-
-- `config.platform`
-- or `lxcommon.platform`
-
-with simple predicates:
-
-- `is_x11()`
-- `is_wayland()`
-- optionally `is_somewm()`
-
-This should be the single place where session/backend detection happens.
-
-### 3. Split Shared And Platform Defaults
-
-Current preferred direction:
-
-- keep one shared `config.lua`
-- support two example configs:
-  - `config.awesome.example.lua`
-  - `config.somewm.example.lua`
-- load one shared defaults file plus one platform defaults file
-- let `config.lua.platform` override runtime detection when needed
-
-This keeps the shape simple and avoids an overlay stack.
-
-### 4. Gate Known X11-Only Paths
-
-After platform detection exists, gate the clearly X11-only paths:
-
-- screenshot defaults and screenshot preflight checks
-- `xset`-based display power commands
-- `xclip` / `xsel` primary-selection paste
-- `xbacklight` defaults if they do not work in the Wayland session
-
-The first goal is graceful behavior and correct dependency checks, not perfect
-feature parity yet.
-
-### 5. Replace X11-Specific Backends
-
-Planned replacements:
-
-- `xrandr`
-  likely `wlr-randr`
-- `scrot`
-  likely `grim` / `slurp`
-  `awesome.screenshot()` may be explored later, but should not block first pass
-- `xbacklight`
-  likely `brightnessctl` or another compositor/session-safe backend
-- `xclip` / `xsel`
-  `wl-copy` / `wl-paste`
-
-### 6. Tackle `lxdisplay` Last
-
-`lxdisplay` is the hardest Wayland migration target because it currently owns:
-
-- brightness backend integration
-- display off behavior
-- `xrandr` profile application
-- gamma/redshift scheduling
-- startup display-profile application
-
-This likely needs a backend abstraction instead of ad-hoc command swapping.
-
-## Expected First Implementation Slice
-
-The first practical SomeWM/Wayland pass should be:
-
-1. `foot` config from `~/.Xresources`
-2. shared platform detection
-3. shared defaults plus platform defaults loading
-4. Wayland-aware screenshot, clipboard, and brightness/default/preflight fixes
-5. only then start on `lxdisplay` backend work
+In practice that means AwesomeWM/X11 and SomeWM/Wayland share most modules, but
+some commands and backends differ.
 
 ## Current Status
 
 Implemented:
 
-- shared platform detection in `config.platform`
-- shared defaults plus platform defaults split
-- config-dir-aware theme loading so a `~/.config/somewm` checkout does not
+- platform detection in `config.platform`
+- shared defaults plus platform-specific defaults
+- `config.awesome.example.lua` and `config.somewm.example.lua`
+- config-dir-aware theme loading, so a `~/.config/somewm` checkout does not
   assume `~/.config/awesome`
-- tracked `config.somewm.example.lua` and `config.awesome.example.lua`
 - Wayland screenshot defaults based on `grim` / `slurp`
 - Wayland primary-selection paste for `lxrunner` through `wl-paste`
-- SomeWM `lxdisplay` backend for display profiles through `wlr-randr`
-- Wayland-safe default brightness commands through `brightnessctl`
-- Wayland-safe default display-off command through `wlopm`
+- Wayland brightness commands through `brightnessctl`
+- Wayland display-off command through `wlopm`
 - shared `settings.keyboard` handling:
-  - `setxkbmap` on Awesome/X11
+  - `setxkbmap` on AwesomeWM/X11
   - `awful.input.xkb_*` on SomeWM/Wayland
+- a SomeWM `lxdisplay` backend using `wlr-randr`
 - translated `foot` config at `wayland/foot.ini.example`
 
-Current `somewm --check /home/anthrax/tmp/awesome/rc.lua` status:
+Current check command:
 
-- no compatibility issues found
+```bash
+somewm --check /home/anthrax/tmp/awesome/rc.lua
+```
+
+Current result:
+
+- no compatibility issues reported by `somewm --check`
+
+That only means the static compatibility check passes. It does not mean every
+runtime behavior is polished.
+
+## Running A Test Session
+
+The most useful test command so far has been:
+
+```bash
+somewm -c .config/somewm/rc.lua -d 2>&1 | tee ~/somewm.log
+```
+
+If session services behave oddly, wrap it in `dbus-run-session`:
+
+```bash
+dbus-run-session somewm -c ~/.config/somewm/rc.lua -d 2>&1 | tee ~/somewm.log
+```
+
+This has not been tested thoroughly through a display manager.
+
+## Known Issues
+
+- `lxdisplay` on Wayland is not dependable enough to be the main monitor setup
+  path yet. `wlr-randr` commands can pass and still not produce the expected
+  physical layout on the tested machine.
+- Startup output layout is especially fragile. A small user shell script after
+  login is currently more reliable than relying on `lxdisplay`.
+- The tested SomeWM session can feel sluggish. This may be related to the local
+  NVIDIA/wlroots/screen setup rather than the config alone.
+- SomeWM is not daily-driven here, so regressions are more likely than on the
+  AwesomeWM/X11 path.
+
+## Backend Replacements
+
+Current or planned Wayland-side replacements:
+
+- `xrandr` -> `wlr-randr` for `lxdisplay`
+- `scrot` -> `grim` / `slurp`
+- `xbacklight` -> `brightnessctl`
+- `xclip` / `xsel` -> `wl-copy` / `wl-paste`
+- `xset dpms` style display-off commands -> `wlopm`
+
+`lxdisplay` is the complicated one because it owns more than one X11-specific
+behavior:
+
+- brightness integration
+- display-off behavior
+- profile application
+- gamma/redshift scheduling
+- startup display-profile application
+
+Keep that backend split explicit. Do not hide Wayland behavior behind a pile of
+one-off command substitutions.
+
+## Popup Input
+
+Popups are not normal clients.
+
+`awful.popup` is a `wibox`, and a `wibox` is backed by a `drawin`, not by a
+managed client. The documented widget input signals cover mouse events, not a
+normal keyboard-focus model. SomeWM has keyboard-focus handling for Wayland
+layer surfaces, but that does not make Awesome Lua `wibox` popups behave like
+focused clients.
+
+Current direction:
+
+- keep popup input ownership centralized in `lxcommon`
+- keep modules responsible for popup content and module-specific extra actions
+- keep `lxrunner` separate from regular navigation popups because it is a
+  text-input popup
+- preserve the AwesomeWM/X11 behavior contract while making SomeWM fixes
+
+The shared behavior contract is:
+
+- root mouse button `10` opens a terminal globally
+- popups can be opened from top-level clicks, direct shortcuts, and popup
+  cycling
+- `Escape` closes the active popup
+- `Up` / `Down` navigate cards
+- `Return` triggers the primary card action
+- `Left` / `Right` trigger popup-defined lateral actions
+- module-specific extra keys remain possible, currently mainly XF86 media keys
+  in `lxmedia`
+- clicking outside a popup dismisses it
 
 ## Open Questions
 
-- how much of `lxdisplay` can stay config-compatible while swapping out the
-  underlying backend
-- whether `wlr-randr` is dependable enough for startup display-profile
-  application on real hardware or should remain a best-effort helper next to a
-  user shell script
-- whether `grim` / `slurp` is preferable to any compositor-native screenshot
-  API long-term
-- whether SomeWM-specific compatibility quirks from the Awesome `4.4` base
-  should be handled via runtime detection or explicit `config.lua.platform`
-- whether it is worth explicitly version-gating SomeWM quirks if `1.4` and
-  `2.x` diverge too much for a single compatibility assumption
-
-## Popup Input Redesign
-
-The current popup/keygrabber model has become too brittle under SomeWM and is
-at risk of destabilizing the X11 path as well. Further patching is not the
-right next step.
-
-Desired shared behavior:
-
-- root mouse button `10` must open a terminal globally, regardless of popup
-  state
-- `lx*` popups must be openable via:
-  - top-level mouse click
-  - direct keyboard shortcut
-  - popup cycling
-- once open, popup keys must work reliably:
-  - `Escape` closes
-  - `Up` / `Down` navigate
-  - `Return` triggers primary action
-  - `Left` / `Right` trigger popup-defined lateral actions
-- popup-specific extra keys must remain possible, currently mainly XF86 media
-  keys in `lxmedia`
-- clicking outside a popup must dismiss it
-- hover-close for mouse-opened popups is dropped
-- `lxrunner` should likely be treated separately as a text-input popup rather
-  than a normal navigation popup
-
-Preferred next direction:
-
-- investigate whether focused `awful.popup` / `wibox` objects can receive
-  keyboard events directly instead of relying on global keygrabbers
-- if focus-based popup input works reliably, prefer it over explicit key
-  grabbing
-- keep one shared behavior contract for Awesome/X11 and SomeWM, even if backend
-  implementation differs
-
-Next-session checklist:
-
-1. verify from Awesome/SomeWM docs or a minimal popup prototype whether a popup
-   can be given dependable keyboard focus
-2. if needed, spawn a minimal test popup and inspect whether it shows up as a
-   focused/input-owning surface in Awesome/SomeWM state
-3. confirm whether a focused popup receives `Escape`, `Up`, `Down`, and
-   `Return` without a global keygrabber
-4. confirm root mouse button `10` still works while such a popup is focused
-5. investigate `lxrunner` separately, since it currently flickers and likely
-   belongs to a dedicated text-input session model
-
-Current documentation/source check:
-
-- `awful.popup` is a `wibox`
-- `wibox` is backed by a `drawin`, not by a managed `client`
-- documented `wibox` / widget input signals cover mouse events:
-  `button::press`, `button::release`, `mouse::enter`, `mouse::leave`, and
-  `mouse::move`
-- no documented `wibox` keyboard focus or key event signal was found in the
-  installed Awesome or SomeWM Lua sources
-- `wibox.input_passthrough` explicitly talks about forwarding mouse and
-  keyboard events to the object below the wibox, which supports the conclusion
-  that a wibox itself is not a normal keyboard focus target
-- SomeWM has keyboard-focus handling for Wayland `layer_surface` objects, but
-  that is a separate surface type and does not make Awesome Lua `wibox` popups
-  focusable clients
-
-Working conclusion:
-
-- a pure client-focus model is probably not available for `awful.popup` /
-  `wibox` popups
-- the redesign should still centralize popup input ownership, but it will likely
-  need one controlled input capture layer rather than per-module keygrabbers
+- whether `wlr-randr` can be made reliable enough for startup profile
+  application, or whether Wayland monitor setup should stay explicitly
+  user-scriptable
+- whether `grim` / `slurp` should remain the screenshot path, or whether an
+  Awesome/SomeWM-native screenshot helper becomes useful later
+- whether SomeWM `1.4` quirks and future `2.x` behavior should be version-gated
+  if both targets ever matter
+- whether SomeWM compatibility belongs in regular daily testing, or remains a
+  best-effort branch until the compositor side settles

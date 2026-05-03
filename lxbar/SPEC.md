@@ -13,6 +13,8 @@ Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
   - `tertiary`
 - `lxbar` owns composition of registered top-level widgets and shared popup
   routing semantics
+- simple custom widgets may be hosted with `custom:<name>` order entries, but
+  they stay visual-only unless promoted to real `lx*` modules
 
 ## Won't Do
 
@@ -25,6 +27,6 @@ Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 - no per-popup left/right selection
   Why: popups should choose only `"center"` or `"side"`; actual side is global
 
-- no premature systray hosting work right now
-  Why: that shape is still underspecified and should wait until the rest of the
-  module/config surface is stable
+- no `lx*` interaction guarantees for custom widgets
+  Why: custom widgets are for simple hosted widgets such as systray or metrics;
+  popup cycling and shared input behavior require a real module contract

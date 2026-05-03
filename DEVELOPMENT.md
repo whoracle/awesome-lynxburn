@@ -4,8 +4,9 @@ This file documents how the current repo is structured and how to extend or
 modify existing behavior without having to reverse-engineer the codebase from
 scratch.
 
-It is intentionally focused on the current extension points. It does not try to
-document a general framework for adding entirely new `lx*` modules.
+It focuses on the current extension points first. There is also a short
+checklist for adding a new `lx*` module, but this repo is still a concrete
+AwesomeWM config, not a generic module framework.
 
 ## Purpose
 
@@ -55,10 +56,8 @@ Top-level docs split:
   Current implementation backlog and priority order.
 - `CHANGELOG.md`
   Repository change history generated from commit metadata.
-- `config.minimal.example.lua`
-  Small practical starter config for new checkouts.
 - `config.example.lua`
-  Larger commented reference catalog for available local override knobs.
+  Commented reference catalog for available local override knobs.
 - module/theme `README.md` and `SPEC.md`
   Module-local usage and plans.
 - `MIGRATE.md`
@@ -118,6 +117,16 @@ Typical setup:
 2. run `pre-commit install`
 3. use `cz commit` if you want an interactive commit flow
 
+Useful checks:
+
+- `luac -p path/to/file.lua`
+  Syntax-check touched Lua files.
+- `awesome --check "$(pwd)/rc.lua"`
+  Check the AwesomeWM/X11 config path.
+- `somewm --check "$(pwd)/rc.lua"`
+  Check the SomeWM compatibility path when touching shared startup, platform,
+  popup, keybinding, or display code.
+
 The enforced commit format is:
 
 `<type>: [<component>] <message>`
@@ -159,6 +168,16 @@ Version/changelog rules currently are:
 - `bump` -> patch bump
 - `refactor`, `docs`, `chore` -> no version bump
 
+## Pull Requests
+
+Keep PRs focused and rebased on the current main branch before submitting.
+
+Do not bump versions, regenerate release metadata, or edit release tags in a
+regular PR. Release bumps are maintainer-owned.
+
+If a change affects behavior, config shape, dependencies, or user-facing module
+controls, update the relevant docs in the same PR.
+
 ## Config Flow
 
 The user-facing config entrypoint is top-level `config.lua`.
@@ -167,11 +186,9 @@ The layering is:
 
 1. `config/defaults.lua`
    Base defaults tracked in git.
-2. `config.minimal.example.lua`
-   Small starter override file for users.
-3. `config.example.lua`
-   Larger commented reference file for users.
-4. top-level `config.lua`
+2. `config.example.lua`
+   Commented reference file for users.
+3. top-level `config.lua`
    Local machine-specific overrides, loaded by `config/config_data.lua`.
 
 The main config sections are:
@@ -284,23 +301,26 @@ Avoid re-growing giant `init.lua` files. The current preferred shape is:
 If you meaningfully reshape a module, update that module’s `README.md` and
 `SPEC.md` as part of the same work cycle.
 
-### Add Or Change An Existing lxmodule
+### Add Or Change An lxmodule
 
 Use this checklist when touching an existing module or adding a small new one:
 
 1. Decide the public id first and document it as a full `lx*` id.
-2. Put user-facing defaults under `config/defaults.lua`.
-3. Add richer optional examples to `config.example.lua`, not to defaults.
-4. Create or update the module through `config.services`.
-5. Register its top-level widget in `config.services.registry`.
-6. Register semantic popups in `config.services` if the module has popups.
-7. Keep popup content/actions inside the module; keep popup shell/input behavior
+2. Start from a thin `init.lua` that exposes a small public API and delegates
+   state, rendering, backend calls, and theme lookup to focused helper files.
+3. Put user-facing defaults under `config/defaults.lua`.
+4. Add richer optional examples to `config.example.lua`, not to defaults.
+5. Create or update the module through `config.services`.
+6. Register its top-level widget in `config.services.registry`.
+7. Register semantic popups in `config.services` if the module has popups.
+8. Keep popup content/actions inside the module; keep popup shell/input behavior
    in `lxcommon`.
-8. Add dependency checks to `config/preflight.lua` if missing binaries would
+9. Add dependency checks to `config/preflight.lua` if missing binaries would
    produce confusing runtime behavior.
-9. Update the module `README.md` for user-facing behavior and config knobs.
-10. Update the module `SPEC.md` or `ROADMAP.md` only for future work, not for
-    already-completed implementation detail.
+10. Add or update the module `README.md` for user-facing behavior, dependencies,
+    config knobs, and theme keys.
+11. Add or update the module `SPEC.md` or `ROADMAP.md` only for future work,
+    not for already-completed implementation detail.
 
 Do not put module behavior in `themes/lynxburn/widgets.lua` just because the
 module appears in the bar. The theme may place widgets, but the module should

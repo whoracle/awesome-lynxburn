@@ -15,14 +15,36 @@ first rather than a polished general-purpose distribution.
   feature work can still move things around
 - focused bug reports and targeted improvements are welcome
 - larger feature ideas should be discussed before implementation
-- there is no stability guarantee or support SLA
+- this is maintained as a real config, not as a product with support guarantees
+
+## Features
+
+- compact top-level `lxbar` with ordered widgets and popup cycling
+- shared popup behavior for keyboard navigation, placement, selection, and
+  widget feedback
+- local modules for media, notifications, network state, Bluetooth, power
+  profiles, display control, secret/token health, and app launching
+- configurable screen/tag/layout setup with local `centerwork` layouts and
+  optional third-party layout registration
+- swappable `lynxburn` color schemes and theme-level overrides
+- custom bar widgets for simple extras such as IMAP mail, CPU, memory, load,
+  filesystem, and systray
+- startup preflight checks for missing tools that would otherwise fail quietly
+
+## Compatibility
+
+- Tested daily with AwesomeWM 4.3 on X11.
+- AwesomeWM 4.4 should work, but is not currently daily-driven here.
+- SomeWM 1.4 is supported as an experimental Wayland compatibility target.
+  It works well enough to start and test, but it is not yet extensively
+  daily-driven. See [`WAYLAND.md`](./WAYLAND.md) for the current status and
+  known rough edges.
 
 ## Dependencies
 
 Core runtime:
 
 - AwesomeWM
-  SomeWM 1.4 is also supported as an experimental Wayland compatibility target.
 - the Lua libraries shipped with AwesomeWM, including `awful`, `beautiful`,
   `gears`, `naughty`, and `wibox`
 - a font with broad glyph coverage for the bar and popup icons, ideally
@@ -269,6 +291,7 @@ module/theme `SPEC.md` files.
 
 - [`SPEC.md`](./SPEC.md): top-level scope and explicit non-goals
 - [`ROADMAP.md`](./ROADMAP.md): current implementation backlog and priority order
+- [`WAYLAND.md`](./WAYLAND.md): SomeWM/Wayland compatibility notes and known issues
 - [`DEVELOPMENT.md`](./DEVELOPMENT.md): internal architecture and extension notes
 - [`config.minimal.example.lua`](./config.minimal.example.lua): small starter
   config template

@@ -140,6 +140,7 @@ Supported knobs:
 
 Set `interval = false` to disable periodic background refresh. This is the
 shipped default. Use a duration like `"30m"` only if you want periodic checks.
+
 - `top_level`
 - `cycle_exclude`
 - `browser`
@@ -208,6 +209,11 @@ Current provider support:
 - `[placeholder] compact widget`
 - `[placeholder] grouped secrets popup`
 
+## Further Reading
+
+- [Top-level roadmap](../ROADMAP.md)
+- [lxsecrets spec](./SPEC.md)
+
 ## File Layout
 
 - `init.lua`: module constructor and wiring
@@ -226,7 +232,7 @@ Current provider support:
 - `cycle_exclude = true` is the default first-pass behavior
 - automatic/background Vault refresh runs fail into attention state when login
   is required; they do not open an interactive login flow on their own
-- clicking a card always means “try refresh”
+- clicking a card triggers that card's current primary action
 - when a Vault secret enters auth-required state, its primary action changes
   from `Refresh` to `Login`
 - `browser` or `secrets[].browser` is exported as `BROWSER` for Vault OIDC

@@ -2,14 +2,11 @@
 
 This file tracks only migrations between tagged releases.
 
-Current baseline:
+Use the section matching the version you are upgrading from. If you upgrade
+across multiple releases, apply each section in order.
 
-- check what the latest semver-compliant git tag in the current worktree is and assume that as the baseline to migrate from
-- the repo is allowed to be ahead of a given tag, but still assume the last tag as the baseline and check against that (e.g., the most recent tag chronologically)
-- document only incremental migrations from that point forward
-- when the repo is ahead of the latest tag, use a topmost
-  `` `latest-tag` -> `next` `` section until the next release tag exists
-- do not use this file for one-off machine migration notes anymore
+When the repository is ahead of the latest release tag, the topmost section may
+use `` `latest-tag` -> `next` `` until the next release exists.
 
 ## Migration Policy
 
@@ -46,8 +43,6 @@ Apply these user-facing migrations when moving from `v1.9.0` to `v1.10.0`:
   external layouts such as `lain` without editing repo-owned files
 
 ### `v1.8.0` -> `v1.9.0`
-
-No required user-facing config migration is currently required.
 
 Optional cleanup and new config surface:
 
@@ -87,8 +82,6 @@ Apply these user-facing config migrations:
   canonical scheme name
 
 ### `v1.6.0` -> `v1.7.0`
-
-No user-facing config migration is currently required.
 
 The work since `v1.6.0` has been behavior, interaction, theme, and
 documentation refinement rather than a config-shape break.

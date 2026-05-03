@@ -216,7 +216,7 @@ return {
     --             },
     --             {
     --                 name = "vpn-up",
-    --                 command = "nmcli connection up senec",
+    --                 command = "nmcli connection up MYVPNCONNECTIONNAME",
     --                 notify = "lxnetwork",
     --             },
     --         },

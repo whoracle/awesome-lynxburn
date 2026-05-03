@@ -1,6 +1,10 @@
 # lxbar
 
-`lxbar` is the small shared bar composition layer for the local `lx*` modules.
+`lxbar` is the shared bar composition layer for the local `lx*` modules.
+
+It does not create the screen wibar itself. Its job is to provide the widget
+that gets placed inside the wibar, keep the visible order stable, and route
+popup requests.
 
 It is responsible for:
 
@@ -122,6 +126,7 @@ Current knobs:
 
 Custom widgets are hosted visually inside `lxbar`, but they do not participate
 in popup cycling and do not get `lx*` interaction semantics automatically.
+Use the `custom:<name>` prefix in `order` so custom widgets are easy to spot.
 
 Supported custom widget spec keys:
 
@@ -134,6 +139,10 @@ Supported custom widget spec keys:
   - `"lxbar"`: default; wrap in the normal bar shell
   - `"raw"`: host without the extra `lxbar` background/padding shell
 
+Custom widgets are intentionally simple. If a widget needs popup cycling,
+module-level key/mouse contracts, or shared popup ownership, it should become a
+real `lx*` module instead of a `custom:<name>` widget.
+
 ## Theme Variables
 
 `lxbar` does not expose its own dedicated theme variables.
@@ -145,6 +154,11 @@ that `lxbar` hosts.
 
 - TODO: lxbar with default module set
 - TODO: popup cycling demonstration
+
+## Further Reading
+
+- [Top-level roadmap](../ROADMAP.md)
+- [lxbar spec](./SPEC.md)
 
 ## File Layout
 

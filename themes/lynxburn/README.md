@@ -167,7 +167,7 @@ Awesome titlebar assets:
 - `titlebar_maximized_button_normal_active`
 - `titlebar_maximized_button_focus_active`
 
-Legacy/custom widget glyph specs:
+Custom widget glyph specs:
 
 - `icon_mail`
 - `icon_cpu`
@@ -383,6 +383,11 @@ Layout label values:
 - `[placeholder] palette: kanagawa_wave`
 - `[placeholder] palette: kanagawa_dragon`
 - `[placeholder] palette: kanagawa_lotus`
+
+## Further Reading
+
+- [Top-level roadmap](../../ROADMAP.md)
+- [lynxburn spec](./SPEC.md)
 
 ## File Layout
 
