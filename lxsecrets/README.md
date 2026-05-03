@@ -1,0 +1,241 @@
+# lxsecrets
+
+`lxsecrets` is the secret/token refresh helper for this config.
+
+It owns native GitLab and Vault refresh/login handling inside Awesome, with a
+compact top-level widget plus a grouped popup.
+
+## Dependencies
+
+External:
+
+- common: `secret-tool`
+- GitLab secrets: `curl`
+- Vault secrets: `vault`
+- VPN-gated secrets: `nmcli`, `timeout`
+
+Internal:
+
+- `lxcommon.dkjson`
+- `lxcommon.popup_controller`
+- `lxcommon.popup_ui`
+- `lxcommon.popup_placement`
+- `lxcommon.screen`
+- `lxcommon.util`
+
+## Features
+
+- startup refresh runs plus optional periodic refresh
+- grouped popup by provider
+- per-secret manual refresh
+- global refresh-all action
+- pause/resume checks
+- compact healthy/suspended/attention widget state
+- optional VPN-gated refresh execution per secret
+- refresh-all batching that keeps shared VPN runs together
+- per-secret primary action switches from `Refresh` to `Login` when interactive
+  Vault auth is required
+- interactive Vault login keeps VPN-gated runs alive until success or timeout
+- Vault login can use an explicit browser command instead of ambient desktop
+  browser resolution
+- expiry information is shown per card and stored as `expiry_date` metadata
+  when a provider writes a replacement secret value
+- popup sorting groups by provider, then VPN, then expiry urgency
+
+## Controls
+
+Top-level widget:
+
+- left click: toggle popup
+- middle click: pause or resume checks
+- right click: refresh all secrets
+
+Popup:
+
+- left click summary controls row: `Refresh all`
+- right click summary controls row: `Pause checks` or `Resume checks`
+- left click summary buttons: trigger their labeled action
+- left click secret card: trigger the current primary action for that secret
+- left click secret button: trigger the current primary action for that secret
+- `Up` / `Down`: move selection
+- `Enter`: trigger the selected row's primary action
+- `Right`: trigger the selected row's secondary action when present
+- `Escape`: close popup
+- `Left`: no special action
+
+## Example Usage
+
+lxbar block:
+
+```lua
+lxmodules = {
+    lxbar = {
+        order = { "lxsecrets", "lxnetwork", "lxmedia" },
+        modules = {
+            lxsecrets = {
+                cycle = false,
+            },
+        },
+    },
+}
+```
+
+Module config:
+
+```lua
+lxmodules = {
+    lxsecrets = {
+        at_start = true,
+        at_start_delay = "60s",
+        interval = false,
+        top_level = "urgent",
+        cycle_exclude = true,
+        browser = "vivaldi-stable --profile-directory=Profile\\ 1",
+        vpn_timeout = "5m",
+        interactive_vpn_timeout = "15m",
+        thresholds = {
+            gitlab = "30d",
+            hashicorp_vault = "7d",
+        },
+        secrets = {
+            {
+                name = "GitLab PAT",
+                selectors = {
+                    type = "gitlab",
+                    gitlab_url = "https://gitlab.example.org",
+                    label = "GitLab managed PAT",
+                    service = "gitlab-managed",
+                    account = "me@example.org",
+                },
+                admin_selector = {
+                    service = "gitlab-admin",
+                    account = "me@example.org",
+                },
+            },
+            {
+                name = "Vault token",
+                vpn = "corp-vpn",
+                selectors = {
+                    type = "hashicorp_vault",
+                    vault_url = "https://vault.example.org",
+                    label = "Vault token for https://vault.example.org",
+                    service = "vault-example",
+                    account = "me@example.org",
+                    auth_path = "oidc",
+                    skip_verify = false,
+                },
+            },
+        },
+    },
+}
+```
+
+## Configuration
+
+Supported knobs:
+
+- `at_start`
+- `at_start_delay`
+- `interval`
+
+Set `interval = false` to disable periodic background refresh. This is the
+shipped default. Use a duration like `"30m"` only if you want periodic checks.
+
+- `top_level`
+- `cycle_exclude`
+- `browser`
+- `vpn_timeout`
+- `interactive_vpn_timeout`
+- `thresholds.gitlab`
+- `thresholds.hashicorp_vault`
+- `lifetimes.gitlab`
+- `secrets`
+- `secrets[].name`
+- `secrets[].browser`
+- `secrets[].vpn`
+- `secrets[].vpn_timeout`
+- `secrets[].interactive_vpn_timeout`
+- `secrets[].threshold`
+- `secrets[].lifetime`
+- `secrets[].selectors`
+- `secrets[].selectors.type`
+- `secrets[].selectors.label`
+- `secrets[].selectors.service`
+- `secrets[].selectors.account`
+- `secrets[].selectors.gitlab_url`
+- `secrets[].selectors.vault_url`
+- `secrets[].selectors.auth_path`
+- `secrets[].selectors.skip_verify`
+- `secrets[].admin_selector`
+
+For GitLab secrets, `selectors` is the canonical selector for the managed token.
+Use `admin_selector` only when the admin PAT lives under different keyring
+attributes. `token_selector` is no longer needed for normal configs and remains
+only as a backwards-compatibility override. If the managed PAT is not yet in the
+keyring but the admin PAT exists, `lxsecrets` will bootstrap from the admin PAT
+and store the managed selector entry on the first successful check or rotation.
+
+Current provider support:
+
+- `gitlab`
+- `hashicorp_vault`
+
+`top_level` accepts:
+
+- `"always"`
+- `"never"`
+- `"urgent"`
+
+## Theme Variables
+
+- `lxsecrets_icon`
+- `lxsecrets_icon_font`
+- `lxsecrets_icon_width`
+- `lxsecrets_widget_fg`
+- `lxsecrets_widget_suspended_fg`
+- `lxsecrets_widget_attention_fg`
+- `lxsecrets_widget_hover_bg`
+- `lxsecrets_widget_press_bg`
+- `lxsecrets_popup_bg`
+- `lxsecrets_popup_width`
+- `lxsecrets_popup_placement`
+- `lxsecrets_button_bg`
+- `lxsecrets_button_hover`
+- `lxsecrets_selected_bg`
+- `lxsecrets_meta_fg`
+
+## Screenshots
+
+- `[placeholder] compact widget`
+- `[placeholder] grouped secrets popup`
+
+## Further Reading
+
+- [Top-level roadmap](../ROADMAP.md)
+- [lxsecrets spec](./SPEC.md)
+
+## File Layout
+
+- `init.lua`: module constructor and wiring
+- `state.lua`: config normalization, timers, refresh queue, and runtime state
+- `providers.lua`: provider-specific native refresh logic, keyring access, and
+  process orchestration
+- `popup.lua`: popup rendering and selection behavior
+- `theme.lua`: compact widget rendering and theme-backed state colors
+
+## Notes
+
+- per-secret status is currently in-memory only and does not survive Awesome
+  reloads
+- provider execution is handled directly in Lua; the legacy shell scripts are
+  no longer part of the runtime path
+- `cycle_exclude = true` is the default first-pass behavior
+- automatic/background Vault refresh runs fail into attention state when login
+  is required; they do not open an interactive login flow on their own
+- clicking a card triggers that card's current primary action
+- when a Vault secret enters auth-required state, its primary action changes
+  from `Refresh` to `Login`
+- `browser` or `secrets[].browser` is exported as `BROWSER` for Vault OIDC
+  login when set
+- if `expiry_date` is missing from the keyring item, the card shows `unknown`
+  until a provider replaces the secret value and stores fresh metadata

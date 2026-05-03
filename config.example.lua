@@ -1,0 +1,244 @@
+return {
+    -- settings = {
+    --     modkey = "Mod4",
+    --     monitors = {
+    --         center = 1,
+    --         left = 2,
+    --         right = 3,
+    --     },
+    -- },
+    -- theme = {
+    --     name = "lynxburn",
+    --     color_scheme = "lynxburn",
+    --     -- Flat keys override `beautiful.*` values after the theme loads.
+    --     wallpaper = os.getenv("HOME") .. "/Pictures/wallpaper.png",
+    --     wibar_height = 24,
+    --     notification_max_width = 640,
+    --     lxmedia_bar_fg = "#e0b56a",
+    --     lxmedia_popup_width_media = 420,
+    --     lxpower_popup_width = 420,
+    -- },
+    -- screens = {
+    --     tag_order = { "primary", "secondary", "tertiary" },
+    --     tag_defaults = {
+    --         primary = { layout = "fair", layouts = { "fair", "floating" } },
+    --         secondary = { layout = "centerwork", layouts = { "centerwork", "floating" } },
+    --         tertiary = { layout = "floating", layouts = { "floating" } },
+    --     },
+    --     center = {
+    --         dpi = 96,
+    --     },
+    --     left = {
+    --         dpi = 96,
+    --         tags = {
+    --             primary = { layout = "fair.horizontal" },
+    --         },
+    --     },
+    -- },
+    -- layouts = {
+    --     -- Optional third-party layouts can be registered here without changing
+    --     -- core files. Example for users who install `lain` themselves:
+    --     -- custom = {
+    --     --     termfair = require("lain").layout.termfair,
+    --     --     ["cascade.tile"] = require("lain").layout.cascade.tile,
+    --     -- },
+    --     -- setup = function()
+    --     --     local lain = require("lain")
+    --     --     lain.layout.termfair.nmaster = 3
+    --     --     lain.layout.termfair.ncol = 1
+    --     -- end,
+    -- },
+    -- commands = {
+    --     terminal = "alacritty",
+    --     launcher = "rofi -show drun",
+    --     filebrowser = "xdg-open",
+    --     browser = "firefox",
+    --     autostart_once = {
+    --         "nm-applet --sm-disable",
+    --     },
+    --     imap = {
+    --         imap_mail = "me@example.org",
+    --         imap_secret = "secret-tool lookup service awesomewm-imap account me@example.org",
+    --         imap_server = "mail.example.org",
+    --     },
+    -- },
+    -- lxmodules = {
+    --     lxbar = {
+    --         popup_side = "right",
+    --         screens = { "left", "center" },
+    --         order = {
+    --             "lxbluetooth",
+    --             "lxnetwork",
+    --             "lxmedia",
+    --             "lxnotify",
+    --             "lxdisplay",
+    --             "lxpower",
+    --             "custom:mail",
+    --             "custom:sysload",
+    --             "custom:cpu",
+    --             "custom:mem",
+    --             "custom:fs_root",
+    --             "custom:systray",
+    --         },
+    --         modules = {
+    --             lxbluetooth = {
+    --                 -- cycle = false,
+    --             },
+    --             lxnetwork = {
+    --                 -- cycle = false,
+    --             },
+    --             lxnotify = {
+    --                 -- cycle = false,
+    --             },
+    --         },
+    --         custom_widgets = {
+    --             mail = require("widgets.mail_imap"),
+    --             sysload = require("widgets.sysload"),
+    --             cpu = require("widgets.cpu"),
+    --             mem = require("widgets.mem"),
+    --             fs_root = require("widgets.fs_root"),
+    --             systray = require("widgets.systray"),
+    --         },
+    --     },
+    --     lxmedia = {
+    --         refresh_interval = 2,
+    --         width = 60,
+    --         step = 0.02,
+    --     },
+    --     lxdisplay = {
+    --         auto_apply = false,
+    --         refresh_interval = 10,
+    --         profiles = {
+    --             {
+    --                 name = "Roadwarrior (Mobile)",
+    --                 default = true,
+    --                 outputs = {
+    --                     ["eDP-1"] = {
+    --                         mode = "auto",
+    --                         primary = true,
+    --                     },
+    --                 },
+    --             },
+    --             {
+    --                 name = "Battlestation (Home)",
+    --                 outputs = {
+    --                     ["eDP-1"] = {
+    --                         mode = "auto",
+    --                         primary = true,
+    --                     },
+    --                     ["HDMI-1"] = {
+    --                         mode = "auto",
+    --                         left_of = "eDP-1",
+    --                     },
+    --                 },
+    --             },
+    --         },
+    --         detected = {
+    --             extend_relative_to = "profile-primary",
+    --             extend_direction = "left",
+    --         },
+    --         brightness = {
+    --             get = "brightnessctl g",
+    --             set = "brightnessctl s %d%%",
+    --             step = 5,
+    --             min = 10,
+    --             off = "xset dpms force off",
+    --         },
+    --         redshift = {
+    --             enabled = true,
+    --             latitude = 47.9990,
+    --             longitude = 7.8421,
+    --         },
+    --     },
+    --     lxnotify = {
+    --         notification_denylist = {
+    --             { app_name = "Volume OSD" },
+    --         },
+    --         notification_time_format = "%H:%M",
+    --         popup_visible_items = 10,
+    --     },
+    --     lxpower = {
+    --         refresh_interval = 10,
+    --         preferred_profiles = {
+    --             battery = "power-saver",
+    --             ac = "balanced",
+    --         },
+    --     },
+    --     lxsecrets = {
+    --         at_start = true,
+    --         at_start_delay = "60s",
+    --         interval = false,
+    --         top_level = "urgent",
+    --         cycle_exclude = true,
+    --         browser = "vivaldi-stable --profile-directory=Profile\\ 1",
+    --         vpn_timeout = "5m",
+    --         interactive_vpn_timeout = "15m",
+    --         thresholds = {
+    --             gitlab = "30d",
+    --             hashicorp_vault = "7d",
+    --         },
+    --         secrets = {
+    --             {
+    --                 name = "GitLab PAT",
+    --                 selectors = {
+    --                     type = "gitlab",
+    --                     gitlab_url = "https://gitlab.example.org",
+    --                     label = "SHELL_GIT_TOKEN",
+    --                     service = "gitlab-example",
+    --                     account = "me@example.org",
+    --                 },
+    --             },
+    --             {
+    --                 name = "Vault token",
+    --                 vpn = "corp-vpn",
+    --                 selectors = {
+    --                     type = "hashicorp_vault",
+    --                     vault_url = "https://vault.example.org",
+    --                     label = "Vault token for https://vault.example.org",
+    --                     service = "vault-example",
+    --                     account = "me@example.org",
+    --                     auth_path = "oidc",
+    --                     skip_verify = false,
+    --                 },
+    --             },
+    --         },
+    --     },
+    --     lxrunner = {
+    --         width = 640,
+    --         row_count = 12,
+    --         history_limit = 20,
+    --         aliases = {
+    --             {
+    --                 name = "browser",
+    --                 type = "template",
+    --                 glyph = "󰖟",
+    --                 command = "firefox %s",
+    --             },
+    --             {
+    --                 name = "vpn-up",
+    --                 command = "nmcli connection up MYVPNCONNECTIONNAME",
+    --                 notify = "lxnetwork",
+    --             },
+    --         },
+    --     },
+    -- },
+    -- Keep machine-specific app placement in local `config.lua`.
+    -- keys = {
+    --     open_terminal = {
+    --         scope = "global",
+    --         modifiers = { "modkey" },
+    --         key = "Return",
+    --     },
+    -- },
+    -- rules = function(context)
+    --     return {
+    --         {
+    --             rule = { class = "Firefox" },
+    --             properties = {
+    --                 screen = context.monitors.center,
+    --                 tag = "primary",
+    --             },
+    --         },
+    --     }
+    -- end,
+}

@@ -1,0 +1,34 @@
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args:
+          - --markdown-linebreak-ext=md
+      - id: mixed-line-ending
+        args:
+          - --fix=lf
+      - id: check-merge-conflict
+      - id: check-added-large-files
+
+  - repo: local
+    hooks:
+      - id: lua-syntax
+        name: lua syntax
+        entry: sh -c 'for file in "$@"; do luac -p "$file"; done' --
+        language: system
+        files: \.lua$
+        exclude: ^(lain/|freedesktop/|config\.lua$)
+
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.29.1
+    hooks:
+      - id: commitizen
+        stages:
+          - commit-msg

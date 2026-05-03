@@ -1,0 +1,44 @@
+# Translated from the current urxvt/Xresources setup.
+#
+# Deliberate differences from urxvt:
+# - TERM stays `foot`, not `rxvt-256color`
+# - there is no direct equivalent to `resize-font:show`
+# - URL launching uses foot's built-in URL handler
+
+font=SauceCodePro Nerd Font Mono:pixelsize=12:hinting=false
+font-bold=SauceCodePro Nerd Font Mono:pixelsize=12:hinting=false:weight=bold
+font-italic=SauceCodePro Nerd Font Mono:pixelsize=12:hinting=false:slant=italic
+font-bold-italic=SauceCodePro Nerd Font Mono:pixelsize=12:hinting=false:weight=bold:slant=italic
+pad=15x15
+
+[scrollback]
+lines=50000
+
+[url]
+launch=/usr/bin/vivaldi-stable ${url}
+
+[colors-dark]
+background=3f3f3f
+foreground=dcdccc
+urls=dfaf8f
+regular0=3f3f3f
+regular1=cc9393
+regular2=7f9f7f
+regular3=d0bf8f
+regular4=6ca0a3
+regular5=dc8cc3
+regular6=93e0e3
+regular7=dcdccc
+bright0=000000
+bright1=dca3a3
+bright2=bfebbf
+bright3=f0dfaf
+bright4=8cd0d3
+bright5=dc8cc3
+bright6=93e0e3
+bright7=ffffff
+
+[key-bindings]
+font-increase=Control+plus Control+KP_Add
+font-decrease=Control+minus Control+KP_Subtract
+font-reset=Control+equal Control+0 Control+KP_0
