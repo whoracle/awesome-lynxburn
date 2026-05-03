@@ -18,6 +18,41 @@ use `` `latest-tag` -> `next` `` until the next release exists.
 
 ## Documented Migrations
 
+### `v1.10.0` -> `v1.11.0`
+
+Apply these user-facing migrations when moving from `v1.10.0` to `v1.11.0`:
+
+- if you want to run the same checkout under SomeWM, set the top-level
+  platform in that checkout's `config.lua`:
+  - `platform = "somewm"` for SomeWM/Wayland
+  - `platform = "awesome"` for AwesomeWM/X11 when you want to be explicit
+- keyboard layout setup now has a shared config surface:
+  `settings.keyboard.layout`, `settings.keyboard.variant`, and
+  `settings.keyboard.options`
+  - AwesomeWM/X11 applies this through `setxkbmap`
+  - SomeWM/Wayland applies this through `awful.input.xkb_*`
+  - remove any duplicate local autostart keyboard command if you move it into
+    `settings.keyboard`
+- SomeWM/Wayland defaults use different external tools from the X11 defaults:
+  `foot`, `grim`, `slurp`, `brightnessctl`, `wlopm`, `wlr-randr`, and optional
+  `wl-paste`
+  - install these if you enable the SomeWM path and keep the shipped defaults
+  - override the relevant `commands` / `lxmodules.lxdisplay` values if you use
+    different Wayland tooling
+- `config.minimal.example.lua`, `config.awesome.example.lua`, and
+  `config.somewm.example.lua` are now tracked starter/reference files
+  - existing `config.lua` files do not need to be replaced
+  - use the new examples only as references for local cleanup or a new checkout
+
+Internal API note for local extensions:
+
+- popup keyboard input ownership is now centralized in `lxcommon`; local code
+  that reached into module-specific popup keygrabber state should move to the
+  shared popup-controller/session APIs
+- `lxdisplay` profile application now goes through backend files for X11 and
+  SomeWM; local code should not assume direct `xrandr` command construction
+  outside the backend boundary
+
 ### `v1.9.0` -> `v1.10.0`
 
 Apply these user-facing migrations when moving from `v1.9.0` to `v1.10.0`:
