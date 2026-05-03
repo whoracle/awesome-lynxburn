@@ -1,6 +1,6 @@
 local awful = require("awful")
 local gears = require("gears")
-local popup_session = require("lxcommon.popup_session")
+local popup_manager = require("lxcommon.popup_manager")
 
 local M = {}
 
@@ -12,7 +12,7 @@ function M.build(context)
     local terminal = context.terminal
     local modkey = context.modkey
     local function open_terminal()
-        popup_session.close_active()
+        popup_manager.close_current()
         awful.spawn(terminal)
     end
 
