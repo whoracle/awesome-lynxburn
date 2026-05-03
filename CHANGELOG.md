@@ -1,3 +1,37 @@
+## v1.11.0 (2026-05-03)
+
+### Features
+
+- [core] add shared keyboard layout config for awesome and somewm
+- [somewm] add basic platform detection and split defaults
+
+### Bug Fixes
+
+- [core] close active popup from mouse terminal binding
+- [somewm] recover visible popup state during cycling
+- [somewm] handle popup cycle keys before raw key actions
+- [somewm] keep popup cycling state deterministic
+- [somewm] harden popup root key compatibility
+- [core] make registered popup opens idempotent
+- [somewm] refresh compatibility preflight and docs
+- [somewm] add startup delay to profile application
+- [somewm] apply lxdisplay profiles as one atomic wlr-randr command
+- [somewm] retry lxdisplay applies without explicit rates and fix root button handling
+- [somewm] restore popup compatibility and map lxdisplay relations to wlr-randr
+
+### Refactors
+
+- [core] centralize popup keyboard input ownership
+- [core] lazy-load x11 and somewm paths to satisfy somewm compatibility checks
+- [lxdisplay] split x11 and somewm display backends
+
+### Documentation
+
+- [core] Update MIGRATE.md and prepare for v1.11.0 release
+- [core] align module docs with current architecture
+- [core] add wayland and somewm migration plan
+- [core] document architecture and starter config
+
 ## v1.10.0 (2026-05-02)
 
 ### Features
