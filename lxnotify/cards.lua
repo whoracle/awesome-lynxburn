@@ -7,6 +7,7 @@ local actions = require("lxnotify.actions")
 local util = require("lxcommon.util")
 
 local cards = {}
+local unpack = table.unpack or unpack
 
 local URGENCY_LABELS = {
     low = "low",
@@ -21,7 +22,7 @@ local URGENCY_COLORS = {
 }
 
 local function attach_buttons(widgets, buttons)
-    local joined = gears.table.join(table.unpack(buttons))
+    local joined = gears.table.join(unpack(buttons))
 
     for _, widget in ipairs(widgets) do
         if widget then
@@ -209,7 +210,7 @@ function cards.build_notification_card(instance, entry, opts)
             select_card()
             dismiss()
         end),
-        table.unpack(opts.extra_buttons or {})
+        unpack(opts.extra_buttons or {})
     })
 
     return {
@@ -370,7 +371,7 @@ function cards.build_group_card(instance, group, opts)
             select_card()
             instance:dismiss_group(group.key)
         end),
-        table.unpack(opts.extra_buttons or {})
+        unpack(opts.extra_buttons or {})
     })
 
     return {

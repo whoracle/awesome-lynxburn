@@ -1,10 +1,10 @@
 # lxnetwork
 
-`lxnetwork` is the compact AwesomeWM WiFi popup used by this config.
+`lxnetwork` is the compact AwesomeWM network popup used by this config.
 
-It is intentionally narrow in scope: it shows wireless state, scans visible
-networks, allows connect/toggle actions, and stops there. It is not meant to
-become a full network-management shell.
+It is intentionally narrow in scope: it focuses on wireless state, visible
+networks, quick connect/toggle actions, and basic VPN presence. It is not meant
+to become a full network-management shell.
 
 ## Dependencies
 
@@ -141,11 +141,17 @@ actual side follows `lxmodules.lxbar.popup_side`.
 - `state.lua`: `nmcli` parsing, connection refresh, scan, and connect behavior
 - `popup.lua`: popup rendering, network rows, and popup selection state
 - `password_prompt.lua`: password prompt lifecycle and input handling
-- `controller.lua`: popup open/close, keygrabber wiring, and hover/outside-click dismissal
+- `controller.lua`: named-popup descriptor wiring for shared popup control
+
+## Further Reading
+
+- [Top-level roadmap](../ROADMAP.md)
+- [lxnetwork spec](./SPEC.md)
 
 ## Notes
 
-- `lxnetwork` currently only handles WiFi state through `nmcli`
+- `lxnetwork` currently only handles WiFi state and VPN presence through
+  `nmcli`
 - the top-level startup preflight checks `nmcli` when `lxnetwork` is enabled in
   `lxmodules.lxbar.order`
 - no embedded secrets or machine-specific credentials are stored in the module

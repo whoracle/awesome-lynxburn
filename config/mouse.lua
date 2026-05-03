@@ -1,5 +1,6 @@
 local awful = require("awful")
 local gears = require("gears")
+local popup_manager = require("lxcommon.popup_manager")
 
 local M = {}
 
@@ -10,13 +11,15 @@ function M.build(context)
     local my_table = context.my_table or gears.table
     local terminal = context.terminal
     local modkey = context.modkey
+    local function open_terminal()
+        popup_manager.close_current()
+        awful.spawn(terminal)
+    end
 
     local mousebuttons = my_table.join(
         awful.button({}, 4, awful.tag.viewnext),
         awful.button({}, 5, awful.tag.viewprev),
-        awful.button({}, 10, function()
-            awful.spawn(terminal)
-        end)
+        awful.button({}, 10, open_terminal)
     )
 
     local clientbuttons = my_table.join(
@@ -26,9 +29,7 @@ function M.build(context)
         end),
         awful.button({ modkey }, 1, awful.mouse.client.move),
         awful.button({ modkey }, 3, awful.mouse.client.resize),
-        awful.button({}, 10, function()
-            awful.spawn(terminal)
-        end)
+        awful.button({}, 10, open_terminal)
     )
 
     awful.util.taglist_buttons = my_table.join(

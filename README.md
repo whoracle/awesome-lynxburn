@@ -15,7 +15,30 @@ first rather than a polished general-purpose distribution.
   feature work can still move things around
 - focused bug reports and targeted improvements are welcome
 - larger feature ideas should be discussed before implementation
-- there is no stability guarantee or support SLA
+- this is maintained as a real config, not as a product with support guarantees
+
+## Features
+
+- compact top-level `lxbar` with ordered widgets and popup cycling
+- shared popup behavior for keyboard navigation, placement, selection, and
+  widget feedback
+- local modules for media, notifications, network state, Bluetooth, power
+  profiles, display control, secret/token health, and app launching
+- configurable screen/tag/layout setup with local `centerwork` layouts and
+  optional third-party layout registration
+- swappable `lynxburn` color schemes and theme-level overrides
+- custom bar widgets for simple extras such as IMAP mail, CPU, memory, load,
+  filesystem, and systray
+- startup preflight checks for missing tools that would otherwise fail quietly
+
+## Compatibility
+
+- Tested daily with AwesomeWM 4.3 on X11.
+- AwesomeWM 4.4 should work, but is not currently daily-driven here.
+- SomeWM 1.4 is supported as an experimental Wayland compatibility target.
+  It works well enough to start and test, but it is not yet extensively
+  daily-driven. See [`WAYLAND.md`](./WAYLAND.md) for the current status and
+  known rough edges.
 
 ## Dependencies
 
@@ -27,7 +50,7 @@ Core runtime:
 - a font with broad glyph coverage for the bar and popup icons, ideally
   something like `Hack Nerd Font Mono`
 
-Common external commands used by the current config:
+Common external commands used by the current Awesome/X11 defaults:
 
 - `playerctl`
 - `xbacklight` or an equivalent brightness backend if you override it
@@ -57,6 +80,16 @@ Common desktop programs referenced by the defaults:
 This README intentionally does not include distro-specific installation steps
 yet.
 
+SomeWM/Wayland defaults use Wayland-native commands where practical:
+
+- `foot`
+- `grim`
+- `slurp`
+- `brightnessctl`
+- `wlopm`
+- `wlr-randr`
+- optional `wl-paste` for lxrunner primary-selection paste
+
 ## Startup Preflight
 
 After Awesome has loaded successfully, the config runs a startup preflight pass
@@ -70,9 +103,9 @@ Current behavior:
 - the same report is shown as a `naughty` notification
 - bar-module checks are only performed for modules currently enabled through
   `lxmodules.lxbar.order`
-- shipped screenshot-command dependencies such as `scrot` / `xdg-open` are only
-  checked when those default commands are still in use rather than overridden
-  locally
+- shipped screenshot-command dependencies such as `scrot` / `grim` / `slurp` /
+  `xdg-open` are only checked when those default commands are still in use
+  rather than overridden locally
 
 This is intentionally a concrete binary/command inventory, not a broader
 service-health or environment-diagnostics framework.
@@ -81,7 +114,9 @@ service-health or environment-diagnostics framework.
 
 The user-facing config entrypoint is top-level `config.lua`.
 
-1. Copy `config.example.lua` to `config.lua`.
+1. Copy `config.minimal.example.lua` to `config.lua` if you want the smallest
+   practical starting point, or copy `config.example.lua` if you want broader
+   commented examples.
 2. Adjust `commands` so the config points at programs that actually exist on
    your system.
 3. Adjust `screens` so monitor indices, tag names, and per-tag layouts match
@@ -141,6 +176,11 @@ lxmodules = {
 }
 ```
 
+The tracked [`config.minimal.example.lua`](./config.minimal.example.lua) file is
+the preferred starter template. The larger [`config.example.lua`](./config.example.lua)
+is intentionally more verbose and is better treated as a reference catalog for
+available knobs.
+
 Optional third-party layouts can be registered without editing core files:
 
 ```lua
@@ -166,6 +206,8 @@ The current config layers are:
 
 - `config/defaults.lua`
   Narrow shipped baseline
+- `config.minimal.example.lua`
+  Small practical starter config for new checkouts
 - `config.example.lua`
   Tracked example override file with more opinionated/expanded examples
 - `config.lua`
@@ -223,7 +265,8 @@ Modules:
 - [`lxpower`](./lxpower/README.md): power-profile widget for AC/battery-aware
   profile switching, pinning, and dGPU status display
 - [`lxdisplay`](./lxdisplay/README.md): display-control widget for brightness,
-  DPMS off, redshift-style temperature handling, and xrandr profile application
+  DPMS/display off, redshift-style temperature handling, and backend-specific
+  display-profile application
 - [`lxsecrets`](./lxsecrets/README.md): secret/token health widget for GitLab
   and Vault refresh flows, expiry display, VPN-gated checks, and login-needed
   attention state
@@ -248,7 +291,12 @@ module/theme `SPEC.md` files.
 
 - [`SPEC.md`](./SPEC.md): top-level scope and explicit non-goals
 - [`ROADMAP.md`](./ROADMAP.md): current implementation backlog and priority order
+- [`WAYLAND.md`](./WAYLAND.md): SomeWM/Wayland compatibility notes and known issues
 - [`DEVELOPMENT.md`](./DEVELOPMENT.md): internal architecture and extension notes
+- [`config.minimal.example.lua`](./config.minimal.example.lua): small starter
+  config template
+- [`config.example.lua`](./config.example.lua): larger commented config
+  reference
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md): contribution scope and expectations
 - [`CHANGELOG.md`](./CHANGELOG.md): repository changelog generated from commit history
 - [`MIGRATE.md`](./MIGRATE.md): tagged-release migration notes for user-facing config changes

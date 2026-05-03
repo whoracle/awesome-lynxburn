@@ -40,7 +40,7 @@ lxbar block:
 ```lua
 lxmodules = {
     lxbar = {
-        order = { "network", "media", "notify" },
+        order = { "lxnetwork", "lxmedia", "lxnotify" },
     },
 }
 ```
@@ -192,7 +192,7 @@ Commonly used instance methods:
 - `theme.lua`: theme accessors, widget markup, refresh/reload helpers
 - `store.lua`: notification interception, filtering, entry lifecycle, and dismiss logic
 - `popup_state.lua`: grouped view state, selection, scrolling, and popup list rebuilding
-- `controller.lua`: popup session control, keygrabber wiring, optional hover-close, and open/close paths
+- `controller.lua`: named-popup descriptor wiring for shared popup control
 - `popup.lua`: popup content, header widgets, and notification list rendering
 - `cards.lua`: notification and burst-group card rendering
 - `format.lua`: notification text normalization, summaries, and grouping keys
@@ -207,3 +207,8 @@ Commonly used instance methods:
   because their action objects and client associations are less predictable than
   native app notifications
 - no secrets or passwords are currently embedded in `lxnotify`
+
+## Further Reading
+
+- [Top-level roadmap](../ROADMAP.md)
+- [lxnotify spec](./SPEC.md)

@@ -1,6 +1,8 @@
 local beautiful = require("beautiful")
+local gears = require("gears")
 local wibox = require("wibox")
 
+local backend = require("lxdisplay.backend")
 local brightness = require("lxdisplay.brightness")
 local displays = require("lxdisplay.displays")
 local popup = require("lxdisplay.popup")
@@ -37,25 +39,30 @@ function M.new(opts)
     local self = setmetatable({}, M)
     local brightness_opts = opts.brightness or {}
     local redshift_opts = opts.redshift or {}
+    self._backend = backend.resolve()
     self._opts = opts
     self._profiles_enabled = type(opts.profiles) == "table"
     self._profiles = self:_normalize_profiles(opts.profiles)
     self._startup_auto_apply = opts.auto_apply ~= false
+    self._startup_auto_apply_delay = opts.auto_apply_delay
+    if self._startup_auto_apply_delay == nil then
+        self._startup_auto_apply_delay = self._backend.name() == "somewm" and 1.5 or 0
+    end
     self._detected = {
         extend_relative_to = ((opts.detected or {}).extend_relative_to) or "profile-primary",
         extend_direction = ((opts.detected or {}).extend_direction) or "left",
     }
 
     self._commands = {
-        get = brightness_opts.get or "xbacklight -get",
-        set = brightness_opts.set or "xbacklight -set %d",
+        get = brightness_opts.get,
+        set = brightness_opts.set,
         step = brightness_opts.step or 5,
         min = brightness_opts.min or 10,
         max = brightness_opts.max or 100,
-        off = brightness_opts.off or "xset dpms force off",
+        off = brightness_opts.off,
     }
     self._redshift = {
-        command = redshift_opts.command or "xrandr",
+        command = redshift_opts.command,
         enabled = redshift_opts.enabled ~= false,
         autostart = redshift_opts.autostart ~= false,
         latitude = redshift_opts.latitude,
@@ -87,7 +94,15 @@ function M.new(opts)
     self:_setup_shutdown_hook()
     self:_initialize_redshift()
     self:refresh_display_state()
-    self:auto_apply_startup_profile()
+    if self._startup_auto_apply_delay > 0 then
+        self._startup_auto_apply_timer = gears.timer.start_new(self._startup_auto_apply_delay, function()
+            self._startup_auto_apply_timer = nil
+            self:auto_apply_startup_profile()
+            return false
+        end)
+    else
+        self:auto_apply_startup_profile()
+    end
 
     return self
 end

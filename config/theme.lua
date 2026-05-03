@@ -1,12 +1,13 @@
 local M = {}
 local config_data = require("config.config_data")
+local gears = require("gears")
 local pairs = pairs
 local string = string
 
 local function theme_path(name)
     return string.format(
-        "%s/.config/awesome/themes/%s/theme.lua",
-        os.getenv("HOME"),
+        "%sthemes/%s/theme.lua",
+        gears.filesystem.get_configuration_dir(),
         name
     )
 end

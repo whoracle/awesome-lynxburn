@@ -24,7 +24,7 @@ commitizen:
     - Refactors
     - Documentation
     - Chores
-    changelog_pattern: '^(?:bump: .+|(feature|bugfix|docs|chore|refactor|break): \[(core|theme|lx[a-z0-9_-]+)\]
+    changelog_pattern: '^(?:bump: .+|(feature|bugfix|docs|chore|refactor|break): \[(somewm|core|theme|lx[a-z0-9_-]+)\]
       .+)$'
     commit_parser: '^(?P<change_type>feature|bugfix|docs|chore|refactor|break|bump):
       (?P<message>(?:\[(?P<component>core|theme|lx[a-z0-9_-]+)\] )?.+)$'
@@ -81,7 +81,7 @@ commitizen:
       name: message
       type: input
     schema: '<type>: [<component>] <message> | bump: <message>'
-    schema_pattern: '^(?:bump: .+|(feature|bugfix|docs|chore|refactor|break): \[(core|theme|lx[a-z0-9_-]+)\]
+    schema_pattern: '^(?:bump: .+|(feature|bugfix|docs|chore|refactor|break): \[(somewm|core|theme|lx[a-z0-9_-]+)\]
       .+)$'
   gpg_sign: true
   name: cz_customize

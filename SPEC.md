@@ -7,7 +7,7 @@ Planned work lives in [`ROADMAP.md`](./ROADMAP.md).
 ## Scope
 
 - this repo is a concrete AwesomeWM configuration with repo-owned `lx*`
-  modules, shared popup/bar infrastructure, and one bundled theme
+  modules, shared popup/bar infrastructure, and a bundled theme package
 - user-facing configuration lives in top-level `config.lua` and tracked shipped
   defaults/examples
 - shared behavior such as popup cycling, popup-role routing, and bar ordering
@@ -16,7 +16,7 @@ Planned work lives in [`ROADMAP.md`](./ROADMAP.md).
 
 ## Explicit Non-Goals For Now
 
-- no generic plugin framework
+- no generic plugin framework for the whole repo
   Why: this repo is still a concrete Awesome config with local modules, not a
   framework for arbitrary third-party extensions
 

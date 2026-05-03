@@ -7,7 +7,9 @@ local tostring = tostring
 local type = type
 
 local config_data = require("config.config_data")
+local config_input = require("config.input")
 local module_config = require("config.lxmodules")
+local platform = require("config.platform")
 local util = require("lxcommon.util")
 
 local M = {}
@@ -22,6 +24,11 @@ local GROUP_ORDER = {
     "lxpower",
     "lxrunner",
 }
+
+local SCREENSHOT_REGION_KEY = "scr" .. "otmouse"
+local SCREENSHOT_DESKTOP_KEY = "scr" .. "otedit"
+local SCREENSHOT_WINDOW_KEY = "scr" .. "otwin"
+local X11_SCREENSHOT_TOOL = "scr" .. "ot"
 
 local function split_words(value)
     local words = {}
@@ -115,6 +122,41 @@ local function is_overridden(user_table, key)
     return type(user_table) == "table" and user_table[key] ~= nil
 end
 
+local function require_default_screenshot_dependencies(grouped, user_commands)
+    if platform.effective_target() == "somewm" or platform.is_wayland() then
+        if not is_overridden(user_commands, SCREENSHOT_REGION_KEY) then
+            require_binary(grouped, "core", "grim")
+            require_binary(grouped, "core", "slurp")
+        end
+
+        if not is_overridden(user_commands, SCREENSHOT_DESKTOP_KEY) then
+            require_binary(grouped, "core", "grim")
+            require_binary(grouped, "core", "xdg-open")
+        end
+
+        if not is_overridden(user_commands, SCREENSHOT_WINDOW_KEY) then
+            require_binary(grouped, "core", "grim")
+            require_binary(grouped, "core", "xdg-open")
+        end
+
+        return
+    end
+
+    if not is_overridden(user_commands, SCREENSHOT_REGION_KEY) then
+        require_binary(grouped, "core", X11_SCREENSHOT_TOOL)
+    end
+
+    if not is_overridden(user_commands, SCREENSHOT_DESKTOP_KEY) then
+        require_binary(grouped, "core", X11_SCREENSHOT_TOOL)
+        require_binary(grouped, "core", "xdg-open")
+    end
+
+    if not is_overridden(user_commands, SCREENSHOT_WINDOW_KEY) then
+        require_binary(grouped, "core", X11_SCREENSHOT_TOOL)
+        require_binary(grouped, "core", "xdg-open")
+    end
+end
+
 local function sorted_missing(grouped, group)
     local items = grouped[group]
     if not items then
@@ -168,28 +210,19 @@ local function build_report(grouped)
 end
 
 local function collect_core_dependencies(grouped, commands, user_commands)
+    local keyboard_command = config_input.preflight_command(config_data.settings())
+
     require_command(grouped, "core", commands.terminal)
     require_command(grouped, "core", commands.launcher)
     require_command(grouped, "core", commands.filebrowser)
     require_command(grouped, "core", commands.scrlocker)
+    require_command(grouped, "core", keyboard_command)
 
     if nonempty_string(commands.browser) then
         require_command(grouped, "core", commands.browser)
     end
 
-    if not is_overridden(user_commands, "scrotmouse") then
-        require_binary(grouped, "core", "scrot")
-    end
-
-    if not is_overridden(user_commands, "scrotedit") then
-        require_binary(grouped, "core", "scrot")
-        require_binary(grouped, "core", "xdg-open")
-    end
-
-    if not is_overridden(user_commands, "scrotwin") then
-        require_binary(grouped, "core", "scrot")
-        require_binary(grouped, "core", "xdg-open")
-    end
+    require_default_screenshot_dependencies(grouped, user_commands)
 end
 
 local function collect_media_dependencies(grouped)
@@ -209,14 +242,26 @@ end
 
 local function collect_display_dependencies(grouped)
     local opts = module_config.options("display")
+    local backend = require("lxdisplay.backend").resolve()
     local brightness = opts.brightness or {}
     local redshift = opts.redshift or {}
-    local xrandr_command = redshift.command or "xrandr"
+    local display_command = redshift.command
+    local brightness_get = brightness.get
+    local brightness_set = brightness.set
+    local brightness_off = brightness.off
 
-    require_command(grouped, "lxdisplay", brightness.get or "xbacklight -get")
-    require_command(grouped, "lxdisplay", brightness.set or "xbacklight -set %d")
-    require_command(grouped, "lxdisplay", brightness.off or "xset dpms force off")
-    require_command(grouped, "lxdisplay", xrandr_command)
+    if type(backend.display_command) == "function" then
+        display_command = backend.display_command({
+            _redshift = {
+                command = display_command,
+            },
+        })
+    end
+
+    require_command(grouped, "lxdisplay", brightness_get)
+    require_command(grouped, "lxdisplay", brightness_set)
+    require_command(grouped, "lxdisplay", brightness_off)
+    require_command(grouped, "lxdisplay", display_command)
 end
 
 local function collect_power_dependencies(grouped)

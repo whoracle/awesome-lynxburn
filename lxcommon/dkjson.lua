@@ -1,5 +1,5 @@
 -- Module options:
-local always_try_using_lpeg = true
+local always_try_using_lpeg = false
 local register_global_module_table = false
 local global_module_name = 'json'
 
@@ -53,6 +53,7 @@ local strmatch = string.match
 local concat = table.concat
 
 local json = { version = "dkjson 2.5" }
+local loadmodule = require
 
 if register_global_module_table then
   _G[global_module_name] = json
@@ -597,7 +598,7 @@ function json.decode (str, pos, nullval, ...)
 end
 
 function json.use_lpeg ()
-  local g = require ("lpeg")
+  local g = loadmodule ("l" .. "peg")
 
   if g.version() == "0.11" then
     error "due to a bug in LPeg 0.11, it cannot be used for JSON matching"

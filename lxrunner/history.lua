@@ -2,6 +2,7 @@ local awful = require("awful")
 local gears = require("gears")
 local json = require("lxcommon.dkjson")
 local util = require("lxcommon.util")
+local clipboard = require("lxrunner.clipboard")
 
 local M = {}
 
@@ -462,15 +463,7 @@ function M.extend(instance_methods)
 
     ---Pick a backend for primary-selection paste if one is available.
     function instance_methods:_primary_selection_command()
-        if util.command_exists("xclip") then
-            return "xclip -o -selection primary 2>/dev/null"
-        end
-
-        if util.command_exists("xsel") then
-            return "xsel -o -p 2>/dev/null"
-        end
-
-        return nil
+        return clipboard.primary_selection_command(util)
     end
 
     ---Paste X11 primary selection into the prompt without closing the runner.

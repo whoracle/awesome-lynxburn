@@ -221,7 +221,7 @@ function M.bluetooth()
 
         registry.register_widget("bluetooth", instance.widget, 10)
         register_single_popup("bluetooth", instance, "default", "primary", "_popup", function(service, popup_opts)
-            service:toggle_popup(nil, popup_opts)
+            service:show_popup(nil, popup_opts)
         end, function(service)
             service:close_popup()
         end, {
@@ -261,7 +261,7 @@ function M.display()
         registry.register_widget("display", instance.widget, 60)
         if instance.xrandr_enabled and instance:xrandr_enabled() then
             register_single_popup("display", instance, "default", "secondary", "_popup", function(service, popup_opts)
-                service:toggle_popup(nil, popup_opts)
+                service:show_popup(nil, popup_opts)
             end, function(service)
                 service:close_popup()
             end, {
@@ -281,7 +281,7 @@ function M.network()
 
         registry.register_widget("network", instance.widget, 20)
         register_single_popup("network", instance, "default", "primary", "_popup", function(service, popup_opts)
-            service:toggle_popup(nil, popup_opts)
+            service:show_popup(nil, popup_opts)
         end, function(service)
             service:close_popup()
         end, {
@@ -325,7 +325,7 @@ function M.power()
 
         registry.register_widget("power", instance.widget, 30)
         register_single_popup("power", instance, "default", "secondary", "_popup", function(service, popup_opts)
-            service:toggle_popup(nil, popup_opts)
+            service:show_popup(nil, popup_opts)
         end, function(service)
             service:close_popup()
         end, {
@@ -347,7 +347,7 @@ function M.secrets()
             include_in_popup_cycle = options.cycle_exclude ~= true,
         })
         register_single_popup("secrets", instance, "default", "primary", "_popup", function(service, popup_opts)
-            service:toggle_popup(nil, popup_opts)
+            service:show_popup(nil, popup_opts)
         end, function(service)
             service:close_popup()
         end, {

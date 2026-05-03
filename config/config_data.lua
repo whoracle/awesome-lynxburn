@@ -1,5 +1,6 @@
 local helpers = require("config.helpers")
 local defaults = require("config.defaults")
+local platform = require("config.platform")
 local os = os
 local ipairs = ipairs
 local gears = require("gears")
@@ -9,26 +10,31 @@ local M = {}
 local cached_sections = {}
 local cached_user_config
 
+local function load_config_file(path)
+    local ok, result = pcall(dofile, path)
+
+    if ok then
+        return type(result) == "table" and result or {}
+    end
+
+    local err = tostring(result or "")
+    if err:match("No such file or directory") then
+        return nil
+    end
+
+    error(result)
+end
+
 local function load_user_config()
     if cached_user_config ~= nil then
         return cached_user_config
     end
 
-    local config_path = gears.filesystem.get_configuration_dir() .. "config.lua"
-    local ok, result = pcall(dofile, config_path)
+    local config_dir = gears.filesystem.get_configuration_dir()
+    local merged = load_config_file(config_dir .. "config.lua") or {}
 
-    if ok then
-        cached_user_config = type(result) == "table" and result or {}
-        return cached_user_config
-    end
-
-    local err = tostring(result or "")
-    if err:match("No such file or directory") then
-        cached_user_config = {}
-        return cached_user_config
-    end
-
-    error(result)
+    cached_user_config = merged
+    return cached_user_config
 end
 
 local function shell_escape(value)
@@ -60,13 +66,21 @@ local function resolve_terminal(command)
         return configured
     end
 
-    for _, candidate in ipairs({
+    local candidates = platform.is_wayland() and {
+        "foot",
+        "alacritty",
+        "kitty",
+        "xterm",
+        "x-terminal-emulator",
+    } or {
         "alacritty",
         "kitty",
         "urxvt",
         "xterm",
         "x-terminal-emulator",
-    }) do
+    }
+
+    for _, candidate in ipairs(candidates) do
         if command_exists(candidate) then
             return candidate
         end

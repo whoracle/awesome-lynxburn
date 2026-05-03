@@ -120,13 +120,18 @@ actual side follows `lxmodules.lxbar.popup_side`.
 - `[placeholder] bluetooth popup`
 - `[placeholder] paired device list`
 
+## Further Reading
+
+- [Top-level roadmap](../ROADMAP.md)
+- [lxbluetooth spec](./SPEC.md)
+
 ## File Layout
 
 - `init.lua`: constructor, widget setup, and periodic refresh timer
 - `theme.lua`: theme accessors and top-level widget refresh logic
 - `state.lua`: bluetoothctl parsing, manager launch, power toggle, and device refresh
 - `popup.lua`: popup rendering, device rows, and popup selection state
-- `controller.lua`: popup open/close, keygrabber wiring, and hover/outside-click dismissal
+- `controller.lua`: named-popup descriptor wiring for shared popup control
 
 ## Notes
 

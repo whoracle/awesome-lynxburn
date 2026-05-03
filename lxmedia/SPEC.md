@@ -18,10 +18,6 @@ Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
 - the module may use both event subscription and polling so responsiveness does
   not depend on one backend path only
 
-## Known issues
-
-- README.md is missing the keyboard controls contract. Only mouse interactions and "how to spawn the widget" keybindings are documented.
-
 ## Unplanned
 
 - No attempt to become a full mixer UI comparable to `pavucontrol`.

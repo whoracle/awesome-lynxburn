@@ -4,38 +4,20 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 ## Summary
 
-Unless otherwise noted, the original code in this repository is licensed under
-the GNU General Public License, version 2 or, at your option, any later
-version.
+Unless otherwise noted, this repository is licensed under the GNU General
+Public License, version 2 or, at your option, any later version.
 
-This repository is **not** a single-uniform-license tree. It contains
-third-party components and inherited assets that retain their own licensing
-terms.
+Third-party code and inherited assets called out below keep their own terms.
 
-## Original Code
+## What This Means
 
-The following repository-owned code is intended to be covered by
-`GPL-2.0-or-later`, unless a file states otherwise:
+In short:
 
-- `rc.lua`
-- `config/`
-- `lxbar/`
-- `lxcommon/`
-- `lxbluetooth/`
-- `lxdisplay/`
-- `lxmedia/`
-- `lxnetwork/`
-- `lxnotify/`
-- `lxpower/`
-- `lxrunner/`
-- `lxsecrets/`
-- `widgets/`
-- `themes/lynxburn/*.lua`
-- `themes/lynxburn/colors/`
-
-This code is distributed in the hope that it will be useful, but **WITHOUT ANY
-WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or
-**FITNESS FOR A PARTICULAR PURPOSE**.
+- this repository is `GPL-2.0-or-later` unless specifically stated otherwise
+- bundled third-party code keeps its original license
+- inherited theme assets keep their original terms where known
+- unclear assets are documented as best-effort provenance notes, not relicensed
+- there is no warranty
 
 ## Third-Party Components
 
@@ -48,12 +30,11 @@ The following third-party components retain their upstream licenses:
 
 These third-party components are not relicensed by this file.
 
-## Theme And Asset Notices
+## Third-Party Assets
 
 The active theme tree under `themes/lynxburn/` contains a mix of original work
-and a small number of inherited non-code assets. This file does **not** claim
-that every asset under `themes/lynxburn/` is newly relicensed as
-`GPL-2.0-or-later`.
+and a small number of inherited non-code assets. This file does not relicense
+those inherited assets.
 
 - `themes/lynxburn/icons/square_sel.png` and
   `themes/lynxburn/icons/square_unsel.png`
@@ -65,19 +46,19 @@ that every asset under `themes/lynxburn/` is newly relicensed as
   Awesome theme directory, not relicensed here.
 - Bundled default wallpaper, historically known as `dwallpaper`
   This wallpaper was previously distributed as `Terraform Green` /
-  `Terraform-green.jpg` in GNOME backgrounds. Public GNOME commit history shows
-  it was still present until a cleanup commit in November 2017 removed it from
-  the active background set. Older public references also describe it as part of
-  the official GNOME backgrounds around the GNOME 3.2 era. Clear original
-  authorship/licensing attribution has not been pinned down in this repository.
-  If someone has clean attribution for this asset, a PR is welcome.
+  `Terraform-green.jpg` in GNOME backgrounds. Public GNOME history shows it was
+  still present until a November 2017 cleanup removed it from the active
+  background set. Older public references also describe it as part of the
+  official GNOME backgrounds around the GNOME 3.2 era. Clear original
+  authorship/licensing attribution has not been pinned down here. If someone
+  has clean attribution for this asset, a PR is welcome.
 
-Until a finer-grained audit is done, treat inherited or bundled non-code assets
-as third-party material that keeps its existing terms where applicable.
+Treat inherited or bundled non-code assets as third-party material that keeps
+its existing terms where applicable.
 
 ## GPL Terms
 
-For repository-owned code covered by `GPL-2.0-or-later`, you may redistribute
+For repository contents covered by `GPL-2.0-or-later`, you may redistribute
 and/or modify it under the terms of the GNU General Public License as published
 by the Free Software Foundation, either:
 

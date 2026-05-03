@@ -12,7 +12,8 @@ External:
 
 - AwesomeWM core libraries: `awful`, `gears`, `wibox`, `beautiful`
 - `find` for PATH command and desktop-entry discovery
-- optional `xclip` or `xsel` for middle-click primary-selection paste
+- optional `xclip` or `xsel` for middle-click primary-selection paste on X11
+- optional `wl-paste` for middle-click primary-selection paste on Wayland
 
 Internal:
 
@@ -60,7 +61,7 @@ lxmodules = {
             },
             {
                 name = "vpn-up",
-                command = "nmcli connection up senec",
+                command = "nmcli connection up MYVPNCONNECTIONNAME",
                 notify = "lxnetwork",
             },
         },
@@ -159,6 +160,11 @@ Alias `type` values currently used:
 - `[placeholder] empty runner`
 - `[placeholder] filtered results`
 - `[placeholder] alias with glyph/icon`
+
+## Further Reading
+
+- [Top-level roadmap](../ROADMAP.md)
+- [lxrunner spec](./SPEC.md)
 
 ## File Layout
 

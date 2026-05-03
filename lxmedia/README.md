@@ -29,7 +29,8 @@ The widget refreshes on a timer and also subscribes to `pactl subscribe` so it r
 
 ## Dependencies
 
-This project is meant for AwesomeWM and assumes a Linux desktop with PulseAudio-compatible tooling available.
+`lxmedia` assumes AwesomeWM and a Linux desktop with PulseAudio-compatible
+tooling available.
 
 Required runtime dependencies:
 
@@ -47,9 +48,11 @@ Notes:
 - the top-level startup preflight checks all three of these tools when `lxmedia`
   is enabled in `lxmodules.lxbar.order`
 
-## Installation
+## Repo Usage
 
-Place the project somewhere Awesome can `require`, with the module directory named `lxmedia`.
+The module lives in this repo as `lxmedia` and is loaded through the normal
+config service/bootstrap flow. If you copy it elsewhere, keep the directory name
+as `lxmedia` so Awesome can `require` it.
 
 Example layout:
 
@@ -325,6 +328,11 @@ Fallbacks:
 - `[placeholder] compact widget`
 - `[placeholder] media popup`
 - `[placeholder] devices popup`
+
+## Further Reading
+
+- [Top-level roadmap](../ROADMAP.md)
+- [lxmedia spec](./SPEC.md)
 
 ## Known Limitations And Edge Cases
 

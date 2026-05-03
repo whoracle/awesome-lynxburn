@@ -8,6 +8,7 @@ local popup = require("lxnotify.popup")
 local store = require("lxnotify.store")
 
 local popup_state = {}
+local unpack = table.unpack or unpack
 
 local POPUP_TITLES = {
     notifications = "Notifications",
@@ -303,7 +304,7 @@ function popup_state.extend(instance_methods)
             self.popup_footer_text = nil
         end
 
-        list:buttons(gears.table.join(table.unpack(wheel_buttons)))
+        list:buttons(gears.table.join(unpack(wheel_buttons)))
 
         popup.refresh_header(self)
     end

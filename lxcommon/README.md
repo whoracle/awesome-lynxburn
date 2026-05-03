@@ -92,6 +92,11 @@ the calling module rather than by `lxcommon`-specific theme variables.
 - TODO: popup helper examples
 - TODO: shared OSD example
 
+## Further Reading
+
+- [Top-level roadmap](../ROADMAP.md)
+- [lxcommon spec](./SPEC.md)
+
 ## File Layout
 
 - `init.lua`: convenience aggregator for the shared helper modules
