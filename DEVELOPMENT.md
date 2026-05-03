@@ -135,6 +135,10 @@ Exception:
 
 `bump: <message>`
 
+Release marker:
+
+`release: vX.Y.Z`
+
 Current allowed types:
 
 - `feature`
@@ -144,6 +148,7 @@ Current allowed types:
 - `chore`
 - `break`
 - `bump`
+- `release`
 
 Current allowed components:
 
@@ -166,6 +171,7 @@ Version/changelog rules currently are:
 - `feature` -> minor bump
 - `bugfix` -> patch bump
 - `bump` -> patch bump
+- `release` -> no version bump
 - `refactor`, `docs`, `chore` -> no version bump
 
 ## Pull Requests

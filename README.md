@@ -31,6 +31,24 @@ first rather than a polished general-purpose distribution.
   filesystem, and systray
 - startup preflight checks for missing tools that would otherwise fail quietly
 
+## Screenshots
+
+All popups - right side mode:
+
+[![all_popups_side](./screenshots/all_popups_side.jpg)](./screenshots/all_popups_side.jpg)
+
+Color themes:
+
+- lynxburn: [![lynxburn](./screenshots/theme_lynxburn.jpg)](./screenshots/theme_lynxburn.jpg)
+- zenburn: [![zenburn](./screenshots/theme_zenburn.jpg)](./screenshots/theme_zenburn.jpg)
+- nord: [![nord](./screenshots/theme_nord.jpg)](./screenshots/theme_nord.jpg)
+- catppuccin: [![catppuccin](./screenshots/theme_catppuccin.jpg)](./screenshots/theme_catppuccin.jpg)
+- solarized_dark: [![solarized_dark](./screenshots/theme_solarized_dark.jpg)](./screenshots/theme_solarized_dark.jpg)
+- solarized_light: [![solarized_light](./screenshots/theme_solarized_light.jpg)](./screenshots/theme_solarized_light.jpg)
+- kanagawa_wave: [![kanagawa_wave](./screenshots/theme_kanagawa_wave.jpg)](./screenshots/theme_kanagawa_wave.jpg)
+- kanagawa_dragon: [![kanagawa_dragon](./screenshots/theme_kanagawa_dragon.jpg)](./screenshots/theme_kanagawa_dragon.jpg)
+- kanagawa_lotus: [![kanagawa_lotus](./screenshots/theme_kanagawa_lotus.jpg)](./screenshots/theme_kanagawa_lotus.jpg)
+
 ## Compatibility
 
 - Tested daily with AwesomeWM 4.3 on X11.

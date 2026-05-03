@@ -1,3 +1,5 @@
 config.lua
 !config.example.lua
 DOCS.md
+public-release.sh
+.codex

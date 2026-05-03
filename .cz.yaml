@@ -15,22 +15,26 @@ commitizen:
       chore: Chores
       docs: Documentation
       feature: Features
+      release: Releases
       refactor: Refactors
     change_type_order:
     - Breaking Changes
     - Features
     - Bug Fixes
     - Version Bumps
+    - Releases
     - Refactors
     - Documentation
     - Chores
-    changelog_pattern: '^(?:bump: .+|(feature|bugfix|docs|chore|refactor|break): \[(somewm|core|theme|lx[a-z0-9_-]+)\]
+    changelog_pattern: '^(?:bump: .+|release: v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?|(feature|bugfix|docs|chore|refactor|break):
+      \[(somewm|core|theme|lx[a-z0-9_-]+)\]
       .+)$'
-    commit_parser: '^(?P<change_type>feature|bugfix|docs|chore|refactor|break|bump):
+    commit_parser: '^(?P<change_type>feature|bugfix|docs|chore|refactor|break|bump|release):
       (?P<message>(?:\[(?P<component>core|theme|lx[a-z0-9_-]+)\] )?.+)$'
     example: 'feature: [lxmedia] add microphone activity bar toggle'
     info: 'Use ''<type>: [<component>] <message>'' for normal commits. `bump` is the
-      exception and uses ''bump: <message>'' without a component.'
+      exception and uses ''bump: <message>'' without a component. Releases use
+      ''release: vX.Y.Z''.'
     message_template: '{{change_type}}: [{{component}}] {{message}}'
     questions:
     - choices:
@@ -48,6 +52,8 @@ commitizen:
         value: break
       - name: 'bump: version-only maintenance change, bumps patch'
         value: bump
+      - name: 'release: release marker, no bump'
+        value: release
       message: Select the type of change
       name: change_type
       type: list
@@ -80,8 +86,9 @@ commitizen:
     - message: Write a short imperative summary
       name: message
       type: input
-    schema: '<type>: [<component>] <message> | bump: <message>'
-    schema_pattern: '^(?:bump: .+|(feature|bugfix|docs|chore|refactor|break): \[(somewm|core|theme|lx[a-z0-9_-]+)\]
+    schema: '<type>: [<component>] <message> | bump: <message> | release: vX.Y.Z'
+    schema_pattern: '^(?:bump: .+|release: v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?|(feature|bugfix|docs|chore|refactor|break):
+      \[(somewm|core|theme|lx[a-z0-9_-]+)\]
       .+)$'
   gpg_sign: true
   name: cz_customize
