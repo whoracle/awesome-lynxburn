@@ -47,7 +47,7 @@ local function build(month, year, options)
     }
 
     if options.week_number == "left" then
-        rows[#rows + 1] = "     | "
+        rows[#rows + 1] = "    |  "
     end
 
     for day_num = 0, 6 do
