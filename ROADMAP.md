@@ -142,6 +142,29 @@ Back-of-the-napkin idea:
 - make snippets easy to copy into the clipboard
 - maybe keep a small clipboard-paste history
 
+### `lxswitcher`
+
+Possible Alt-Tab style client switcher:
+
+- list current clients from Awesome's client list
+- show title, class/app, tag, screen, urgency, minimized state, and icon
+- support keyboard navigation and quick activation
+- maybe support fuzzy filtering later if the plain switcher list gets too long
+
+Window previews are desirable but should be optional, not the core contract:
+
+- first version should work without previews
+- on X11, investigate `client.content` first if Awesome 4.3 exposes it
+  reliably enough
+- otherwise consider a cache-backed X11 screenshot backend using client window
+  ids
+- avoid per-client live screenshotting on every navigation step unless proven
+  fast enough
+- on SomeWM/Wayland, degrade cleanly to icon/title cards unless a dependable
+  compositor-safe preview path exists
+
+Keep this as a switcher, not a window-management dashboard.
+
 ### `lxupdate`
 
 Back-of-the-napkin idea:
