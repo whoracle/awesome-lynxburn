@@ -41,6 +41,7 @@ function M.new(opts)
     local redshift_opts = opts.redshift or {}
     self._backend = backend.resolve()
     self._opts = opts
+    self._debug_profile_matching = opts.debug_profile_matching == true
     self._profiles_enabled = type(opts.profiles) == "table"
     self._profiles = self:_normalize_profiles(opts.profiles)
     self._startup_auto_apply = opts.auto_apply ~= false
