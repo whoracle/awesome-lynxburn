@@ -210,7 +210,7 @@ function M.profile_matches_state(instance, profile, state)
 
                 if output_opts.rate ~= nil
                     and output_opts.rate ~= ""
-                    and instance:_normalized_rate(live.rate) ~= instance:_normalized_rate(output_opts.rate) then
+                    and not instance:_rates_match(live.rate, output_opts.rate) then
                     debug_profile_match(instance, string.format(
                         "%s: rate mismatch live=%s desired=%s normalized_live=%s normalized_desired=%s",
                         output_name,

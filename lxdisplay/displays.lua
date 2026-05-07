@@ -91,6 +91,19 @@ function displays.extend(instance_methods)
         return math.floor((number * 100) + 0.5)
     end
 
+    function instance_methods:_rates_match(live_rate, desired_rate)
+        local live = self:_normalized_rate(live_rate)
+        local desired = self:_normalized_rate(desired_rate)
+
+        if live == nil or desired == nil then
+            return live == desired
+        end
+
+        -- xrandr can report the same selected mode with slightly different
+        -- rounded refresh rates before/after applying a profile.
+        return math.abs(live - desired) <= 10
+    end
+
     function instance_methods:xrandr_enabled()
         return self._profiles_enabled == true and self._backend.supports_profiles()
     end
