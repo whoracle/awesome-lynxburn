@@ -15,6 +15,8 @@ Planned work lives in [`../ROADMAP.md`](../ROADMAP.md).
   always-on
 - backend-specific command details stay behind the backend layer; profile
   configuration should remain as close as practical between X11 and SomeWM
+- startup profile application should be a no-op when the active backend state
+  already matches the selected profile closely enough to avoid display flicker
 
 ## Explicit Non-Goals For Now
 
