@@ -91,6 +91,19 @@ function displays.extend(instance_methods)
         return math.floor((number * 100) + 0.5)
     end
 
+    function instance_methods:_rates_match(live_rate, desired_rate)
+        local live = self:_normalized_rate(live_rate)
+        local desired = self:_normalized_rate(desired_rate)
+
+        if live == nil or desired == nil then
+            return live == desired
+        end
+
+        -- xrandr can report the same selected mode with slightly different
+        -- rounded refresh rates before/after applying a profile.
+        return math.abs(live - desired) <= 10
+    end
+
     function instance_methods:xrandr_enabled()
         return self._profiles_enabled == true and self._backend.supports_profiles()
     end
@@ -503,6 +516,14 @@ function displays.extend(instance_methods)
         })
     end
 
+    function instance_methods:_debug_profile_match(message)
+        if not self._debug_profile_matching then
+            return
+        end
+
+        io.stderr:write("[lxdisplay] profile match: " .. tostring(message) .. "\n")
+    end
+
     function instance_methods:_query_xrandr_state(callback)
         self._backend.query_state(self, callback)
     end
@@ -821,13 +842,23 @@ function displays.extend(instance_methods)
         opts = opts or {}
         local profile = self._profiles[index]
         if not profile then
+            self:_debug_profile_match("requested profile index " .. tostring(index) .. " does not exist")
             return
         end
+
+        self:_debug_profile_match(string.format(
+            "apply request profile='%s' index=%s skip_if_matching=%s allow_panic_fallback=%s",
+            profile.name or "unnamed profile",
+            tostring(index),
+            tostring(opts.skip_if_matching ~= false),
+            tostring(opts.allow_panic_fallback == true)
+        ))
 
         self:_query_xrandr_state(function(state)
             self:_remember_inventory(state)
 
             if opts.skip_if_matching ~= false and self:_profile_matches_state(profile, state) then
+                self:_debug_profile_match("profile already matches; skipping apply")
                 self.state.active_profile_index = index
                 self._active_profile_missing_signature = nil
                 self:_refresh_detected_outputs(state)
@@ -849,6 +880,7 @@ function displays.extend(instance_methods)
 
                 if opts.allow_panic_fallback then
                     self:_notify_display_error(message)
+                    self:_debug_profile_match("profile plan missing outputs; running panic fallback")
                     self._backend.panic_mirror(self, state)
                 else
                     self:_notify_display_error(message)
@@ -862,11 +894,14 @@ function displays.extend(instance_methods)
 
             self.state.active_profile_index = index
             self._active_profile_missing_signature = nil
+            self:_debug_profile_match("profile differs; applying argv: " .. table.concat(args, " "))
             self:_apply_xrandr_argv(args, function(ok, refreshed_state)
                 if ok then
+                    self:_debug_profile_match("profile apply completed successfully")
                     return
                 end
 
+                self:_debug_profile_match("profile apply failed")
                 self:_notify_display_error(string.format(
                     "Applying profile '%s' failed.",
                     profile.name or "unnamed profile"

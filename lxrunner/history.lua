@@ -56,6 +56,65 @@ local function command_matches(name, query)
         return start_at
     end
 
+    local search_from = 1
+    local first_at = nil
+    local last_at = nil
+
+    for index = 1, #query do
+        local needle = query:sub(index, index)
+        local found_at = lower_name:find(needle, search_from, true)
+
+        if not found_at then
+            return nil
+        end
+
+        first_at = first_at or found_at
+        last_at = found_at
+        search_from = found_at + 1
+    end
+
+    local spread = math.max(0, (last_at or 0) - (first_at or 0) - #query + 1)
+    return 100 + (first_at or 0) + spread
+end
+
+local function completion_candidate_matches(candidate, query)
+    if query == "" then
+        return false
+    end
+
+    return command_matches(candidate, query) ~= nil
+end
+
+local function candidate_starts_with(candidate, query)
+    if query == "" then
+        return false
+    end
+
+    return normalize_query(candidate):sub(1, #query) == query
+end
+
+local function prefix_completion_candidates(entries, query)
+    local candidates = {}
+
+    for _, entry in ipairs(entries) do
+        local candidate = entry.alias_name or entry.name
+        if candidate and candidate ~= "" and candidate_starts_with(candidate, query) then
+            table.insert(candidates, candidate)
+        end
+    end
+
+    table.sort(candidates)
+    return candidates
+end
+
+local function selected_completion_candidate(entries, selected_index, query)
+    local selected = entries[selected_index]
+    local candidate = selected and (selected.alias_name or selected.name)
+
+    if candidate and candidate ~= "" and completion_candidate_matches(candidate, query) then
+        return candidate
+    end
+
     return nil
 end
 
@@ -528,16 +587,14 @@ function M.extend(instance_methods)
         end
 
         local normalized_base_query = normalize_query(base_query)
-        local candidates = {}
-
-        for _, entry in ipairs(entries) do
-            local candidate = entry.alias_name or entry.name
-            if normalize_query(candidate):sub(1, #normalized_base_query) == normalized_base_query then
-                table.insert(candidates, candidate)
-            end
-        end
+        local candidates = prefix_completion_candidates(entries, normalized_base_query)
 
         if #candidates == 0 then
+            local selected = selected_completion_candidate(entries, self._selected_index, normalized_base_query)
+            if selected and suffix == "" then
+                self._input = selected .. " "
+                self:_refresh()
+            end
             return
         end
 

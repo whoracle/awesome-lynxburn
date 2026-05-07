@@ -12,7 +12,10 @@ If `lxmodules.lxdisplay.profiles` is unset, the display-management popup is
 disabled and the module stays in brightness/redshift-only mode.
 
 If profiles are configured, `lxdisplay` auto-applies one on startup by default.
-Set `auto_apply = false` to disable that behavior while debugging.
+It first checks the current backend state and skips the actual profile command
+when the selected startup profile already matches, avoiding unnecessary display
+flicker on login. Set `auto_apply = false` to disable startup application while
+debugging.
 
 ## Dependencies
 
@@ -66,6 +69,7 @@ Config example:
 lxmodules = {
     lxdisplay = {
         auto_apply = false,
+        debug_profile_matching = false,
         refresh_interval = 15,
         profiles = {
             {
@@ -139,6 +143,7 @@ Programmatic actions:
 lxmodules = {
     lxdisplay = {
         auto_apply = true,
+        debug_profile_matching = false,
         refresh_interval = 15,
         enable_osd = true,
         osd_width = 260,
@@ -194,6 +199,8 @@ Supported knobs:
 
 - `refresh_interval`
 - `auto_apply`
+- `auto_apply_delay`
+- `debug_profile_matching`
 - `enable_osd`
 - `osd_width`
 - `osd_height`
@@ -239,9 +246,20 @@ Startup profile selection works like this:
 - multiple profiles with no default or multiple defaults: notify, then fall back
   to the first profile
 
+Before applying the selected startup profile, `lxdisplay` compares the desired
+profile with the current display backend state. On X11 this checks connected
+outputs, active/off state, primary output, explicit mode, rotation, and refresh
+rate. Refresh-rate comparison is tolerant of small `xrandr` reporting
+differences, because the same selected mode can be reported as values such as
+`143.86` and `143.92` on different reads.
+
 If startup profile application fails, `lxdisplay` falls back to a hardcoded
 panic layout that enables all connected outputs with `--auto` and mirrors them
 to the primary output so some screen stays usable.
+
+Set `debug_profile_matching = true` to log the startup profile decision to
+stderr / `~/.xsession-errors`. This prints the live-vs-desired output state,
+whether the profile was skipped, and the backend command if one is applied.
 
 `profiles[].outputs.<output>.mode` is special-cased:
 
