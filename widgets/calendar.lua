@@ -46,6 +46,10 @@ local function build(month, year, options)
         string.format("%s%s\n", string.rep(" ", math.floor((28 - #title) / 2)), markup.bold(title)),
     }
 
+    if options.week_number == "left" then
+        rows[#rows + 1] = "    |  "
+    end
+
     for day_num = 0, 6 do
         rows[#rows + 1] = string.format("%3s ", os.date("%a", os.time({
             year = 2006,
@@ -78,13 +82,13 @@ local function build(month, year, options)
             line = week_number(month, year, week_start, row) .. line
         end
 
-        rows[#rows + 1] = line:gsub("%s+$", "")
+        rows[#rows + 1] = line:gsub("%s+$", "") .. "\n"
         if day > last.day then
             break
         end
     end
 
-    return table.concat(rows, "")
+    return table.concat(rows, ""):gsub("\n$", "")
 end
 
 function M.hide()

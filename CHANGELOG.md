@@ -1,3 +1,30 @@
+## v1.12.0 (2026-05-07)
+
+### Features
+
+- [lxrunner] add fuzzy result matching
+
+### Bug Fixes
+
+- [lxdisplay] tolerate xrandr rate rounding
+- [lxdisplay] parse xrandr rotation state
+- [lxdisplay] add profile tracing debug mode
+- [core] align calendar weekday spacing
+- [core] align calendar weekday headers
+- [core] preserve calendar row line breaks
+- [core] allow nested widget markup
+
+### Documentation
+
+- [lxdisplay] document startup profile matching
+- [core] add lxswitcher roadmap idea
+- [core] add screenshots
+
+### Chores
+
+- [core] allow release commit markers
+- [core] add some stuff to gitignore
+
 ## v1.11.0 (2026-05-03)
 
 ### Features

@@ -43,6 +43,11 @@ Apply these user-facing migrations when moving from `v1.10.0` to `v1.11.0`:
   `config.somewm.example.lua` are now tracked starter/reference files
   - existing `config.lua` files do not need to be replaced
   - use the new examples only as references for local cleanup or a new checkout
+- `lxdisplay` startup profile application now skips the backend command when
+  the current display state already matches the selected profile
+  - no config migration is required
+  - set `lxmodules.lxdisplay.debug_profile_matching = true` temporarily if you
+    need to inspect why a profile does or does not match
 
 Internal API note for local extensions:
 
