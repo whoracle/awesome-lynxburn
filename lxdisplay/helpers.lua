@@ -55,16 +55,43 @@ function helpers.parse_connected_outputs(stdout)
 end
 
 ---Parse connected xrandr outputs and retain ordering plus `primary` state.
-function helpers.parse_xrandr_outputs(stdout)
+function helpers.parse_xrandr_outputs(stdout, opts)
+    opts = opts or {}
     local outputs = {}
     local current_output = nil
+    local rotations = {
+        normal = true,
+        left = true,
+        right = true,
+        inverted = true,
+    }
 
     for line in tostring(stdout or ""):gmatch("[^\r\n]+") do
         local name, suffix = line:match("^(%S+)%s+connected(.*)$")
         if name then
             local geometry = tostring(suffix or ""):match("%s(%d+x%d+[%+%-]%d+[%+%-]%d+)")
             local width, height, pos_x, pos_y = geometry and geometry:match("^(%d+)x(%d+)([%+%-]%d+)([%+%-]%d+)$") or nil
-            local rotation = tostring(suffix or ""):match("%s(normal|left|right|inverted)%s")
+            local rotation = nil
+            local geometry_end = nil
+            if geometry then
+                _, geometry_end = tostring(suffix or ""):find(geometry, 1, true)
+            end
+            local after_geometry = geometry_end and tostring(suffix or ""):sub(geometry_end + 1)
+            local first_after_geometry = after_geometry and after_geometry:match("^%s*(%S+)")
+            if opts.debug then
+                io.stderr:write(string.format(
+                    "[lxdisplay] xrandr parse: %s geometry=%s first_after_geometry=%s suffix=%s\n",
+                    name,
+                    tostring(geometry),
+                    tostring(first_after_geometry),
+                    tostring(suffix or "")
+                ))
+            end
+            if rotations[first_after_geometry] then
+                rotation = first_after_geometry
+            elseif geometry then
+                rotation = "normal"
+            end
             current_output = {
                 name = name,
                 primary = tostring(suffix or ""):match("%sprimary%s") ~= nil,

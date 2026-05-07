@@ -90,7 +90,9 @@ end
 
 function M.query_state(instance, callback)
     awful.spawn.easy_async({ M.display_command(instance), "--query" }, function(stdout)
-        local outputs = helpers.parse_xrandr_outputs(stdout)
+        local outputs = helpers.parse_xrandr_outputs(stdout, {
+            debug = instance._debug_profile_matching == true,
+        })
         local primary_output = nil
 
         for _, output in ipairs(outputs) do
